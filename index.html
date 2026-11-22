@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.3.3 — 資料夾自動載入精靈圖與白盒容錯版</title>
+<title>《論語戰棋》v0.4 — 戰場鏡頭與古風現代化 UI 重構版</title>
 <style>
   :root {
     --bg: #090e1a;
@@ -198,139 +198,819 @@
   }
   .nav-tab.active { background: #1e293b; color: var(--gold); }
 
-  /* ==================== 場景 3：手機戰棋戰鬥 ==================== */
-  .battle-wrap { flex: 1; display: flex; flex-direction: column; padding: 6px; gap: 6px; }
-  .battle-hex-bar {
-    background: var(--panel); border: 1px solid var(--panel-border);
-    border-radius: 9px; padding: 6px 10px; display: flex; flex-direction: column; gap: 3px;
+  /* ==================== 場景 3：手機戰棋戰鬥 (v0.4 全屏沉浸式重構) ==================== */
+  .mobile-shell.in-battle {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    padding-bottom: 0;
   }
-  .hex-row-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  .hex-name-txt { font-size: 0.86rem; font-weight: 900; color: var(--gold); }
-  .hex-desc-txt { font-size: 0.72rem; color: #cbd5e1; }
-  .syn-strip { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .mobile-shell.in-battle .top-header {
+    display: none;
+  }
+  .mobile-shell.in-battle #sceneBattle {
+    overflow: hidden;
+    height: 100%;
+  }
+
+  .battle-wrap {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    background: #0b0f17;
+  }
+
+  /* 1. 頂部極簡天時條 (~10%) */
+  .battle-top-bar {
+    flex: 0 0 auto;
+    min-height: 54px;
+    max-height: 11dvh;
+    background: linear-gradient(180deg, #171412 0%, #0e131e 100%);
+    border-bottom: 1.5px solid #6b532e;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    z-index: 30;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+  }
+  .hex-left-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    flex: 1;
+  }
+  .hex-badge-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  .hex-badge-btn {
+    background: linear-gradient(135deg, #3b2810, #1f160a);
+    border: 1px solid #d4a446;
+    color: #fef08a;
+    font-size: 0.78rem;
+    font-weight: 900;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .hex-desc-mini {
+    font-size: 0.67rem;
+    color: #cbd5e1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .syn-strip {
+    display: flex;
+    gap: 4px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    align-items: center;
+    scrollbar-width: none;
+  }
+  .syn-strip::-webkit-scrollbar { display: none; }
   .syn-tag {
-    font-size: 0.67rem; font-weight: 800; padding: 1px 6px; border-radius: 999px;
-    background: #0f172a; border: 1px solid #334155; color: #64748b;
+    font-size: 0.64rem;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #172033;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    white-space: nowrap;
+    display: none;
   }
-  .syn-tag.on { background: #713f12; border-color: #facc15; color: #fef08a; }
-  .syn-tag.domain { background: #064e3b; border-color: #34d399; color: #a7f3d0; }
+  .syn-tag.on { display: inline-flex; background: #713f12; border-color: #facc15; color: #fef08a; }
+  .syn-tag.domain { display: inline-flex; background: #064e3b; border-color: #34d399; color: #a7f3d0; }
+  .syn-tag.taiji-ready { display: inline-flex; background: #1e3a8a; border-color: #60a5fa; color: #dbeafe; }
 
+  .battle-top-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .zoom-toggle-btn {
+    background: #1f2937;
+    color: #fde68a;
+    border: 1px solid #856229;
+    border-radius: 7px;
+    padding: 4px 7px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 32px;
+    white-space: nowrap;
+  }
+  .zoom-toggle-btn.overview {
+    background: #713f12;
+    border-color: #facc15;
+    color: #fef08a;
+  }
+
+  /* 2. 中央 4×4 (長螢幕 4×5~5.5) 主戰場 (~78%) */
+  .board-stage {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #10141c;
+  }
   .board-viewport {
-    position: relative; width: 100%; max-width: 468px; aspect-ratio: 1 / 1; margin: 0 auto;
-    border: 2px solid #475569; border-radius: 8px; overflow: hidden; background: #020617;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55); touch-action: manipulation;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: radial-gradient(circle at center, #1c222e 0%, #0b0f17 100%);
+    touch-action: none;
+    cursor: grab;
   }
-  .board-scale-root { position: absolute; left: 0; top: 0; width: 512px; height: 512px; transform-origin: top left; }
-  .board-shake-wrap { position: absolute; inset: 0; transition: transform 0.04s linear; }
-  .grid-layer { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 64px); grid-template-rows: repeat(8, 64px); }
-  .tile { width: 64px; height: 64px; position: relative; border: 1px solid rgba(15, 23, 42, 0.14); cursor: pointer; }
-  .tile.plain { background-color: var(--tile-plain); }
-  .tile.plain.alt { background-color: var(--tile-plain-alt); }
-  .tile.wall { background-color: var(--tile-wall); border-color: #1f2937; cursor: not-allowed; }
-  .tile.wall::after { content: "障"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #374151; font-size: 15px; font-weight: 800; }
-  .tile.water { background-color: var(--tile-water); }
-  .tile.water::after { content: "水"; position: absolute; right: 4px; bottom: 2px; color: #1d4ed8; font-size: 12px; font-weight: 800; opacity: 0.78; }
-  .tile.move-range::before { content: ""; position: absolute; inset: 2px; background: rgba(56, 189, 248, 0.54); border: 2px solid #0284c7; border-radius: 4px; pointer-events: none; }
-  .tile.attack-range::before { content: ""; position: absolute; inset: 2px; background: rgba(239, 68, 68, 0.48); border: 2px solid #dc2626; border-radius: 4px; pointer-events: none; }
-  .tile.heal-range::before { content: ""; position: absolute; inset: 2px; background: rgba(34, 197, 94, 0.48); border: 2px solid #16a34a; border-radius: 4px; pointer-events: none; }
-  .tile.special-range::before { content: ""; position: absolute; inset: 2px; background: rgba(250, 204, 21, 0.50); border: 2px solid #ca8a04; border-radius: 4px; pointer-events: none; }
-  .tile.selected-tile { box-shadow: inset 0 0 0 3px #facc15; }
+  .board-viewport:active { cursor: grabbing; }
 
+  /* 八純卦天時環境光暈 */
+  .board-viewport::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 70;
+    transition: box-shadow 0.45s ease;
+    box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.45);
+  }
+  .board-viewport[data-hex="qian"]::after { box-shadow: inset 0 0 42px rgba(250, 204, 21, 0.34); }
+  .board-viewport[data-hex="kun"]::after  { box-shadow: inset 0 0 42px rgba(180, 130, 70, 0.36); }
+  .board-viewport[data-hex="kan"]::after  { box-shadow: inset 0 0 48px rgba(56, 189, 248, 0.40); }
+  .board-viewport[data-hex="li"]::after   { box-shadow: inset 0 0 48px rgba(239, 68, 68, 0.40); }
+  .board-viewport[data-hex="zhen"]::after { box-shadow: inset 0 0 42px rgba(168, 85, 247, 0.36); }
+  .board-viewport[data-hex="xun"]::after  { box-shadow: inset 0 0 42px rgba(52, 211, 153, 0.34); }
+  .board-viewport[data-hex="gen"]::after  { box-shadow: inset 0 0 42px rgba(148, 163, 184, 0.38); }
+  .board-viewport[data-hex="dui"]::after  { box-shadow: inset 0 0 42px rgba(45, 212, 191, 0.34); }
+
+  .camera-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1024px;
+    height: 1024px;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  .board-shake-wrap {
+    position: absolute;
+    inset: 0;
+    transition: transform 0.04s linear;
+  }
+
+  /* 棋盤地磚：暖米宣紙 × 淡墨青石板 */
+  .grid-layer {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-columns: repeat(8, 128px);
+    grid-template-rows: repeat(8, 128px);
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.75);
+  }
+  .tile {
+    width: 128px;
+    height: 128px;
+    position: relative;
+    border: 1px solid rgba(58, 49, 36, 0.22);
+    box-shadow: inset 0 0 12px rgba(58, 49, 36, 0.07);
+    pointer-events: none;
+  }
+  .tile.plain {
+    background: linear-gradient(145deg, #ebe2ce 0%, #e1d5bc 100%);
+  }
+  .tile.plain.alt {
+    background: linear-gradient(145deg, #d7d2c3 0%, #c9c4b4 100%);
+  }
+  /* 障礙：立體泰山石碑質感 */
+  .tile.wall {
+    background: linear-gradient(160deg, #3f464e 0%, #242930 58%, #16191f 100%);
+    border: 2px solid #525b66;
+    box-shadow: inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -10px 14px rgba(0,0,0,0.65);
+  }
+  .tile.wall::after {
+    content: "石";
+    position: absolute;
+    inset: 14px;
+    border: 1.5px solid rgba(180, 170, 150, 0.25);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(203, 213, 225, 0.32);
+    font-size: 32px;
+    font-weight: 900;
+    font-family: "KaiTi", "DFKai-SB", "Noto Serif TC", serif;
+  }
+  /* 坎卦積水：墨池水澤 */
+  .tile.water {
+    background: radial-gradient(circle at 35% 35%, #6da3c7 0%, #3d6d94 60%, #274c6b 100%);
+    border-color: rgba(147, 197, 253, 0.35);
+    box-shadow: inset 0 0 18px rgba(15, 35, 60, 0.45);
+  }
+  .tile.water::after {
+    content: "水";
+    position: absolute;
+    right: 10px;
+    bottom: 6px;
+    color: rgba(219, 234, 254, 0.55);
+    font-size: 20px;
+    font-weight: 800;
+    font-family: "KaiTi", "DFKai-SB", serif;
+  }
+
+  .tile.move-range::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    background: rgba(56, 189, 248, 0.36);
+    border: 3px solid #0284c7;
+    border-radius: 8px;
+    box-shadow: inset 0 0 14px rgba(56, 189, 248, 0.4);
+  }
+  .tile.attack-range::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    background: rgba(220, 38, 38, 0.38);
+    border: 3px solid #dc2626;
+    border-radius: 8px;
+  }
+  .tile.heal-range::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    background: rgba(34, 197, 94, 0.38);
+    border: 3px solid #16a34a;
+    border-radius: 8px;
+  }
+  .tile.special-range::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+    background: rgba(234, 179, 8, 0.38);
+    border: 3px solid #ca8a04;
+    border-radius: 8px;
+  }
+  .tile.selected-tile {
+    box-shadow: inset 0 0 0 5px #facc15;
+  }
+  .tile.preview-target {
+    box-shadow: inset 0 0 0 6px #fef08a, inset 0 0 28px rgba(239, 68, 68, 0.65);
+    animation: targetPulse 0.9s infinite ease-in-out;
+  }
+  @keyframes targetPulse {
+    0%, 100% { filter: brightness(1); }
+    50% { filter: brightness(1.22); }
+  }
+
+  /* 移動殘影 */
   .ghost-layer { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
   .move-ghost {
-    position: absolute; width: 56px; height: 56px; margin: 4px; border-radius: 6px;
-    border: 2px dashed #38bdf8; background: rgba(56, 189, 248, 0.22);
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #e0f2fe; font-weight: 900; font-size: 18px; line-height: 1; text-shadow: 0 1px 3px #000;
+    position: absolute;
+    width: 108px;
+    height: 108px;
+    margin: 10px;
+    border-radius: 12px;
+    border: 3px dashed #38bdf8;
+    background: rgba(56, 189, 248, 0.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #e0f2fe;
+    font-weight: 900;
+    font-size: 36px;
+    line-height: 1;
+    text-shadow: 0 2px 6px #000;
   }
-  .move-ghost span { font-size: 9px; color: #bae6fd; margin-top: 2px; }
+  .move-ghost span { font-size: 16px; color: #bae6fd; margin-top: 6px; }
 
+  /* 單位圖層：128×128 1:1 無損呈現 */
   .unit-layer { position: absolute; inset: 0; pointer-events: none; }
-  .unit-anchor { position: absolute; width: 64px; height: 64px; transition: left 0.18s ease, top 0.18s ease; pointer-events: none; }
-  .unit-box {
-    position: absolute; left: 4px; top: 4px; width: 56px; height: 56px; border-radius: 6px;
-    display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: #fff;
-    text-shadow: 0 2px 3px rgba(0,0,0,0.65); box-shadow: 0 4px 8px rgba(0,0,0,0.35);
-    border: 2px solid rgba(255,255,255,0.68); transition: transform 0.1s ease, filter 0.08s ease;
+  .unit-anchor {
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    transition: left 0.16s ease, top 0.16s ease;
+    pointer-events: none;
   }
-  .unit-anchor.selected .unit-box { border: 3px solid #facc15; box-shadow: 0 0 14px rgba(250, 204, 21, 0.9); }
-  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 6px #facc15); }
+  .unit-box {
+    position: absolute;
+    left: 14px;
+    top: 10px;
+    width: 100px;
+    height: 100px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.65);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.38);
+    border: 3px solid rgba(255, 255, 255, 0.72);
+    transition: transform 0.1s ease, filter 0.08s ease;
+  }
+  .sprite-canvas {
+    position: absolute;
+    left: 0;
+    top: -10px;
+    width: 128px;
+    height: 128px;
+    image-rendering: pixelated;
+    pointer-events: none;
+  }
+  .unit-anchor.selected .unit-box { border: 4px solid #facc15; box-shadow: 0 0 22px rgba(250, 204, 21, 0.92); }
+  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 10px #facc15); }
   .unit-anchor.exhausted .unit-box, .unit-anchor.exhausted .sprite-canvas { filter: saturate(0.42) brightness(0.74); }
   .unit-anchor.hit-flash .unit-box, .unit-anchor.hit-flash .sprite-canvas { filter: brightness(4) contrast(0.5) !important; }
-  .unit-anchor.invincible .unit-box { box-shadow: 0 0 12px 3px #fde047; border-color: #fef08a; }
-  .unit-anchor.lockhp .unit-box { box-shadow: 0 0 12px 3px #ef4444; border-color: #fca5a5; }
+  .unit-anchor.invincible .unit-box { box-shadow: 0 0 20px 5px #fde047; border-color: #fef08a; }
+  .unit-anchor.lockhp .unit-box { box-shadow: 0 0 20px 5px #ef4444; border-color: #fca5a5; }
   .unit-anchor.sleeping .unit-box { filter: brightness(0.65) hue-rotate(25deg); }
-  .sprite-canvas { position: absolute; left: 2px; top: -8px; width: 60px; height: 60px; image-rendering: pixelated; pointer-events: none; }
   .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
 
-  .art-guide { display: none; position: absolute; left: 2px; top: -8px; width: 60px; height: 60px; border: 1px dashed rgba(250, 204, 21, 0.8); pointer-events: none; }
-  .art-guide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.9); }
-  .show-guides .art-guide { display: block; }
+  /* 除錯基準框與 anim-pill：預設隱藏，開啟基準框才顯示 */
+  .art-guide {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: -10px;
+    width: 128px;
+    height: 128px;
+    border: 2px dashed rgba(250, 204, 21, 0.85);
+    pointer-events: none;
+  }
+  .art-guide::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 12px;
+    border-bottom: 2px solid rgba(239, 68, 68, 0.9);
+  }
   .anim-pill {
-    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
-    background: rgba(2, 6, 23, 0.88); color: #38bdf8; border: 1px solid #334155;
-    font-size: 9px; font-family: monospace; padding: 0 4px; border-radius: 3px; white-space: nowrap;
+    display: none;
+    position: absolute;
+    top: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(2, 6, 23, 0.88);
+    color: #38bdf8;
+    border: 1px solid #334155;
+    font-size: 13px;
+    font-family: monospace;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
   }
   .anim-pill.hit { background: #7f1d1d; color: #fef08a; border-color: #facc15; }
-  @keyframes hitShake { 0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0); } }
+  .show-guides .art-guide,
+  .show-guides .anim-pill { display: block; }
+
+  @keyframes hitShake {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-6px); }
+    100% { transform: translateX(0); }
+  }
   .unit-anchor.shake .unit-box, .unit-anchor.shake .sprite-canvas { animation: hitShake 0.14s linear; }
 
+  /* 角色腳底 HUD（100% 露出立繪上半身與臉部） */
   .hud-layer { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
-  .unit-hud { position: absolute; width: 58px; margin-left: 3px; transition: left 0.18s ease, top 0.18s ease; }
-  .hud-top-row { display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; }
-  .hud-yy { background: rgba(0,0,0,0.72); color: #fef08a; padding: 0 3px; border-radius: 2px; }
-  .hud-ap { background: rgba(0,0,0,0.72); color: #7dd3fc; padding: 0 3px; border-radius: 2px; }
-  .hud-bars { position: absolute; top: 50px; left: 0; right: 0; display: flex; flex-direction: column; gap: 1px; }
-  .hp-bar-bg { height: 5px; background: rgba(0,0,0,0.78); border-radius: 2px; overflow: hidden; }
-  .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
-  .hp-bar-fill.enemy { background: #f87171; }
-  .qi-bar-bg { height: 3px; background: rgba(0,0,0,0.78); border-radius: 2px; overflow: hidden; }
-  .qi-bar-fill { height: 100%; background: #facc15; transition: width 0.2s; }
-  .hud-status { position: absolute; top: 37px; right: 0; font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.85); color: #facc15; padding: 0 3px; border-radius: 2px; }
+  .unit-hud {
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    transition: left 0.16s ease, top 0.16s ease;
+  }
+  .hud-foot-badges {
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  .hud-yy-circle {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1.5px solid #facc15;
+    color: #fef08a;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  }
+  .hud-ap-circle {
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: rgba(12, 74, 110, 0.92);
+    border: 1.5px solid #38bdf8;
+    color: #e0f2fe;
+    font-size: 12px;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+  }
+  .hud-status {
+    position: absolute;
+    bottom: 42px;
+    right: 6px;
+    font-size: 13px;
+    font-weight: 900;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #facc15;
+    color: #fde047;
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .hud-bars {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    bottom: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .hp-bar-bg {
+    height: 7px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.95);
+    border-radius: 3px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+  .hp-bar-fill { height: 100%; background: linear-gradient(90deg, #16a34a, #4ade80); transition: width 0.2s; }
+  .hp-bar-fill.enemy { background: linear-gradient(90deg, #b91c1c, #f87171); }
+  .qi-bar-bg {
+    height: 4px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid rgba(15, 23, 42, 0.95);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .qi-bar-fill { height: 100%; background: linear-gradient(90deg, #d97706, #fde047); transition: width 0.2s; }
 
+  /* 刀光特效與傷害浮字（128px 尺度） */
   .vfx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 55; overflow: hidden; }
-  .vfx-slash { position: absolute; width: 72px; height: 72px; transform: translate(-50%, -50%); border-radius: 50%; border: 4px solid #f8fafc; box-shadow: 0 0 14px #38bdf8, inset 0 0 12px #0f172a; animation: vfxBurst 0.34s ease-out forwards; }
-  .vfx-slash.ult { width: 112px; height: 112px; border-color: #facc15; box-shadow: 0 0 24px #f97316, inset 0 0 18px #7c2d12; }
-  @keyframes vfxBurst { 0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.35) rotate(-25deg); } 60% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1) rotate(18deg); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35) rotate(35deg); } }
-  .vfx-stamp { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); background: rgba(127, 29, 29, 0.94); color: #fef08a; border: 3px solid #facc15; border-radius: 8px; padding: 6px 16px; font-size: 1.5rem; font-weight: 900; letter-spacing: 3px; box-shadow: 0 10px 25px rgba(0,0,0,0.75); animation: stampPop 0.9s ease-out forwards; white-space: nowrap; }
-  @keyframes stampPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(0.96); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -62%) scale(0.95); } }
+  .vfx-slash {
+    position: absolute;
+    width: 128px;
+    height: 128px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 6px solid #f8fafc;
+    box-shadow: 0 0 24px #38bdf8, inset 0 0 18px #0f172a;
+    animation: vfxBurst 0.34s ease-out forwards;
+  }
+  .vfx-slash.ult {
+    width: 196px;
+    height: 196px;
+    border-color: #facc15;
+    box-shadow: 0 0 36px #f97316, inset 0 0 26px #7c2d12;
+  }
+  @keyframes vfxBurst {
+    0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.35) rotate(-25deg); }
+    60% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1) rotate(18deg); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35) rotate(35deg); }
+  }
+  .screen-vfx-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 95;
+    overflow: hidden;
+  }
+  .vfx-stamp {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    background: rgba(127, 29, 29, 0.95);
+    color: #fef08a;
+    border: 3px solid #facc15;
+    border-radius: 8px;
+    padding: 7px 18px;
+    font-size: 1.35rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.78);
+    animation: stampPop 0.92s ease-out forwards;
+    white-space: nowrap;
+  }
+  @keyframes stampPop {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
+    20% { opacity: 1; transform: translate(-50%, -50%) scale(0.96); }
+    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -62%) scale(0.95); }
+  }
 
   .fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
-  .float-text { position: absolute; font-weight: 900; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,0.95), 0 0 2px #000; transform: translate(-50%, 0); animation: floatUp 0.95s ease-out forwards; white-space: nowrap; }
-  .float-text.dmg { color: #ff4d4f; font-size: 20px; }
-  .float-text.crit { color: #fb923c; font-size: 23px; }
-  .float-text.heal { color: #4ade80; font-size: 19px; }
-  .float-text.info { color: #38bdf8; font-size: 16px; }
-  .float-text.taiji { color: #fde047; font-size: 20px; background: rgba(15,23,42,0.92); border: 2px solid #facc15; padding: 2px 8px; border-radius: 6px; animation: floatUpBig 1.35s ease-out forwards; }
-  @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -36px); } }
-  @keyframes floatUpBig { 0% { opacity: 0; transform: translate(-50%, 8px) scale(0.85); } 18% { opacity: 1; transform: translate(-50%, -8px) scale(1.1); } 82% { opacity: 1; transform: translate(-50%, -26px) scale(1); } 100% { opacity: 0; transform: translate(-50%, -42px) scale(0.95); } }
-
-  /* 戰鬥拇指操作區 */
-  .thumb-panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .unit-mini-strip {
-    display: flex; justify-content: space-between; align-items: center;
-    background: var(--panel-dark); border: 1px solid #334155; border-radius: 7px;
-    padding: 5px 8px; font-size: 0.74rem; gap: 6px; flex-wrap: wrap; cursor: pointer;
+  .float-text {
+    position: absolute;
+    font-weight: 900;
+    font-size: 28px;
+    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.96), 0 0 3px #000;
+    transform: translate(-50%, 0);
+    animation: floatUp 0.95s ease-out forwards;
+    white-space: nowrap;
   }
-  .stat-val.buffed { color: #4ade80; font-weight: 800; }
-  .stat-val.debuffed { color: #f87171; font-weight: 800; }
+  .float-text.dmg { color: #ff4d4f; font-size: 32px; }
+  .float-text.crit { color: #fb923c; font-size: 38px; }
+  .float-text.heal { color: #4ade80; font-size: 30px; }
+  .float-text.info { color: #38bdf8; font-size: 26px; }
+  .float-text.taiji {
+    color: #fde047;
+    font-size: 30px;
+    background: rgba(15, 23, 42, 0.94);
+    border: 3px solid #facc15;
+    padding: 4px 12px;
+    border-radius: 8px;
+    animation: floatUpBig 1.35s ease-out forwards;
+  }
+  @keyframes floatUp {
+    0% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -56px); }
+  }
+  @keyframes floatUpBig {
+    0% { opacity: 0; transform: translate(-50%, 10px) scale(0.85); }
+    18% { opacity: 1; transform: translate(-50%, -12px) scale(1.1); }
+    82% { opacity: 1; transform: translate(-50%, -40px) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -64px) scale(0.95); }
+  }
 
-  .act-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .btn-act { min-height: 40px; padding: 5px 4px; border-radius: 8px; border: 2px solid #3b4f6e; background: var(--panel-dark); color: #f8fafc; font-size: 0.76rem; font-weight: 800; cursor: pointer; line-height: 1.2; }
-  .btn-act:active:not(:disabled) { transform: scale(0.96); }
-  .btn-act.active { border-color: var(--gold); background: #854d0e; color: #fef08a; }
-  .btn-act.ult:not(:disabled) { border-color: #ea580c; color: #fed7aa; background: #431407; }
-  .btn-act.combo:not(:disabled) { border-color: #facc15; color: #fef08a; background: linear-gradient(180deg, #854d0e, #713f12); box-shadow: 0 0 8px rgba(250,204,21,0.45); }
-  .btn-act.hexflip:not(:disabled) { border-color: #a855f7; color: #e9d5ff; background: #2e1065; }
-  .btn-act:disabled { opacity: 0.34; cursor: not-allowed; }
+  /* 視野外敵軍邊緣預警 */
+  .threat-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 75;
+  }
+  .threat-pill {
+    position: absolute;
+    pointer-events: auto;
+    cursor: pointer;
+    background: rgba(153, 27, 27, 0.84);
+    border: 1.5px solid #fca5a5;
+    color: #fff;
+    font-size: 0.68rem;
+    font-weight: 900;
+    padding: 3px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(2px);
+  }
+  .threat-pill:active { transform: scale(0.95); }
 
-  .dock-row { display: grid; grid-template-columns: 1.15fr 0.85fr 1.25fr; gap: 6px; }
-  .btn-undo { min-height: 44px; border-radius: 8px; border: 2px solid #334155; background: #1e293b; color: #94a3b8; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
-  .btn-undo.ready { border-color: #38bdf8; background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
-  .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
-  .btn-end-turn { min-height: 44px; border-radius: 8px; border: 2px solid #f59e0b; background: linear-gradient(180deg, #d97706, #b45309); color: #fff; font-size: 0.88rem; font-weight: 900; cursor: pointer; }
+  /* 螢幕浮動 UI 層：原地快捷浮標 & 古風指令浮窗 */
+  .float-ui-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 85;
+  }
+  .quick-action-pill {
+    position: absolute;
+    pointer-events: auto;
+    background: linear-gradient(180deg, rgba(247, 240, 224, 0.96), rgba(228, 215, 187, 0.96));
+    color: #2c1e12;
+    border: 2px solid #9a6b2f;
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.76rem;
+    font-weight: 900;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
+    cursor: pointer;
+    white-space: nowrap;
+    transform: translate(-50%, 0);
+  }
+  .quick-action-pill:active { transform: translate(-50%, 0) scale(0.96); }
+
+  .cmd-popover {
+    position: absolute;
+    pointer-events: auto;
+    width: 196px;
+    background: linear-gradient(180deg, rgba(248, 242, 228, 0.96) 0%, rgba(235, 224, 200, 0.96) 100%);
+    color: #1f1a16;
+    border: 2px solid #8c6228;
+    border-radius: 10px;
+    padding: 7px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.72), inset 0 0 18px rgba(139, 98, 40, 0.14);
+    backdrop-filter: blur(3px);
+  }
+  .cmd-pop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(140, 98, 40, 0.35);
+    padding-bottom: 4px;
+    font-size: 0.74rem;
+    font-weight: 900;
+    color: #5c3a14;
+  }
+  .cmd-btn {
+    width: 100%;
+    text-align: left;
+    background: rgba(255, 253, 247, 0.88);
+    border: 1.5px solid #b59763;
+    border-radius: 7px;
+    padding: 6px 8px;
+    color: #1f1a16;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    transition: transform 0.08s;
+  }
+  .cmd-btn:active:not(:disabled) { transform: scale(0.97); }
+  .cmd-btn:disabled { opacity: 0.42; cursor: not-allowed; }
+  .cmd-btn-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+  .cmd-btn-sub {
+    font-size: 0.65rem;
+    color: #574c40;
+    line-height: 1.25;
+  }
+  .cmd-btn.undo {
+    background: linear-gradient(180deg, #0369a1, #075985);
+    border-color: #38bdf8;
+    color: #fff;
+    align-items: center;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 900;
+    padding: 6px 8px;
+  }
+  .cmd-btn.ult { border-color: #c2410c; background: #fff7ed; }
+  .cmd-btn.ult .cmd-btn-top { color: #9a3412; }
+  .cmd-btn.combo { border-color: #b45309; background: linear-gradient(180deg, #fef3c7, #fde68a); }
+  .cmd-btn.combo .cmd-btn-top { color: #78350f; }
+  .cmd-btn.hexflip { border-color: #7e22ce; background: #faf5ff; }
+  .cmd-btn.hexflip .cmd-btn-top { color: #581c87; }
+  .cmd-btn.wait {
+    background: #2c2824;
+    border-color: #575049;
+    color: #f5efe2;
+    text-align: center;
+    align-items: center;
+    font-size: 0.76rem;
+    font-weight: 800;
+    padding: 6px 8px;
+  }
+
+  /* 戰前傷害預覽確認條 */
+  .preview-banner {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 90;
+    background: rgba(15, 23, 42, 0.95);
+    border: 2px solid #facc15;
+    border-radius: 10px;
+    padding: 8px 10px;
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.78);
+  }
+  .preview-banner.show { display: flex; }
+  .preview-main-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: #fef08a;
+  }
+  .preview-metrics {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    font-size: 0.73rem;
+    color: #e2e8f0;
+  }
+  .preview-actions {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: 6px;
+  }
+
+  /* 3. 底部懸浮單行狀態膠囊 (~12%) */
+  .battle-bottom-capsule {
+    flex: 0 0 auto;
+    min-height: 62px;
+    max-height: 13dvh;
+    background: linear-gradient(180deg, #131b2c 0%, #0a0f1a 100%);
+    border-top: 1.5px solid #4d3d22;
+    padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    z-index: 30;
+  }
+  .capsule-unit-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .capsule-bars {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .capsule-name-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.8rem;
+    font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .capsule-meter-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.69rem;
+    color: #cbd5e1;
+  }
+  .capsule-actions {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .btn-end-turn {
+    min-height: 40px;
+    padding: 0 12px;
+    border-radius: 9px;
+    border: 2px solid #f59e0b;
+    background: linear-gradient(180deg, #d97706, #b45309);
+    color: #fff;
+    font-size: 0.82rem;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+  }
   .btn-end-turn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .skill-desc-bar { font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; background: rgba(15, 23, 42, 0.65); padding: 4px 7px; border-radius: 6px; min-height: 26px; }
+  .btn-capsule-undo {
+    min-height: 40px;
+    padding: 0 9px;
+    border-radius: 9px;
+    border: 2px solid #38bdf8;
+    background: #0369a1;
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 900;
+    cursor: pointer;
+    white-space: nowrap;
+  }
 
   /* 彈窗抽屜 */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.84); display: none; align-items: flex-end; justify-content: center; z-index: 250; }
@@ -382,7 +1062,7 @@
 <div class="mobile-shell">
   <!-- 頂部共用狀態列 -->
   <div class="top-header">
-    <div class="brand-title">論語戰棋 v0.3</div>
+    <div class="brand-title">論語戰棋 v0.4</div>
     <div class="res-pills">
       <span class="pill gold" id="navGold">1000兩</span>
       <span class="pill" id="navSuxiu">束脩:2</span>
@@ -494,67 +1174,75 @@
     </div>
   </div>
 
-  <!-- ==================== 場景 3：手機戰棋戰鬥 ==================== -->
+  <!-- ==================== 場景 3：手機戰棋戰鬥 (v0.4 三層全屏沉浸版) ==================== -->
   <div class="scene" id="sceneBattle">
     <div class="battle-wrap">
-      <div class="battle-hex-bar">
-        <div class="hex-row-top">
-          <span class="hex-name-txt" id="hexTitle">【乾卦・剩2回合】</span>
-          <div style="display:flex; align-items:center; gap:4px;">
-            <span class="pill" id="turnBadge">T1</span>
-            <span class="pill player" id="stateBadge">我方</span>
-            <button class="icon-btn" onclick="openBattleToolsModal()" title="日誌/測試/撤退">☰</button>
+      <!-- 1. 頂部極簡天時條 (~10%) -->
+      <div class="battle-top-bar">
+        <div class="hex-left-group">
+          <div class="hex-badge-row">
+            <button class="hex-badge-btn" id="hexTitle" onclick="toggleHexDescToast()">【乾卦・剩2回合】</button>
+            <div class="syn-strip">
+              <span class="syn-tag" id="synWaterFire">水火既濟</span>
+              <span class="syn-tag" id="synEarthSky">地天泰</span>
+              <span class="syn-tag" id="synXinzhai">心齋</span>
+              <span class="syn-tag" id="comboHintTag">太極就緒</span>
+            </div>
           </div>
+          <div class="hex-desc-mini" id="hexDesc">天行健：攻擊+25%、暴擊+30%</div>
         </div>
-        <div class="hex-desc-txt" id="hexDesc"></div>
-        <div class="syn-strip">
-          <span class="syn-tag" id="synWaterFire">水火既濟</span>
-          <span class="syn-tag" id="synEarthSky">地天泰</span>
-          <span class="syn-tag" id="synXinzhai">心齋領域</span>
-          <span class="syn-tag" id="comboHintTag" style="color:#bae6fd; border-color:#1d4ed8;">太極:待前手[陽]</span>
+        <div class="battle-top-right">
+          <span class="pill" id="turnBadge">T1</span>
+          <span class="pill player" id="stateBadge">我方</span>
+          <button class="zoom-toggle-btn" id="btnZoomToggle" onclick="toggleCameraZoom()">🔍全盤</button>
+          <button class="icon-btn" onclick="openBattleToolsModal()" title="道具 / 日誌 / 測試 / 撤退">☰</button>
         </div>
       </div>
 
-      <div class="board-viewport" id="boardViewport" oncontextmenu="onBoardRightClick(event)">
-        <div class="board-scale-root" id="boardScaleRoot">
-          <div class="board-shake-wrap" id="boardWrapper">
-            <div class="grid-layer" id="gridLayer"></div>
-            <div class="ghost-layer" id="ghostLayer"></div>
-            <div class="unit-layer" id="unitLayer"></div>
-            <div class="hud-layer" id="hudLayer"></div>
-            <div class="vfx-layer" id="vfxLayer"></div>
-            <div class="fx-layer" id="fxLayer"></div>
+      <!-- 2. 中央主戰場 (~78%，長螢幕 4×5~5.5 格，128×128 1:1 呈現) -->
+      <div class="board-stage">
+        <div class="board-viewport" id="boardViewport" data-hex="qian" oncontextmenu="onBoardRightClick(event)">
+          <div class="camera-layer" id="cameraLayer">
+            <div class="board-shake-wrap" id="boardWrapper">
+              <div class="grid-layer" id="gridLayer"></div>
+              <div class="ghost-layer" id="ghostLayer"></div>
+              <div class="unit-layer" id="unitLayer"></div>
+              <div class="hud-layer" id="hudLayer"></div>
+              <div class="vfx-layer" id="vfxLayer"></div>
+              <div class="fx-layer" id="fxLayer"></div>
+            </div>
           </div>
-        </div>
-        <div class="overlay" id="endOverlay">
-          <h2 id="endTitle">大獲全勝！</h2>
-          <p id="endSubtitle"></p>
-          <div style="display:flex; gap:8px;">
-            <button class="btn primary" onclick="finishBattleAndReturn()">返回春秋輿圖</button>
-            <button class="btn" onclick="startSelectedStage()">重打本關</button>
+
+          <!-- 視野外敵軍預警層 -->
+          <div class="threat-layer" id="threatLayer"></div>
+
+          <!-- 戰前傷害預覽確認條 -->
+          <div class="preview-banner" id="previewBanner"></div>
+
+          <!-- 動態浮動指令層（原地出招浮標 / 古風指令浮窗） -->
+          <div class="float-ui-layer" id="floatUiLayer"></div>
+
+          <!-- 全屏置中印章特效層 -->
+          <div class="screen-vfx-layer" id="screenVfxLayer"></div>
+
+          <div class="overlay" id="endOverlay">
+            <h2 id="endTitle">大獲全勝！</h2>
+            <p id="endSubtitle"></p>
+            <div style="display:flex; gap:8px;">
+              <button class="btn primary" onclick="finishBattleAndReturn()">返回春秋輿圖</button>
+              <button class="btn" onclick="startSelectedStage()">重打本關</button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="thumb-panel">
-        <div class="unit-mini-strip" id="unitMiniStrip" onclick="openSelectedBattleUnitDetail()" title="點擊查看完整招式與資料">
-          <span style="color:#94a3b8;">點選棋盤方塊檢視數值（點擊此列可看詳細招式）</span>
+      <!-- 3. 底部懸浮單行狀態膠囊 (~12%) -->
+      <div class="battle-bottom-capsule" id="battleBottomCapsule">
+        <div class="capsule-unit-info" id="capsuleUnitInfo">
+          <span style="font-size:0.75rem; color:#94a3b8;">點選我方武將行動｜單指拖曳巡視戰場</span>
         </div>
-        <div class="skill-desc-bar" id="skillDesc">點選我方角色移動，確定攻擊前隨時可按【↩ 悔步】。</div>
-
-        <div class="act-grid-3">
-          <button class="btn-act" id="btnBasic" onclick="selectMode('basic')" disabled>【普攻】</button>
-          <button class="btn-act" id="btnSkill" onclick="selectMode('skill')" disabled>【絕招】</button>
-          <button class="btn-act ult" id="btnUlt" onclick="selectMode('ult')" disabled>【大絕】</button>
-        </div>
-        <div class="act-grid-3">
-          <button class="btn-act combo" id="btnCombo" onclick="selectMode('combo')" disabled>【合體奧義】</button>
-          <button class="btn-act hexflip" id="btnHexFlip" onclick="openHexModal()" disabled>【韋編三絕】</button>
-          <button class="btn-act" id="btnWait" onclick="doWait()" disabled>【待機+20氣】</button>
-        </div>
-        <div class="dock-row">
-          <button class="btn-undo" id="btnUndo" onclick="undoPendingMove()" disabled>↩ 悔步</button>
-          <button class="btn" onclick="openItemModal()">🎒 道具</button>
+        <div class="capsule-actions">
+          <button class="btn-capsule-undo" id="btnCapsuleUndo" onclick="undoPendingMove()" style="display:none;">↩ 悔步</button>
           <button class="btn-end-turn" id="btnEndTurn" onclick="endPlayerTurn()">結束回合</button>
         </div>
       </div>
@@ -620,6 +1308,7 @@
 <div class="modal-backdrop" id="battleToolsModal" onclick="if(event.target===this) closeModal('battleToolsModal')">
   <div class="modal-sheet">
     <h3>☰ 戰鬥日誌與測試工具</h3>
+    <button class="btn gold" style="width:100%;" onclick="closeModal('battleToolsModal'); openItemModal()">🎒 戰場補給道具（蓍草 / 傷藥 / 簞食瓢飲）</button>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
       <button class="btn sm dev" onclick="devBattleCheat('fullQi'); closeModal('battleToolsModal')">⚡全軍滿氣</button>
       <button class="btn sm dev" onclick="devBattleCheat('lowHp'); closeModal('battleToolsModal')">🩸殘血20%</button>
@@ -700,7 +1389,8 @@
 // ============================================================================
 const SAVE_KEY = 'confucius_tactics_v032_mobile_save';
 const GRID_SIZE = 8;
-const TILE_PX = 64;
+const TILE_PX = 128;
+const WORLD_PX = GRID_SIZE * TILE_PX;
 
 const ANIM_DEFS = {
   idle:   { start: 0,  count: 4, loop: true,  fps: 6 },
@@ -1109,6 +1799,8 @@ function switchScene(scene) {
   ['map', 'camp', 'battle'].forEach(s => {
     document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1)).classList.toggle('active', s === scene);
   });
+  const shell = document.querySelector('.mobile-shell');
+  if (shell) shell.classList.toggle('in-battle', scene === 'battle');
   document.getElementById('bottomNav').style.display = (scene === 'battle') ? 'none' : 'grid';
   document.getElementById('navMap').classList.toggle('active', scene === 'map');
   document.getElementById('navCamp').classList.toggle('active', scene === 'camp');
@@ -1565,11 +2257,198 @@ function resetSaveData() {
 // ============================================================================
 // 五、 響應式棋盤與戰鬥引擎（含悔步、幀機、Hitstop、震屏）
 // ============================================================================
+// ---- v0.4 攝影機系統（4×4 特寫 / 全盤俯瞰切換、拖曳慣性、自動跟隨、邊緣預警） ----
+let camZoomMode = 'closeup'; // 'closeup' | 'overview'
+let camX = 0, camY = 0, camScale = 1;
+let camTargetX = null, camTargetY = null;
+let camVelX = 0, camVelY = 0;
+let camDragActive = false, camDragMoved = false;
+let camPointerId = null, camStartClientX = 0, camStartClientY = 0, camLastClientX = 0, camLastClientY = 0, camLastTs = 0;
+let showCmdPopover = false;
+let pendingAction = null; // { unitId, mode, r, c }
+
+function getViewportSize() {
+  const vp = document.getElementById('boardViewport');
+  if (!vp) return { w: 400, h: 520 };
+  return { w: vp.clientWidth || 400, h: vp.clientHeight || 520 };
+}
+
+function computeCameraScale() {
+  const { w, h } = getViewportSize();
+  if (camZoomMode === 'overview') {
+    return Math.min(w / WORLD_PX, h / WORLD_PX);
+  }
+  // 特寫模式：橫向固定 4 格 (512px) 等比縮放至視窗寬度，縱向自然撐滿（約 5~5.5 格），128×128 1:1 不變形
+  return w / (TILE_PX * 4);
+}
+
+function clampCamera(x, y) {
+  const { w, h } = getViewportSize();
+  const scaledW = WORLD_PX * camScale;
+  const scaledH = WORLD_PX * camScale;
+  let cx = x, cy = y;
+  if (scaledW <= w) {
+    cx = (w - scaledW) / 2;
+  } else {
+    cx = Math.min(0, Math.max(w - scaledW, cx));
+  }
+  if (scaledH <= h) {
+    cy = (h - scaledH) / 2;
+  } else {
+    cy = Math.min(0, Math.max(h - scaledH, cy));
+  }
+  return { x: cx, y: cy };
+}
+
+function applyCameraTransform() {
+  const cl = document.getElementById('cameraLayer');
+  if (!cl) return;
+  cl.style.transform = `translate3d(${camX.toFixed(1)}px, ${camY.toFixed(1)}px, 0) scale(${camScale.toFixed(4)})`;
+  renderThreatIndicators();
+  updateFloatingUiPosition();
+}
+
+function focusCameraOn(r, c, immediate = false) {
+  camScale = computeCameraScale();
+  const { w, h } = getViewportSize();
+  const worldCX = (c + 0.5) * TILE_PX;
+  const worldCY = (r + 0.5) * TILE_PX;
+  const desired = clampCamera(w / 2 - worldCX * camScale, h / 2 - worldCY * camScale);
+  camVelX = 0; camVelY = 0;
+  if (immediate || camZoomMode === 'overview') {
+    camX = desired.x; camY = desired.y;
+    camTargetX = null; camTargetY = null;
+    applyCameraTransform();
+  } else {
+    camTargetX = desired.x; camTargetY = desired.y;
+  }
+}
+
+function isTileNearEdge(r, c) {
+  if (camZoomMode === 'overview') return false;
+  const { w, h } = getViewportSize();
+  const sx = camX + (c + 0.5) * TILE_PX * camScale;
+  const sy = camY + (r + 0.5) * TILE_PX * camScale;
+  const padX = TILE_PX * camScale * 0.85;
+  const padY = TILE_PX * camScale * 0.95;
+  return (sx < padX || sx > w - padX || sy < padY || sy > h - padY);
+}
+
+function toggleCameraZoom() {
+  camZoomMode = (camZoomMode === 'closeup') ? 'overview' : 'closeup';
+  const btn = document.getElementById('btnZoomToggle');
+  if (btn) {
+    btn.textContent = camZoomMode === 'overview' ? '🔎特寫' : '🔍全盤';
+    btn.classList.toggle('overview', camZoomMode === 'overview');
+  }
+  camScale = computeCameraScale();
+  const sel = getUnitById(selectedUnitId) || units.find(u => u.team === 'player' && u.hp > 0);
+  if (camZoomMode === 'overview') {
+    const c = clampCamera(0, 0);
+    camX = c.x; camY = c.y; camTargetX = null; camTargetY = null;
+    applyCameraTransform();
+  } else if (sel) {
+    focusCameraOn(sel.r, sel.c, true);
+  } else {
+    focusCameraOn(3.5, 3.5, true);
+  }
+}
+
 function resizeBoard() {
-  const vp = document.getElementById('boardViewport'), root = document.getElementById('boardScaleRoot');
-  if (vp && root && vp.clientWidth > 0) root.style.transform = `scale(${vp.clientWidth / 512})`;
+  if (currentScene !== 'battle') return;
+  camScale = computeCameraScale();
+  const clamped = clampCamera(camX, camY);
+  camX = clamped.x; camY = clamped.y;
+  applyCameraTransform();
 }
 window.addEventListener('resize', resizeBoard);
+
+function tickCameraMotion() {
+  if (currentScene !== 'battle') return;
+  let moved = false;
+  if (camTargetX !== null && camTargetY !== null && !camDragActive) {
+    const dx = camTargetX - camX, dy = camTargetY - camY;
+    if (Math.hypot(dx, dy) < 0.8) {
+      camX = camTargetX; camY = camTargetY;
+      camTargetX = null; camTargetY = null;
+    } else {
+      camX += dx * 0.18; camY += dy * 0.18;
+    }
+    moved = true;
+  } else if (!camDragActive && (Math.abs(camVelX) > 0.25 || Math.abs(camVelY) > 0.25)) {
+    camX += camVelX; camY += camVelY;
+    camVelX *= 0.88; camVelY *= 0.88;
+    const cl = clampCamera(camX, camY);
+    if (cl.x !== camX) { camX = cl.x; camVelX = 0; }
+    if (cl.y !== camY) { camY = cl.y; camVelY = 0; }
+    moved = true;
+  }
+  if (moved) applyCameraTransform();
+}
+
+function initBoardPointerControls() {
+  const vp = document.getElementById('boardViewport');
+  if (!vp || vp.dataset.ptrBound) return;
+  vp.dataset.ptrBound = '1';
+
+  vp.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    if (e.target.closest('.cmd-popover, .quick-action-pill, .preview-banner, .threat-pill, .overlay')) return;
+    camPointerId = e.pointerId;
+    camDragActive = true;
+    camDragMoved = false;
+    camStartClientX = camLastClientX = e.clientX;
+    camStartClientY = camLastClientY = e.clientY;
+    camLastTs = performance.now();
+    camVelX = 0; camVelY = 0;
+    camTargetX = null; camTargetY = null;
+    try { vp.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  vp.addEventListener('pointermove', e => {
+    if (!camDragActive || e.pointerId !== camPointerId) return;
+    const totalDist = Math.hypot(e.clientX - camStartClientX, e.clientY - camStartClientY);
+    if (totalDist >= 8) camDragMoved = true;
+    if (camDragMoved && camZoomMode === 'closeup') {
+      const dx = e.clientX - camLastClientX;
+      const dy = e.clientY - camLastClientY;
+      const clamped = clampCamera(camX + dx, camY + dy);
+      camX = clamped.x; camY = clamped.y;
+      const now = performance.now();
+      const dt = Math.max(8, now - camLastTs);
+      camVelX = dx * (16 / dt);
+      camVelY = dy * (16 / dt);
+      camLastTs = now;
+      applyCameraTransform();
+    }
+    camLastClientX = e.clientX;
+    camLastClientY = e.clientY;
+  });
+
+  const finishPointer = e => {
+    if (!camDragActive || e.pointerId !== camPointerId) return;
+    camDragActive = false;
+    try { vp.releasePointerCapture(e.pointerId); } catch (err) {}
+    if (!camDragMoved) {
+      const rect = vp.getBoundingClientRect();
+      const wx = (e.clientX - rect.left - camX) / camScale;
+      const wy = (e.clientY - rect.top - camY) / camScale;
+      const c = Math.floor(wx / TILE_PX);
+      const r = Math.floor(wy / TILE_PX);
+      if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE) {
+        onTileClick(r, c);
+      }
+    }
+  };
+  vp.addEventListener('pointerup', finishPointer);
+  vp.addEventListener('pointercancel', finishPointer);
+}
+
+function toggleHexDescToast() {
+  const hex = getHex();
+  const sel = getUnitById(selectedUnitId) || units.find(u => u.team === 'player' && u.hp > 0);
+  if (sel) spawnFloatText(sel.r, sel.c, `${hex.name}：${hex.desc}`, 'info');
+}
 
 const STATE = { PLAYER_TURN: 'PLAYER_TURN', ANIMATION_BUSY: 'ANIMATION_BUSY', ENEMY_TURN: 'ENEMY_TURN', TURN_END_CHECK: 'TURN_END_CHECK', GAME_OVER: 'GAME_OVER' };
 let activeStage = null, gameState = STATE.PLAYER_TURN, turnNumber = 1;
@@ -1587,29 +2466,39 @@ const getUnitById = id => units.find(u => u.id === id && u.hp > 0) || null;
 
 window.addEventListener('keydown', e => {
   if (e.key === 'Escape' && currentScene === 'battle' && gameState === STATE.PLAYER_TURN) {
-    if (actionMode !== 'move') { actionMode = 'move'; targetableTiles.clear(); renderAll(); }
+    if (pendingAction) { cancelPendingAction(); }
+    else if (actionMode !== 'move') { actionMode = 'move'; targetableTiles.clear(); showCmdPopover = false; renderAll(); }
     else if (pendingMove) undoPendingMove();
+    else if (showCmdPopover) { showCmdPopover = false; renderAll(); }
   }
 });
 function onBoardRightClick(e) {
   e.preventDefault();
   if (currentScene !== 'battle' || gameState !== STATE.PLAYER_TURN) return;
+  if (pendingAction) { cancelPendingAction(); return; }
   if (actionMode !== 'move') {
     actionMode = 'move'; targetableTiles.clear();
     const u = getUnitById(selectedUnitId);
-    reachableTiles = (u && u.team==='player' && !u.moved && u.ap>0) ? computeReachable(u) : new Map();
+    if (u && u.team==='player' && !u.acted && u.ap>0) {
+      if (!u.moved) reachableTiles = computeReachable(u);
+      else showCmdPopover = true;
+    }
     renderAll();
   } else if (pendingMove) undoPendingMove();
+  else if (showCmdPopover) { showCmdPopover = false; renderAll(); }
 }
 function undoPendingMove() {
   if (gameState !== STATE.PLAYER_TURN || !pendingMove) return;
   const u = getUnitById(pendingMove.unitId);
-  if (!u) { pendingMove = null; renderAll(); return; }
+  if (!u) { pendingMove = null; showCmdPopover = false; pendingAction = null; renderAll(); return; }
   u.r = pendingMove.origR; u.c = pendingMove.origC; u.facingLeft = pendingMove.origFacingLeft;
   u.moved = false; u.ap = pendingMove.prevAp; pendingMove = null;
+  pendingAction = null; showCmdPopover = false;
   selectedUnitId = u.id; actionMode = 'move'; targetableTiles.clear(); reachableTiles = computeReachable(u);
   AudioManager.play('undo'); spawnFloatText(u.r, u.c, '↩ 悔步歸位', 'info');
-  addLog(`${u.name} 取消移動，退回原位。`, 'player'); renderAll();
+  addLog(`${u.name} 取消移動，退回原位。`, 'player');
+  focusCameraOn(u.r, u.c);
+  renderAll();
 }
 
 let animLoopRunning = false, lastFrameTs = 0, hitstopUntil = 0;
@@ -1632,6 +2521,7 @@ function tickAnimations(ts) {
       }
     });
   }
+  tickCameraMotion();
   requestAnimationFrame(tickAnimations);
 }
 function playAnimWithHitSync(unit, stateName, onHitCallback) {
@@ -1658,11 +2548,12 @@ function spawnVfx(r, c, isUlt = false, stampText = '') {
   const layer = document.getElementById('vfxLayer');
   const slash = document.createElement('div');
   slash.className = 'vfx-slash' + (isUlt ? ' ult' : '');
-  slash.style.left = `${c * TILE_PX + 32}px`; slash.style.top = `${r * TILE_PX + 32}px`;
+  slash.style.left = `${c * TILE_PX + TILE_PX / 2}px`; slash.style.top = `${r * TILE_PX + TILE_PX / 2}px`;
   layer.appendChild(slash); setTimeout(() => slash.remove(), 360);
   if (stampText) {
+    const sLayer = document.getElementById('screenVfxLayer') || layer;
     const st = document.createElement('div'); st.className = 'vfx-stamp'; st.textContent = stampText;
-    layer.appendChild(st); setTimeout(() => st.remove(), 920);
+    sLayer.appendChild(st); setTimeout(() => st.remove(), 920);
   }
 }
 
@@ -1699,7 +2590,16 @@ function startSelectedStage() {
   document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = '';
   document.getElementById('forecastBar').style.display = 'none';
   addLog(`=== 出征：${activeStage.cityLabel}・${activeStage.name} ===`, 'hex');
-  setState(STATE.PLAYER_TURN); resizeBoard(); renderAll(); startAnimLoop();
+  camZoomMode = 'closeup';
+  pendingAction = null; showCmdPopover = false;
+  const zBtn = document.getElementById('btnZoomToggle');
+  if (zBtn) { zBtn.textContent = '🔍全盤'; zBtn.classList.remove('overview'); }
+  initBoardPointerControls();
+  setState(STATE.PLAYER_TURN);
+  resizeBoard();
+  const lead = units.find(u => u.team === 'player' && u.hp > 0);
+  if (lead) focusCameraOn(lead.r, lead.c, true);
+  renderAll(); startAnimLoop();
 }
 
 function instantiateUnit(tpl, r, c, customId, prog) {
@@ -1837,39 +2737,145 @@ function setState(st) {
   document.getElementById('btnEndTurn').disabled = (st !== STATE.PLAYER_TURN);
 }
 
+function openInPlaceCmdMenu() {
+  const u = getUnitById(selectedUnitId);
+  if (!u || u.team !== 'player' || u.ap <= 0) return;
+  actionMode = 'move';
+  pendingAction = null;
+  targetableTiles.clear();
+  showCmdPopover = true;
+  if (isTileNearEdge(u.r, u.c)) focusCameraOn(u.r, u.c);
+  renderAll();
+}
+
+function cancelPendingAction() {
+  pendingAction = null;
+  const u = getUnitById(selectedUnitId);
+  if (u && u.team === 'player' && !u.acted && u.ap > 0) {
+    actionMode = 'move';
+    targetableTiles.clear();
+    if (u.moved) { showCmdPopover = true; }
+    else { reachableTiles = computeReachable(u); showCmdPopover = false; }
+  }
+  renderAll();
+}
+
+function confirmPendingAction() {
+  if (!pendingAction || gameState !== STATE.PLAYER_TURN) return;
+  const u = getUnitById(pendingAction.unitId);
+  if (!u) { pendingAction = null; renderAll(); return; }
+  const { mode, r, c } = pendingAction;
+  pendingAction = null;
+  showCmdPopover = false;
+  executePlayerAction(u, mode, r, c);
+}
+
 function onTileClick(r, c) {
   if (gameState !== STATE.PLAYER_TURN) return;
   const clicked = getUnitAt(r, c), sel = getUnitById(selectedUnitId), k = keyOf(r, c);
-  if (sel && ['basic','skill','ult','combo'].includes(actionMode) && targetableTiles.has(k)) { executePlayerAction(sel, actionMode, r, c); return; }
-  if (sel && actionMode === 'move' && reachableTiles.has(k)) { moveUnitSmooth(sel, reachableTiles.get(k).path, true); return; }
+
+  // 階段 3：已選擇招式 -> 點擊目標（首次進入預覽確認態，再次點擊同一格正式出招）
+  if (sel && ['basic','skill','ult','combo'].includes(actionMode) && targetableTiles.has(k)) {
+    if (pendingAction && pendingAction.unitId === sel.id && pendingAction.mode === actionMode && pendingAction.r === r && pendingAction.c === c) {
+      confirmPendingAction();
+    } else {
+      pendingAction = { unitId: sel.id, mode: actionMode, r, c };
+      if (isTileNearEdge(r, c)) focusCameraOn(r, c);
+      renderAll();
+    }
+    return;
+  }
+
+  // 若正在預覽確認態卻點了非目標格 -> 取消預覽
+  if (pendingAction) {
+    cancelPendingAction();
+    return;
+  }
+
+  // 階段 2：點擊藍格移動 -> 自動跟隨鏡頭並彈出古風指令浮窗
+  if (sel && actionMode === 'move' && reachableTiles.has(k)) {
+    moveUnitSmooth(sel, reachableTiles.get(k).path, true);
+    return;
+  }
+
+  // 階段 1：點選角色（若有未完成的悔步，切換角色前不強制清除，但關閉浮窗）
   if (clicked) {
-    selectedUnitId = clicked.id; actionMode = 'move'; targetableTiles.clear();
-    reachableTiles = (clicked.team==='player' && !clicked.moved && clicked.ap>0 && !clicked.stunned && clicked.sleepTurns<=0) ? computeReachable(clicked) : new Map();
-  } else { selectedUnitId = null; actionMode = 'move'; reachableTiles.clear(); targetableTiles.clear(); }
+    selectedUnitId = clicked.id;
+    actionMode = 'move';
+    pendingAction = null;
+    targetableTiles.clear();
+    if (clicked.team === 'player' && clicked.ap > 0 && !clicked.stunned && clicked.sleepTurns <= 0) {
+      if (!clicked.moved) {
+        reachableTiles = computeReachable(clicked);
+        showCmdPopover = false;
+      } else {
+        reachableTiles.clear();
+        showCmdPopover = true;
+      }
+    } else {
+      reachableTiles.clear();
+      showCmdPopover = false;
+    }
+    if (isTileNearEdge(clicked.r, clicked.c)) focusCameraOn(clicked.r, clicked.c);
+  } else {
+    selectedUnitId = null;
+    actionMode = 'move';
+    pendingAction = null;
+    showCmdPopover = false;
+    reachableTiles.clear();
+    targetableTiles.clear();
+  }
   renderAll();
 }
 
 function selectMode(mode) {
   if (gameState !== STATE.PLAYER_TURN) return;
-  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player' || u.acted || u.ap <= 0) return;
-  if (actionMode === mode) { actionMode = 'move'; targetableTiles.clear(); reachableTiles = (!u.moved && u.ap>0) ? computeReachable(u) : new Map(); renderAll(); return; }
-  if (mode === 'combo') { const cb = getAvailableCombo(u); if (!cb) return; activeComboDef = cb; if (!cb.needTarget) { executePlayerAction(u, 'combo', u.r, u.c); return; } }
-  else if (mode === 'ult') {
+  const u = getUnitById(selectedUnitId);
+  if (!u || u.team !== 'player' || u.acted || u.ap <= 0) return;
+
+  showCmdPopover = false;
+  pendingAction = null;
+
+  if (mode === 'combo') {
+    const cb = getAvailableCombo(u); if (!cb) return;
+    activeComboDef = cb;
+    if (!cb.needTarget) {
+      actionMode = 'combo';
+      targetableTiles = new Set([keyOf(u.r, u.c)]);
+      pendingAction = { unitId: u.id, mode: 'combo', r: u.r, c: u.c };
+      renderAll();
+      return;
+    }
+  } else if (mode === 'ult') {
     const sk = DATA_SKILLS[u.ultId];
-    if (u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
-    if (sk.type==='self_berserk' || sk.type==='domain') { executePlayerAction(u, 'ult', u.r, u.c); return; }
+    if (!sk || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    if (sk.type === 'self_berserk' || sk.type === 'domain') {
+      actionMode = 'ult';
+      targetableTiles = new Set([keyOf(u.r, u.c)]);
+      pendingAction = { unitId: u.id, mode: 'ult', r: u.r, c: u.c };
+      renderAll();
+      return;
+    }
   } else if (mode === 'skill') {
-    const sk = DATA_SKILLS[u.skillId]; if (u.qi < getSkillQiCost(u, sk.qiCost) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    const sk = DATA_SKILLS[u.skillId];
+    if (!sk || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
   }
-  actionMode = mode; reachableTiles.clear(); targetableTiles = computeTargetable(u, mode);
-  if (targetableTiles.size === 0) spawnFloatText(u.r, u.c, '範圍內無目標', 'info');
+
+  actionMode = mode;
+  reachableTiles.clear();
+  targetableTiles = computeTargetable(u, mode);
+  if (targetableTiles.size === 0) {
+    spawnFloatText(u.r, u.c, '範圍內無目標', 'info');
+    actionMode = 'move';
+    showCmdPopover = true;
+  }
   renderAll();
 }
 
 function doWait() {
   if (gameState !== STATE.PLAYER_TURN) return;
   const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player' || u.ap <= 0) return;
-  pendingMove = null;
+  pendingMove = null; pendingAction = null; showCmdPopover = false;
   const gain = 20 + (getHex().bonusQi || 0);
   u.ap = 0; u.moved = true; u.acted = true; u.qi = Math.min(100, u.qi + gain);
   spawnFloatText(u.r, u.c, `待機 +${gain}氣`, 'info');
@@ -1878,18 +2884,31 @@ function doWait() {
 
 async function moveUnitSmooth(unit, path, isPlayer) {
   setState(STATE.ANIMATION_BUSY);
+  showCmdPopover = false; pendingAction = null;
   if (isPlayer) pendingMove = { unitId: unit.id, origR: unit.r, origC: unit.c, origFacingLeft: unit.facingLeft, prevAp: unit.ap };
-  unit.animState = 'walk'; unit.animFrame = 0; reachableTiles.clear(); targetableTiles.clear(); renderGrid();
+  unit.animState = 'walk'; unit.animFrame = 0; reachableTiles.clear(); targetableTiles.clear();
+  renderGrid(); renderFloatingUi(); renderPreviewBanner();
   for (const step of path) {
     if (step.c < unit.c) unit.facingLeft = true; else if (step.c > unit.c) unit.facingLeft = false;
-    unit.r = step.r; unit.c = step.c; AudioManager.play('move'); renderUnits(); await sleep(145);
+    unit.r = step.r; unit.c = step.c;
+    AudioManager.play('move');
+    renderUnits();
+    focusCameraOn(step.r, step.c);
+    await sleep(145);
   }
   unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit);
-  if (isPlayer) { unit.moved = true; unit.ap = Math.max(0, unit.ap - 1); setState(STATE.PLAYER_TURN); renderAll(); }
+  if (isPlayer) {
+    unit.moved = true;
+    unit.ap = Math.max(0, unit.ap - 1);
+    showCmdPopover = true;
+    focusCameraOn(unit.r, unit.c);
+    setState(STATE.PLAYER_TURN);
+    renderAll();
+  }
 }
 
 async function executePlayerAction(unit, mode, tr, tc) {
-  pendingMove = null; setState(STATE.ANIMATION_BUSY);
+  pendingMove = null; pendingAction = null; showCmdPopover = false; setState(STATE.ANIMATION_BUSY); renderFloatingUi(); renderPreviewBanner();
   reachableTiles.clear(); targetableTiles.clear(); renderGrid(); renderGhost();
   if (tc < unit.c) unit.facingLeft = true; else if (tc > unit.c) unit.facingLeft = false;
 
@@ -2038,7 +3057,7 @@ function calcDamage(atk, def, isCrit, target) {
 
 async function playLunge(attacker, tr, tc) {
   const box = document.querySelector(`[data-uid="${attacker.id}"] .unit-box`); if (!box) return;
-  box.style.transform = `translate(${Math.sign(tc-attacker.c)*18}px,${Math.sign(tr-attacker.r)*18}px) scale(1.08)`;
+  box.style.transform = `translate(${Math.sign(tc-attacker.c)*32}px,${Math.sign(tr-attacker.r)*32}px) scale(1.08)`;
   await sleep(90); box.style.transform = '';
 }
 
@@ -2067,11 +3086,13 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
 async function endPlayerTurn() {
   if (gameState !== STATE.PLAYER_TURN) return;
-  pendingMove = null; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+  pendingMove = null; pendingAction = null; showCmdPopover = false; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
   setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await sleep(240);
 
   for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
+    focusCameraOn(enemy.r, enemy.c);
+    await sleep(220);
     if (enemy.stunned) { enemy.stunned = false; spawnFloatText(enemy.r, enemy.c, '暈眩', 'info'); continue; }
     if (enemy.sleepTurns > 0) { enemy.sleepTurns--; spawnFloatText(enemy.r, enemy.c, 'Zzz', 'info'); continue; }
 
@@ -2121,6 +3142,8 @@ async function endPlayerTurn() {
   if (activeStage.modifiers.starvationPct > 0) {
     units.filter(u=>u.team==='player'&&u.hp>0).forEach(u => { const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct); u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg'); });
   }
+  const firstP = units.find(u => u.team === 'player' && u.hp > 0);
+  if (firstP) focusCameraOn(firstP.r, firstP.c);
   setState(STATE.PLAYER_TURN); renderAll();
 }
 
@@ -2231,34 +3254,60 @@ function devBattleCheat(type) {
   renderAll();
 }
 
-// 戰鬥畫面渲染
-function renderAll() { renderBattleTop(); renderGrid(); renderGhost(); renderUnits(); renderThumbPanel(); }
+// 戰鬥畫面渲染 (v0.4 現代古風介面引擎)
+function renderAll() {
+  renderBattleTop();
+  renderGrid();
+  renderGhost();
+  renderUnits();
+  renderBottomCapsule();
+  renderFloatingUi();
+  renderPreviewBanner();
+  renderThreatIndicators();
+}
+
 function renderBattleTop() {
   const hex = getHex();
+  const vp = document.getElementById('boardViewport');
+  if (vp) vp.setAttribute('data-hex', hex.id);
+
   document.getElementById('hexTitle').textContent = `【${hex.name}・${hexLockedByStage ? '鎖卦' : `剩${hexCountdown}回合`}】`;
   document.getElementById('hexDesc').textContent = hex.desc;
   document.getElementById('turnBadge').textContent = activeStage.victoryType==='survive' ? `T${turnNumber}/${activeStage.surviveTurns}` : `T${turnNumber}`;
+
   const syn = getActiveSynergies();
-  const swf = document.getElementById('synWaterFire'); swf.textContent = syn.waterFire ? '水火既濟(氣耗半)' : '水火既濟'; swf.className = 'syn-tag' + (syn.waterFire?' on':'');
-  const ses = document.getElementById('synEarthSky'); ses.textContent = syn.earthSky ? '地天泰(減傷/穿甲)' : '地天泰'; ses.className = 'syn-tag' + (syn.earthSky?' on':'');
-  const sxz = document.getElementById('synXinzhai'); sxz.textContent = xinzhaiDomainTurns>0 ? `心齋(${xinzhaiDomainTurns})` : '心齋'; sxz.className = 'syn-tag' + (xinzhaiDomainTurns>0?' domain':'');
-  document.getElementById('comboHintTag').textContent = (!lastPlayerAction) ? '太極:待前手[陽]' : (lastPlayerAction.yinYang.includes('陽') ? `太極就緒(${lastPlayerAction.name})` : `前手:${lastPlayerAction.name}`);
+  const swf = document.getElementById('synWaterFire');
+  swf.textContent = '水火既濟'; swf.className = 'syn-tag' + (syn.waterFire ? ' on' : '');
+  const ses = document.getElementById('synEarthSky');
+  ses.textContent = '地天泰'; ses.className = 'syn-tag' + (syn.earthSky ? ' on' : '');
+  const sxz = document.getElementById('synXinzhai');
+  sxz.textContent = `心齋(${xinzhaiDomainTurns})`; sxz.className = 'syn-tag' + (xinzhaiDomainTurns > 0 ? ' domain' : '');
+  const cTag = document.getElementById('comboHintTag');
+  const taijiReady = Boolean(lastPlayerAction && lastPlayerAction.yinYang.includes('陽'));
+  cTag.textContent = taijiReady ? `太極就緒(${lastPlayerAction.name})` : '';
+  cTag.className = 'syn-tag' + (taijiReady ? ' taiji-ready' : '');
 }
+
 function renderGrid() {
   const gl = document.getElementById('gridLayer'); gl.innerHTML = '';
   const sel = getUnitById(selectedUnitId);
-  for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) {
-    const t = document.createElement('div'), k = keyOf(r, c);
-    let cls = 'tile ' + (grid[r][c]===1 ? 'wall' : grid[r][c]===2 ? 'water' : ((r+c)%2===0?'plain':'plain alt'));
-    if (sel && sel.r===r && sel.c===c) cls += ' selected-tile';
-    if (actionMode==='move' && reachableTiles.has(k)) cls += ' move-range';
-    if (actionMode==='basic' && targetableTiles.has(k)) cls += ' attack-range';
-    if (['skill','ult','combo'].includes(actionMode) && targetableTiles.has(k)) {
-      cls += (sel && ((actionMode==='skill'&&['p_kong','p_hui'].includes(sel.id))||(actionMode==='ult'&&sel.id==='p_gong'))) ? ' heal-range' : ' special-range';
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const t = document.createElement('div'), k = keyOf(r, c);
+      let cls = 'tile ' + (grid[r][c] === 1 ? 'wall' : grid[r][c] === 2 ? 'water' : ((r + c) % 2 === 0 ? 'plain' : 'plain alt'));
+      if (sel && sel.r === r && sel.c === c) cls += ' selected-tile';
+      if (actionMode === 'move' && reachableTiles.has(k)) cls += ' move-range';
+      if (actionMode === 'basic' && targetableTiles.has(k)) cls += ' attack-range';
+      if (['skill', 'ult', 'combo'].includes(actionMode) && targetableTiles.has(k)) {
+        cls += (sel && ((actionMode === 'skill' && ['p_kong', 'p_hui'].includes(sel.id)) || (actionMode === 'ult' && sel.id === 'p_gong'))) ? ' heal-range' : ' special-range';
+      }
+      if (pendingAction && pendingAction.r === r && pendingAction.c === c) cls += ' preview-target';
+      t.className = cls;
+      gl.appendChild(t);
     }
-    t.className = cls; t.onclick = () => onTileClick(r, c); gl.appendChild(t);
   }
 }
+
 function renderGhost() {
   const layer = document.getElementById('ghostLayer'); layer.innerHTML = '';
   if (!pendingMove) return;
@@ -2267,13 +3316,14 @@ function renderGhost() {
   g.style.left = `${pendingMove.origC * TILE_PX}px`; g.style.top = `${pendingMove.origR * TILE_PX}px`;
   g.innerHTML = `${u.char}<span>原位</span>`; layer.appendChild(g);
 }
+
 function renderUnits() {
   const uLayer = document.getElementById('unitLayer'), hLayer = document.getElementById('hudLayer');
-  const aliveIds = new Set(units.filter(u=>u.hp>0).map(u=>u.id));
+  const aliveIds = new Set(units.filter(u => u.hp > 0).map(u => u.id));
   Array.from(uLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.uid)) ch.remove(); });
   Array.from(hLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.hudid)) ch.remove(); });
 
-  units.filter(u=>u.hp>0).forEach(u => {
+  units.filter(u => u.hp > 0).forEach(u => {
     let anc = uLayer.querySelector(`[data-uid="${u.id}"]`);
     if (!anc) {
       anc = document.createElement('div'); anc.className = 'unit-anchor'; anc.dataset.uid = u.id;
@@ -2283,27 +3333,38 @@ function renderUnits() {
     anc.style.left = `${u.c * TILE_PX}px`; anc.style.top = `${u.r * TILE_PX}px`;
     anc.style.zIndex = 10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0);
     anc.classList.toggle('selected', u.id === selectedUnitId);
-    anc.classList.toggle('exhausted', u.team==='player' && u.ap<=0);
-    anc.classList.toggle('invincible', u.invincibleTurns>0);
-    anc.classList.toggle('lockhp', u.lockHpTurns>0);
-    anc.classList.toggle('sleeping', u.sleepTurns>0);
+    anc.classList.toggle('exhausted', u.team === 'player' && u.ap <= 0);
+    anc.classList.toggle('invincible', u.invincibleTurns > 0);
+    anc.classList.toggle('lockhp', u.lockHpTurns > 0);
+    anc.classList.toggle('sleeping', u.sleepTurns > 0);
     anc.classList.toggle('flip-left', u.facingLeft);
     updateUnitVisualFrame(u, anc);
 
     let hud = hLayer.querySelector(`[data-hudid="${u.id}"]`);
     if (!hud) { hud = document.createElement('div'); hud.className = 'unit-hud'; hud.dataset.hudid = u.id; hLayer.appendChild(hud); }
     hud.style.left = `${u.c * TILE_PX}px`; hud.style.top = `${u.r * TILE_PX}px`;
-    const hpPct = Math.max(0, Math.round((u.hp/u.maxHp)*100)), qiPct = Math.max(0, Math.round((u.qi/u.maxQi)*100));
+    const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
+    const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
-    if (u.invincibleTurns>0) flags.push('無敵'); if (u.lockHpTurns>0) flags.push('鎖血');
-    if (u.fatalShield) flags.push('齋'); if (u.stunned) flags.push('暈'); if (u.sleepTurns>0) flags.push('眠');
-    if (u.defBreakTurns>0) flags.push('破'); if (u.buffTurns>0) flags.push('教↑');
+    if (u.invincibleTurns > 0) flags.push('無敵');
+    if (u.lockHpTurns > 0) flags.push('鎖血');
+    if (u.fatalShield) flags.push('齋');
+    if (u.stunned) flags.push('暈');
+    if (u.sleepTurns > 0) flags.push('眠');
+    if (u.defBreakTurns > 0) flags.push('破');
+    if (u.buffTurns > 0) flags.push('教↑');
+    const effYY = getEffectiveYinYang(u);
+    const yyShort = effYY === '陽/陰' ? '陰陽' : effYY;
+
     hud.innerHTML = `
-      <div class="hud-top-row"><span class="hud-yy">${getEffectiveYinYang(u)}</span>${u.team==='player'?`<span class="hud-ap">AP:${u.ap}</span>`:''}</div>
-      ${flags.length ? `<span class="hud-status">${flags.slice(0,2).join('')}</span>` : ''}
+      ${flags.length ? `<span class="hud-status">${flags.slice(0, 2).join('')}</span>` : ''}
+      <div class="hud-foot-badges">
+        <span class="hud-yy-circle">${yyShort}</span>
+        ${u.team === 'player' ? `<span class="hud-ap-circle">${u.ap}</span>` : ''}
+      </div>
       <div class="hud-bars">
-        <div class="hp-bar-bg"><div class="hp-bar-fill ${u.team==='enemy'?'enemy':''}" style="width:${hpPct}%"></div></div>
-        ${u.team==='player' ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
+        <div class="hp-bar-bg"><div class="hp-bar-fill ${u.team === 'enemy' ? 'enemy' : ''}" style="width:${hpPct}%"></div></div>
+        ${u.team === 'player' ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
       </div>`;
   });
 }
@@ -2314,10 +3375,9 @@ function updateUnitVisualFrame(u, ancEl = null) {
   const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
   const frameIdx = def.start + (u.animFrame % def.count);
   const isHit = (u.animState === 'attack' && u.animFrame === def.hitOffset);
-  pill.textContent = `${u.animState}:${u.animFrame+1}${isHit?'*HIT':''}`;
+  pill.textContent = `${u.animState}:${u.animFrame + 1}${isHit ? '*HIT' : ''}`;
   pill.classList.toggle('hit', isHit);
 
-  // 優先順序：手動熱替換圖集 > 資料夾自動載入圖集 > 找不到圖則自動維持白盒方塊
   const sheet = customSprites[u.tplKey] || customSprites[u.id] || autoLoadedSprites[u.tplKey] || autoLoadedSprites[u.id];
   if (sheet) {
     box.style.display = 'none';
@@ -2334,65 +3394,296 @@ function updateUnitVisualFrame(u, ancEl = null) {
   }
 }
 
-function renderThumbPanel() {
+// 底部單行狀態膠囊
+function renderBottomCapsule() {
+  const infoEl = document.getElementById('capsuleUnitInfo');
+  const undoBtn = document.getElementById('btnCapsuleUndo');
   const u = getUnitById(selectedUnitId);
-  const strip = document.getElementById('unitMiniStrip'), desc = document.getElementById('skillDesc');
-  const [btnB, btnS, btnU, btnC, btnH, btnW, btnUndo] = ['btnBasic','btnSkill','btnUlt','btnCombo','btnHexFlip','btnWait','btnUndo'].map(id => document.getElementById(id));
 
   const canUndo = (gameState === STATE.PLAYER_TURN && Boolean(pendingMove));
-  btnUndo.disabled = !canUndo; btnUndo.classList.toggle('ready', canUndo);
-  btnUndo.textContent = canUndo ? '↩ 悔步 (退回原位)' : '↩ 悔步';
-
-  const kong = getUnitById('p_kong');
-  btnH.textContent = `韋編三絕(${hexFlipRemaining})`;
-  btnH.disabled = !(gameState===STATE.PLAYER_TURN && u && u.id==='p_kong' && kong.ap>0 && hexFlipRemaining>0);
+  if (undoBtn) undoBtn.style.display = canUndo ? 'inline-flex' : 'none';
 
   if (!u) {
-    strip.innerHTML = '<span style="color:#94a3b8;">點選棋盤方塊檢視數值（點擊此列可看詳細招式）</span>';
-    [btnB, btnS, btnU, btnC, btnW].forEach(b => { b.disabled = true; b.classList.remove('active'); });
-    desc.textContent = canUndo ? '已移動至暫定位置！可直接出招，或點【↩ 悔步】退回原位。' : '點選我方角色移動，確定攻擊前隨時可悔步。';
+    infoEl.innerHTML = `<span style="font-size:0.74rem; color:#94a3b8;">${canUndo ? '已暫定移動：點選武將出招，或按【↩ 悔步】退回。' : '點選我方武將移動｜單指拖曳巡視戰場'}</span>`;
     return;
   }
 
   const s = getEffectiveStats(u);
-  strip.innerHTML = `
-    <strong>[${u.char}]${u.name}</strong>
-    <span>HP:${u.hp}/${u.maxHp}</span>
-    <span style="color:#fde047;">氣:${u.qi}</span>
-    <span>攻:<span class="stat-val ${s.atkBuffed?'buffed':''}">${s.atk}</span></span>
-    <span>防:<span class="stat-val ${s.defBuffed?'buffed':(s.defDebuffed?'debuffed':'')}">${s.def}</span></span>
-    <span>移:<span class="stat-val ${s.moveBuffed?'buffed':(s.moveDebuffed?'debuffed':'')}">${s.move}</span></span>
-    ${saveData.roster[u.id] ? '<span style="color:#38bdf8;font-weight:800;">詳情▸</span>' : ''}
-  `;
+  const detailBtn = saveData.roster[u.id]
+    ? `<button class="btn sm" style="min-height:26px; padding:2px 7px; font-size:0.68rem;" onclick="openCharDetail('${u.id}')">詳情</button>`
+    : '';
+  infoEl.innerHTML = `
+    <span class="char-chip" style="background:${u.color}; width:36px; height:36px; font-size:1.05rem;">${u.char}</span>
+    <div class="capsule-bars">
+      <div class="capsule-name-row">
+        <span>${u.name}</span>
+        <span style="font-size:0.68rem; color:#fde047;">[${getEffectiveYinYang(u)}]</span>
+        ${detailBtn}
+      </div>
+      <div class="capsule-meter-row">
+        <span style="color:#4ade80; font-weight:800;">HP ${u.hp}/${u.maxHp}</span>
+        ${u.team === 'player' ? `<span style="color:#fde047; font-weight:800;">氣 ${u.qi}</span>` : ''}
+        <span>攻${s.atk} 防${s.def}</span>
+      </div>
+    </div>`;
+}
 
-  const canAct = (gameState===STATE.PLAYER_TURN && u.team==='player' && !u.acted && u.ap>0 && !u.stunned && u.sleepTurns<=0);
-  const sk = u.skillId ? DATA_SKILLS[u.skillId] : null, ult = u.ultId ? DATA_SKILLS[u.ultId] : null;
-  const skC = sk ? getSkillQiCost(u, sk.qiCost) : 999, ulC = ult ? getSkillQiCost(u, ult.qiCost) : 999;
+// 螢幕浮動指令層：階段 1 原地浮標 / 階段 2 古風指令浮窗
+function renderFloatingUi() {
+  const layer = document.getElementById('floatUiLayer');
+  if (!layer) return;
+  layer.innerHTML = '';
 
-  btnB.disabled = !canAct; btnW.disabled = !(gameState===STATE.PLAYER_TURN && u.team==='player' && u.ap>0);
-  btnS.disabled = !(canAct && sk && u.qi>=skC && (!sk.goldCost || saveData.gold>=sk.goldCost));
-  btnU.disabled = !(canAct && ult && u.qi>=ulC && (!ult.hpBelowPct || (u.hp/u.maxHp)<ult.hpBelowPct) && (!ult.goldCost || saveData.gold>=ult.goldCost));
+  if (gameState !== STATE.PLAYER_TURN || pendingAction || actionMode !== 'move') return;
+  const u = getUnitById(selectedUnitId);
+  if (!u || u.team !== 'player' || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return;
 
-  const cb = getAvailableCombo(u);
-  btnC.disabled = !cb; btnC.textContent = cb ? `★${cb.name}` : '合體(羈絆Lv2)';
-  btnB.textContent = u.basicId ? DATA_SKILLS[u.basicId].name : '普攻';
-  btnS.textContent = sk ? `${sk.name}(${skC})` : '無絕招';
-  btnU.textContent = ult ? `${ult.name.slice(0,4)}(${ulC})` : '無大絕';
+  // 階段 1：尚未移動、未展開指令窗 -> 腳邊顯示【原地出招 / 待機】快捷浮標
+  if (!showCmdPopover && !u.moved) {
+    const pill = document.createElement('button');
+    pill.className = 'quick-action-pill';
+    pill.id = 'quickActionPill';
+    pill.textContent = '⚔ 原地出招 / 待機';
+    pill.onclick = e => { e.stopPropagation(); openInPlaceCmdMenu(); };
+    layer.appendChild(pill);
+    updateFloatingUiPosition();
+    return;
+  }
 
-  btnB.classList.toggle('active', actionMode==='basic'); btnS.classList.toggle('active', actionMode==='skill');
-  btnU.classList.toggle('active', actionMode==='ult'); btnC.classList.toggle('active', actionMode==='combo');
+  // 階段 2：展開古風竹簡／宣紙浮動指令卡
+  if (showCmdPopover) {
+    const card = document.createElement('div');
+    card.className = 'cmd-popover';
+    card.id = 'cmdPopoverCard';
 
-  if (actionMode==='basic' && u.basicId) desc.textContent = DATA_SKILLS[u.basicId].desc;
-  else if (actionMode==='skill' && sk) desc.textContent = sk.desc;
-  else if (actionMode==='ult' && ult) desc.textContent = ult.desc;
-  else if (actionMode==='combo' && cb) desc.textContent = cb.desc;
-  else desc.textContent = canUndo ? '暫定移動中：可先點招式量射程，或按【↩ 悔步】退回原位。' : (u.team==='player' ? `絕招：${sk?sk.name:'無'}｜大絕：${ult?ult.name:'無'}` : '敵方單位');
+    const canAct = (!u.acted && u.ap > 0);
+    const basicSk = u.basicId ? DATA_SKILLS[u.basicId] : null;
+    const sk = u.skillId ? DATA_SKILLS[u.skillId] : null;
+    const ult = u.ultId ? DATA_SKILLS[u.ultId] : null;
+    const skC = sk ? getSkillQiCost(u, sk.qiCost) : 999;
+    const ulC = ult ? getSkillQiCost(u, ult.qiCost) : 999;
+    const cb = getAvailableCombo(u);
+
+    let htmlStr = `<div class="cmd-pop-header"><span>【${u.name}】指令</span><span>氣 ${u.qi}</span></div>`;
+
+    if (pendingMove && pendingMove.unitId === u.id) {
+      htmlStr += `<button class="cmd-btn undo" onclick="undoPendingMove()">↩ 悔步（退回原位）</button>`;
+    }
+
+    if (canAct && basicSk) {
+      htmlStr += `<button class="cmd-btn" onclick="selectMode('basic')">
+        <div class="cmd-btn-top"><span>⚔ ${basicSk.name}</span><span style="color:#0369a1; font-size:0.68rem;">${basicSk.rangeText}</span></div>
+        <div class="cmd-btn-sub">+25 氣｜普攻出招</div>
+      </button>`;
+    }
+
+    if (canAct && sk) {
+      const ok = u.qi >= skC && (!sk.goldCost || saveData.gold >= sk.goldCost);
+      const costTxt = `${skC}氣${sk.goldCost ? `+${sk.goldCost}兩` : ''}`;
+      htmlStr += `<button class="cmd-btn" ${ok ? '' : 'disabled'} onclick="selectMode('skill')">
+        <div class="cmd-btn-top"><span>✦ ${sk.name}</span><span style="color:#b45309; font-size:0.68rem;">${costTxt}</span></div>
+        <div class="cmd-btn-sub">${sk.rangeText}</div>
+      </button>`;
+    }
+
+    if (canAct && ult) {
+      const hpOk = !ult.hpBelowPct || (u.hp / u.maxHp) < ult.hpBelowPct;
+      const ok = u.qi >= ulC && hpOk && (!ult.goldCost || saveData.gold >= ult.goldCost);
+      const costTxt = `${ulC}氣${ult.goldCost ? `+${ult.goldCost}兩` : ''}`;
+      htmlStr += `<button class="cmd-btn ult" ${ok ? '' : 'disabled'} onclick="selectMode('ult')">
+        <div class="cmd-btn-top"><span>🔥 ${ult.name.slice(0, 6)}</span><span style="font-size:0.68rem;">${costTxt}</span></div>
+        <div class="cmd-btn-sub">${!hpOk ? '需血量<30%' : ult.rangeText}</div>
+      </button>`;
+    }
+
+    if (canAct && cb) {
+      htmlStr += `<button class="cmd-btn combo" onclick="selectMode('combo')">
+        <div class="cmd-btn-top"><span>★ 合體・${cb.name}</span><span style="font-size:0.68rem;">奧義</span></div>
+        <div class="cmd-btn-sub">${cb.desc.slice(0, 18)}…</div>
+      </button>`;
+    }
+
+    if (u.id === 'p_kong' && hexFlipRemaining > 0 && u.ap > 0) {
+      htmlStr += `<button class="cmd-btn hexflip" onclick="showCmdPopover=false; renderFloatingUi(); openHexModal();">
+        <div class="cmd-btn-top"><span>☯ 韋編三絕</span><span style="font-size:0.68rem;">剩${hexFlipRemaining}次</span></div>
+        <div class="cmd-btn-sub">翻轉陰陽對立卦</div>
+      </button>`;
+    }
+
+    htmlStr += `<button class="cmd-btn wait" onclick="doWait()">🧘 待機（調息 +${20 + (getHex().bonusQi || 0)}氣）</button>`;
+
+    card.innerHTML = htmlStr;
+    layer.appendChild(card);
+    updateFloatingUiPosition();
+  }
+}
+
+function updateFloatingUiPosition() {
+  const u = getUnitById(selectedUnitId);
+  if (!u) return;
+  const { w, h } = getViewportSize();
+  const unitLeft = camX + u.c * TILE_PX * camScale;
+  const unitTop = camY + u.r * TILE_PX * camScale;
+  const unitSize = TILE_PX * camScale;
+
+  const pill = document.getElementById('quickActionPill');
+  if (pill) {
+    let px = unitLeft + unitSize / 2;
+    let py = unitTop + unitSize + 6;
+    if (py + 36 > h - 8) py = Math.max(8, unitTop - 40);
+    px = Math.max(76, Math.min(w - 76, px));
+    pill.style.left = `${px}px`;
+    pill.style.top = `${py}px`;
+  }
+
+  const card = document.getElementById('cmdPopoverCard');
+  if (card) {
+    const cw = 196;
+    const ch = card.offsetHeight || 220;
+    // 自動偵測右、左、下、上空間，避免超出視窗
+    let cx = unitLeft + unitSize + 8;
+    let cy = unitTop + (unitSize - ch) / 2;
+    if (cx + cw > w - 8) {
+      cx = unitLeft - cw - 8;
+    }
+    if (cx < 8) {
+      cx = Math.max(8, Math.min(w - cw - 8, unitLeft + (unitSize - cw) / 2));
+      cy = (unitTop + unitSize + ch + 10 < h) ? (unitTop + unitSize + 6) : Math.max(8, unitTop - ch - 6);
+    }
+    cy = Math.max(8, Math.min(h - ch - 8, cy));
+    card.style.left = `${cx}px`;
+    card.style.top = `${cy}px`;
+  }
+}
+
+// 階段 3：戰前傷害與太極合擊預覽條
+function computePreviewInfo(u, mode, tr, tc) {
+  const hex = getHex(), syn = getActiveSynergies(), stats = getEffectiveStats(u);
+  const target = getUnitAt(tr, tc);
+
+  // 檢查是否觸發太極合擊
+  let willTaiji = false;
+  if (lastPlayerAction && lastPlayerAction.unitId !== u.id) {
+    const prev = getUnitById(lastPlayerAction.unitId);
+    if (prev && manhattan(prev.r, prev.c, u.r, u.c) === 1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(u).includes('陰')) {
+      willTaiji = true;
+    }
+  }
+
+  if (mode === 'basic' && target) {
+    const sk = DATA_SKILLS[u.basicId];
+    const effYY = getEffectiveYinYang(u);
+    const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
+    const pen = (syn.earthSky && u.id === 'p_kong') ? 0.30 : 0;
+    const dmg = calcDamage(stats.atk * sk.mult * elemM, getEffectiveStats(target).def * (1 - pen), false, target);
+    const critPct = Math.round((hex.critRate + (u.bonusCrit || 0)) * 100);
+    return {
+      title: `⚔ ${sk.name} → ${target.name}`,
+      metrics: `預計傷害 <strong style="color:#f87171;">${dmg}</strong>｜暴擊率 <strong style="color:#fb923c;">${critPct}%</strong>｜太極合擊：${willTaiji ? '<strong style="color:#fde047;">★ 觸發！</strong>' : '無'}`,
+      confirmTxt: '⚔ 確認出招（或再點目標）'
+    };
+  }
+
+  if (mode === 'skill') {
+    const sk = DATA_SKILLS[u.skillId];
+    if (sk.type === 'charge_stun' && target) {
+      const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(target).def, false, target);
+      const critPct = Math.round((hex.critRate + 0.1) * 100);
+      return {
+        title: `✦ ${sk.name} → ${target.name}`,
+        metrics: `預計傷害 <strong style="color:#f87171;">${dmg}</strong>＋暈眩｜暴擊率 <strong style="color:#fb923c;">${critPct}%</strong>｜太極：${willTaiji ? '<strong style="color:#fde047;">★ 觸發！</strong>' : '無'}`,
+        confirmTxt: '✦ 確認施放'
+      };
+    }
+    return {
+      title: `✦ ${sk.name}${target ? ` → ${target.name}` : ''}`,
+      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#fde047;">★ 觸發太極合擊！</strong>' : ''}`,
+      confirmTxt: '✦ 確認施放'
+    };
+  }
+
+  if (mode === 'ult') {
+    const sk = DATA_SKILLS[u.ultId];
+    return {
+      title: `🔥 大絕【${sk.name}】`,
+      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#fde047;">★ 觸發太極合擊！</strong>' : ''}`,
+      confirmTxt: '🔥 確認爆發大絕'
+    };
+  }
+
+  if (mode === 'combo' && activeComboDef) {
+    return {
+      title: `★ 合體奧義【${activeComboDef.name}】`,
+      metrics: activeComboDef.desc,
+      confirmTxt: '★ 確認發動奧義'
+    };
+  }
+
+  return { title: '確認行動', metrics: '', confirmTxt: '確認' };
+}
+
+function renderPreviewBanner() {
+  const bar = document.getElementById('previewBanner');
+  if (!bar) return;
+  if (!pendingAction || gameState !== STATE.PLAYER_TURN) {
+    bar.classList.remove('show');
+    bar.innerHTML = '';
+    return;
+  }
+  const u = getUnitById(pendingAction.unitId);
+  if (!u) { bar.classList.remove('show'); return; }
+  const info = computePreviewInfo(u, pendingAction.mode, pendingAction.r, pendingAction.c);
+  bar.innerHTML = `
+    <div class="preview-main-row"><span>${info.title}</span><span style="font-size:0.68rem; color:#93c5fd;">再次點擊目標亦可出手</span></div>
+    <div class="preview-metrics">${info.metrics}</div>
+    <div class="preview-actions">
+      <button class="btn sm" onclick="cancelPendingAction()">取消</button>
+      <button class="btn sm primary" onclick="confirmPendingAction()">${info.confirmTxt}</button>
+    </div>`;
+  bar.classList.add('show');
+}
+
+// 視野外敵軍邊緣預警
+function renderThreatIndicators() {
+  const layer = document.getElementById('threatLayer');
+  if (!layer) return;
+  layer.innerHTML = '';
+  if (currentScene !== 'battle' || camZoomMode === 'overview') return;
+
+  const { w, h } = getViewportSize();
+  const enemies = units.filter(u => u.team === 'enemy' && u.hp > 0);
+  const centerR = (h / 2 - camY) / (TILE_PX * camScale) - 0.5;
+  const centerC = (w / 2 - camX) / (TILE_PX * camScale) - 0.5;
+
+  enemies.forEach(e => {
+    const sx = camX + (e.c + 0.5) * TILE_PX * camScale;
+    const sy = camY + (e.r + 0.5) * TILE_PX * camScale;
+    if (sx >= 14 && sx <= w - 14 && sy >= 14 && sy <= h - 14) return;
+
+    const dx = sx - w / 2, dy = sy - h / 2;
+    let arrow = '▲';
+    if (Math.abs(dx) > Math.abs(dy)) arrow = dx < 0 ? '◀' : '▶';
+    else arrow = dy < 0 ? '▲' : '▼';
+
+    const dist = Math.max(1, Math.round(Math.hypot(e.r - centerR, e.c - centerC)));
+    const px = Math.max(36, Math.min(w - 36, sx));
+    const py = Math.max(20, Math.min(h - 20, sy));
+
+    const el = document.createElement('button');
+    el.className = 'threat-pill';
+    el.textContent = `${e.char} ${arrow}${dist}格`;
+    el.style.left = `${px}px`;
+    el.style.top = `${py}px`;
+    el.style.transform = 'translate(-50%, -50%)';
+    el.onclick = ev => { ev.stopPropagation(); focusCameraOn(e.r, e.c); };
+    layer.appendChild(el);
+  });
 }
 
 function spawnFloatText(r, c, text, type = 'dmg') {
   const fx = document.getElementById('fxLayer'), el = document.createElement('div');
   el.className = `float-text ${type}`; el.textContent = text;
-  el.style.left = `${c * TILE_PX + 32}px`; el.style.top = `${r * TILE_PX + 8}px`;
+  el.style.left = `${c * TILE_PX + TILE_PX / 2}px`; el.style.top = `${r * TILE_PX + 16}px`;
   fx.appendChild(el); setTimeout(() => el.remove(), type === 'taiji' ? 1350 : 950);
 }
 function addLog(msg, cls = '') {
