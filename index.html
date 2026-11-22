@@ -260,11 +260,11 @@
   .unit-anchor.invincible .unit-box { box-shadow: 0 0 12px 3px #fde047; border-color: #fef08a; }
   .unit-anchor.lockhp .unit-box { box-shadow: 0 0 12px 3px #ef4444; border-color: #fca5a5; }
   .unit-anchor.sleeping .unit-box { filter: brightness(0.65) hue-rotate(25deg); }
-  .sprite-canvas { position: absolute; left: -32px; top: -52px; width: 128px; height: 128px; image-rendering: pixelated; pointer-events: none; }
+  .sprite-canvas { position: absolute; left: 2px; top: -8px; width: 60px; height: 60px; image-rendering: pixelated; pointer-events: none; }
   .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
 
-  .art-guide { display: none; position: absolute; left: -32px; top: -52px; width: 128px; height: 128px; border: 1px dashed rgba(250, 204, 21, 0.8); pointer-events: none; }
-  .art-guide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.9); }
+  .art-guide { display: none; position: absolute; left: 2px; top: -8px; width: 60px; height: 60px; border: 1px dashed rgba(250, 204, 21, 0.8); pointer-events: none; }
+  .art-guide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 6px; border-bottom: 1px solid rgba(239, 68, 68, 0.9); }
   .show-guides .art-guide { display: block; }
   .anim-pill {
     position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
@@ -623,7 +623,7 @@
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
       <button class="btn sm dev" onclick="devBattleCheat('fullQi'); closeModal('battleToolsModal')">⚡全軍滿氣</button>
       <button class="btn sm dev" onclick="devBattleCheat('lowHp'); closeModal('battleToolsModal')">🩸殘血20%</button>
-      <button class="btn sm" id="btnToggleGuides" onclick="toggleArtGuides()">128x128 基準框：關</button>
+      <button class="btn sm" id="btnToggleGuides" onclick="toggleArtGuides()">格子基準框：關</button>
       <button class="btn sm danger" onclick="closeModal('battleToolsModal'); retreatToMap()">撤退回輿圖</button>
     </div>
     <div style="font-size:0.78rem; font-weight:800; color:var(--accent); margin-top:4px;">即時戰鬥日誌</div>
@@ -915,26 +915,44 @@ function processChromaKeyToCanvas(img) {
   cvs.width = 768;
   cvs.height = 640;
   const ctx = cvs.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
   ctx.drawImage(img, 0, 0, 768, 640);
   try {
-    // 若處於 HTTP/HTTPS (例如 GitHub Pages 或本地伺服器)，自動檢查左上角是否為純綠幕(#00FF00)或洋紅(#FF00FF)並去背
     const imgData = ctx.getImageData(0, 0, 768, 640);
     const d = imgData.data;
     const kr = d[0], kg = d[1], kb = d[2], ka = d[3];
-    const isGreenScreen = (ka > 200 && kg > 200 && kr < 60 && kb < 60);
-    const isMagentaScreen = (ka > 200 && kr > 200 && kb > 200 && kg < 60);
+    const isGreenScreen = (ka > 200 && kg > 160 && kg > kr + 60 && kg > kb + 60);
+    const isMagentaScreen = (ka > 200 && kr > 160 && kb > 160 && kg < 90);
     if (isGreenScreen || isMagentaScreen) {
       for (let i = 0; i < d.length; i += 4) {
-        if (Math.abs(d[i] - kr) < 42 && Math.abs(d[i + 1] - kg) < 42 && Math.abs(d[i + 2] - kb) < 42) {
-          d[i + 3] = 0;
+        const r = d[i], g = d[i + 1], b = d[i + 2];
+        if (isGreenScreen) {
+          const maxRB = Math.max(r, b);
+          const greenExcess = g - maxRB;
+          if (greenExcess > 85) {
+            d[i + 3] = 0;
+          } else if (greenExcess > 18) {
+            // 邊緣抗鋸齒半透明像素：抑制綠色溢色 (Despill) 並按比例降低不透明度
+            d[i + 1] = maxRB;
+            const alphaFactor = Math.max(0, 1 - (greenExcess - 18) / 67);
+            d[i + 3] = Math.round(d[i + 3] * alphaFactor);
+          }
+        } else if (isMagentaScreen) {
+          const magentaExcess = Math.min(r, b) - g;
+          if (magentaExcess > 85) {
+            d[i + 3] = 0;
+          } else if (magentaExcess > 18) {
+            d[i] = g;
+            d[i + 2] = g;
+            const alphaFactor = Math.max(0, 1 - (magentaExcess - 18) / 67);
+            d[i + 3] = Math.round(d[i + 3] * alphaFactor);
+          }
         }
       }
       ctx.putImageData(imgData, 0, 0);
     }
     return cvs;
   } catch (corsErr) {
-    // 若玩家直接雙擊 index.html (file:// 協定)，瀏覽器會阻擋 getImageData；
-    // 此時直接回傳原始 img 物件（只要是透明背景 PNG 依然能正常繪製，完全不當機！）
     return img;
   }
 }
@@ -1514,7 +1532,7 @@ document.getElementById('artFileInput').addEventListener('change', e => {
         customSprites[targetKey] = processChromaKeyToCanvas(img);
       } else {
         const cvs = document.createElement('canvas'); cvs.width = 768; cvs.height = 640;
-        cvs.getContext('2d').drawImage(img, 0, 0, 768, 640);
+        const c2 = cvs.getContext('2d'); c2.imageSmoothingEnabled = false; c2.drawImage(img, 0, 0, 768, 640);
         customSprites[targetKey] = cvs;
       }
       renderSpriteStatusList();
@@ -1648,7 +1666,7 @@ function spawnVfx(r, c, isUlt = false, stampText = '') {
   }
 }
 
-function toggleArtGuides() { showGuides = !showGuides; document.getElementById('boardViewport').classList.toggle('show-guides', showGuides); document.getElementById('btnToggleGuides').textContent = `128x128 基準框：${showGuides ? '開' : '關'}`; }
+function toggleArtGuides() { showGuides = !showGuides; document.getElementById('boardViewport').classList.toggle('show-guides', showGuides); document.getElementById('btnToggleGuides').textContent = `格子基準框：${showGuides ? '開' : '關'}`; }
 function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
 function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
 
@@ -2305,6 +2323,7 @@ function updateUnitVisualFrame(u, ancEl = null) {
     box.style.display = 'none';
     cvs.style.display = 'block';
     const ctx = cvs.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
     ctx.clearRect(0, 0, 128, 128);
     ctx.drawImage(sheet, (frameIdx % 6) * 128, Math.floor(frameIdx / 6) * 128, 128, 128, 0, 0, 128, 128);
   } else {
