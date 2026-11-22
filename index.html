@@ -125,11 +125,89 @@
   .briefing-meta { font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; }
   .briefing-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 8px; }
 
-  /* ==================== 場景 2：孔門營地 ==================== */
-  .camp-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
-  .camp-tab-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  /* ==================== 場景 2：孔門營地 (Master-Detail 聚焦重構) & 場景 2.5：列國市集 ==================== */
+  .camp-wrap, .shop-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
+  .camp-mode-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .camp-pane { display: none; flex-direction: column; gap: 8px; }
   .camp-pane.active { display: flex; }
+
+  /* 頂部橫向滑動弟子頭像列 */
+  .roster-strip-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    font-size: 0.75rem; color: #94a3b8;
+  }
+  .filter-pills { display: flex; gap: 4px; }
+  .filter-pill {
+    background: var(--panel-dark); border: 1px solid #334155; color: #94a3b8;
+    border-radius: 999px; padding: 3px 9px; font-size: 0.7rem; font-weight: 800; cursor: pointer;
+  }
+  .filter-pill.active { background: #1e3a8a; border-color: #38bdf8; color: #e0f2fe; }
+
+  .roster-carousel {
+    display: flex; gap: 7px; overflow-x: auto; padding: 3px 2px 6px;
+    scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: #334155 transparent;
+  }
+  .roster-carousel::-webkit-scrollbar { height: 4px; }
+  .roster-carousel::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+
+  .roster-tile {
+    flex: 0 0 72px;
+    scroll-snap-align: start;
+    background: var(--panel);
+    border: 2px solid #2a3a54;
+    border-radius: 10px;
+    padding: 6px 4px 5px;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.15s;
+  }
+  .roster-tile:active { transform: scale(0.96); }
+  .roster-tile.deployed { border-color: #16a34a; background: #072017; }
+  .roster-tile.selected {
+    border-color: var(--gold);
+    background: linear-gradient(180deg, #2b2110, #17140d);
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.45);
+  }
+  .roster-tile-order {
+    position: absolute; top: 3px; left: 4px;
+    font-size: 0.6rem; font-weight: 900; color: #4ade80;
+    background: rgba(5, 46, 22, 0.9); padding: 0 4px; border-radius: 4px;
+  }
+  .roster-tile-lv {
+    position: absolute; top: 3px; right: 4px;
+    font-size: 0.58rem; font-weight: 800; color: #fde047;
+  }
+  .roster-tile-name {
+    font-size: 0.72rem; font-weight: 900; color: #f8fafc; white-space: nowrap;
+  }
+  /* 頭像下方 3 顆裝備狀態點（亮金＝已裝、暗灰＝空槽） */
+  .eq-dots-row { display: flex; gap: 4px; margin-top: 1px; }
+  .eq-dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: #334155; border: 1px solid #475569;
+  }
+  .eq-dot.on { background: #facc15; border-color: #fef08a; box-shadow: 0 0 4px rgba(250, 204, 21, 0.8); }
+
+  /* 單一弟子聚焦儀表板 */
+  .focus-char-card {
+    background: linear-gradient(180deg, #162033 0%, #0f172a 100%);
+    border: 1.5px solid #475569;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 9px;
+  }
+  .focus-subtab-bar {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
+    background: var(--panel-dark); padding: 4px; border-radius: 9px; border: 1px solid #2a3a54;
+  }
+  .focus-subtab-btn {
+    background: transparent; border: none; color: #94a3b8;
+    border-radius: 7px; padding: 7px 4px; font-size: 0.76rem; font-weight: 900; cursor: pointer;
+  }
+  .focus-subtab-btn.active {
+    background: #1d4ed8; color: #fff; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+  }
+  .focus-subpane { display: none; flex-direction: column; gap: 8px; }
+  .focus-subpane.active { display: flex; }
 
   .mobile-card {
     background: var(--panel); border: 1px solid var(--panel-border);
@@ -146,16 +224,16 @@
     border: 1px solid #3b4f6e; border-radius: 6px; padding: 7px 6px; font-size: 0.76rem;
   }
 
-  .equip-slot-list { display: flex; flex-direction: column; gap: 5px; }
+  .equip-slot-list { display: flex; flex-direction: column; gap: 6px; }
   .equip-slot-btn {
     width: 100%; text-align: left; background: var(--panel-dark);
-    border: 1px solid #334155; border-radius: 7px; padding: 7px 9px;
-    color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+    border: 1.5px solid #334155; border-radius: 8px; padding: 9px 10px;
+    color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 3px;
   }
   .equip-slot-btn.equipped { border-color: #ca8a04; background: #1e180c; }
   .equip-slot-btn:active { transform: scale(0.99); }
-  .slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 800; }
-  .slot-sub { font-size: 0.71rem; color: #94a3b8; line-height: 1.35; }
+  .slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 900; }
+  .slot-sub { font-size: 0.72rem; color: #94a3b8; line-height: 1.38; }
   .equip-slot-btn.equipped .slot-sub { color: #fde68a; }
 
   .equip-item-card {
@@ -1067,7 +1145,6 @@
       <span class="pill gold" id="navGold">1000兩</span>
       <span class="pill" id="navSuxiu">束脩:2</span>
       <button class="icon-btn" id="btnSound" onclick="toggleSound()">🔊</button>
-      <button class="icon-btn" onclick="openArtModal()" title="精靈圖資料夾狀態與熱替換">🎨</button>
       <button class="icon-btn" onclick="openSaveModal()" title="存檔/讀檔碼">💾</button>
     </div>
   </div>
@@ -1131,46 +1208,80 @@
     </div>
   </div>
 
-  <!-- ==================== 場景 2：孔門營地 ==================== -->
+  <!-- ==================== 場景 2：孔門營地 (Master-Detail 聚焦重構) ==================== -->
   <div class="scene" id="sceneCamp">
     <div class="camp-wrap">
-      <div class="camp-tab-bar">
-        <button class="btn sm active" id="tabBtn_roster" onclick="switchCampTab('roster')">編制履歷</button>
-        <button class="btn sm" id="tabBtn_equip" onclick="switchCampTab('equip')">裝備市集</button>
-        <button class="btn sm" id="tabBtn_talent" onclick="switchCampTab('talent')">天賦樹</button>
-        <button class="btn sm" id="tabBtn_bond" onclick="switchCampTab('bond')">束脩羈絆</button>
+      <!-- 頂部主分頁：弟子養成 vs 束脩羈絆 -->
+      <div class="camp-mode-bar">
+        <button class="btn sm active" id="campModeBtn_char" onclick="switchCampMode('char')">👥 弟子養成與編制</button>
+        <button class="btn sm" id="campModeBtn_bond" onclick="switchCampMode('bond')">🤝 束脩羈絆（合體奧義）</button>
       </div>
 
-      <div class="camp-pane active" id="campPane_roster">
-        <div style="font-size:0.74rem; color:#94a3b8;">點擊武將頭像或【詳情】可檢視完整屬性、射程與三段招式；已出戰者依順位 #1→#5 排列。</div>
-        <div id="campRosterGrid" style="display:flex; flex-direction:column; gap:7px;"></div>
-      </div>
-
-      <div class="camp-pane" id="campPane_equip">
-        <div class="section-divider">武將裝備槽（點擊槽位開啟裝備庫・顯示詞條與取得來源）</div>
-        <div id="campEquipList" style="display:flex; flex-direction:column; gap:8px;"></div>
-        <div class="section-divider">列國市集・神兵禮器（購買後存入裝備庫）</div>
-        <div id="campEquipShopList" style="display:flex; flex-direction:column; gap:7px;"></div>
-        <div class="section-divider">列國市集・戰場補給與束脩</div>
-        <div id="campItemShopList" style="display:flex; flex-direction:column; gap:7px;"></div>
-      </div>
-
-      <div class="camp-pane" id="campPane_talent">
-        <div id="talentCharBtns" style="display:flex; gap:5px; flex-wrap:wrap;"></div>
-        <div class="row-between">
-          <span class="pill player" id="talentLiuyiPts">六藝點：0</span>
-          <span class="pill gold" id="talentWudaoPts">悟道點：0</span>
+      <!-- 模式 A：弟子養成（橫向頭像列 + 單一弟子聚焦儀表板） -->
+      <div class="camp-pane active" id="campMode_char">
+        <div class="roster-strip-head">
+          <span id="campDeploySummary">出戰編制：5 / 6 人</span>
+          <div class="filter-pills">
+            <button class="filter-pill active" id="filterBtn_all" onclick="setCampRosterFilter('all')">全部弟子</button>
+            <button class="filter-pill" id="filterBtn_deployed" onclick="setCampRosterFilter('deployed')">只看出戰</button>
+          </div>
         </div>
-        <div style="font-weight:800; color:#38bdf8; font-size:0.8rem;">內圈・六藝盤（基礎屬性）</div>
-        <div id="innerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
-        <div style="font-weight:800; color:#facc15; font-size:0.8rem; margin-top:4px;">外圈・八卦命格盤（天時與連攜）</div>
-        <div id="outerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+
+        <!-- 橫向滑動弟子頭像列（附 3 顆裝備狀態點） -->
+        <div class="roster-carousel" id="campRosterCarousel"></div>
+
+        <!-- 單一弟子整合聚焦儀表板 -->
+        <div class="focus-char-card" id="focusCharCard">
+          <div id="focusCharHeader"></div>
+
+          <div class="focus-subtab-bar">
+            <button class="focus-subtab-btn active" id="focusTab_profile" onclick="switchFocusSubTab('profile')">📜 履歷招式</button>
+            <button class="focus-subtab-btn" id="focusTab_equip" onclick="switchFocusSubTab('equip')">⚔️ 裝備配戴</button>
+            <button class="focus-subtab-btn" id="focusTab_talent" onclick="switchFocusSubTab('talent')">✨ 天賦盤</button>
+          </div>
+
+          <!-- 子頁 1：履歷招式 -->
+          <div class="focus-subpane active" id="focusPane_profile">
+            <div class="stat-pill-grid" id="focusStatsGrid"></div>
+            <div class="section-divider">《論語》招式與攻擊方式</div>
+            <div id="focusSkillsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+          </div>
+
+          <!-- 子頁 2：裝備配戴（僅顯示當前這位弟子的 3 個槽位，一屏免捲動） -->
+          <div class="focus-subpane" id="focusPane_equip">
+            <div style="font-size:0.72rem; color:#94a3b8;">點擊槽位開啟裝備庫（支援一鍵從其他弟子轉移裝備或直接購買）。</div>
+            <div class="equip-slot-list" id="focusEquipSlots"></div>
+          </div>
+
+          <!-- 子頁 3：天賦盤 -->
+          <div class="focus-subpane" id="focusPane_talent">
+            <div class="row-between">
+              <span class="pill player" id="talentLiuyiPts">六藝點：0</span>
+              <span class="pill gold" id="talentWudaoPts">悟道點：0</span>
+            </div>
+            <div style="font-weight:800; color:#38bdf8; font-size:0.78rem;">內圈・六藝盤（基礎屬性）</div>
+            <div id="innerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+            <div style="font-weight:800; color:#facc15; font-size:0.78rem; margin-top:2px;">外圈・八卦命格盤（天時與連攜）</div>
+            <div id="outerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="camp-pane" id="campPane_bond">
-        <div style="font-size:0.74rem; color:#94a3b8;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義。</div>
+      <!-- 模式 B：束脩羈絆 -->
+      <div class="camp-pane" id="campMode_bond">
+        <div style="font-size:0.74rem; color:#94a3b8;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義；束脩可於【列國市集】購買。</div>
         <div id="campBondList" style="display:flex; flex-direction:column; gap:7px;"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ==================== 場景 2.5：列國市集（獨立分頁） ==================== -->
+  <div class="scene" id="sceneShop">
+    <div class="shop-wrap">
+      <div class="section-divider">神兵禮器（購買後存入裝備庫，可至孔門營地自由分配）</div>
+      <div id="shopEquipList" style="display:flex; flex-direction:column; gap:7px;"></div>
+      <div class="section-divider">戰場補給與束脩</div>
+      <div id="shopItemList" style="display:flex; flex-direction:column; gap:7px;"></div>
     </div>
   </div>
 
@@ -1253,7 +1364,7 @@
   <div class="bottom-nav" id="bottomNav">
     <button class="nav-tab active" id="navMap" onclick="switchScene('map')"><span>🗺️</span><span>春秋輿圖</span></button>
     <button class="nav-tab" id="navCamp" onclick="switchScene('camp')"><span>🏕️</span><span>孔門營地</span></button>
-    <button class="nav-tab" onclick="openArtModal()"><span>🎨</span><span>精靈管線</span></button>
+    <button class="nav-tab" id="navShop" onclick="switchScene('shop')"><span>🏪</span><span>列國市集</span></button>
     <button class="nav-tab" onclick="openSaveModal()"><span>💾</span><span>存檔管理</span></button>
   </div>
 </div>
@@ -1328,44 +1439,6 @@
     <div style="font-size:0.76rem; color:#cbd5e1;">消耗孔子 1 點行動點（每場限 2 次），強制翻轉當前天時。</div>
     <div class="hex-choice-grid" id="hexChoiceGrid"></div>
     <button class="btn" onclick="closeModal('hexModal')">取消</button>
-  </div>
-</div>
-
-<!-- ★ 升級彈窗：資料夾自動載入狀態總覽 + 手動熱替換 -->
-<div class="modal-backdrop center" id="artModal">
-  <div class="modal-sheet">
-    <div class="row-between">
-      <h3>🎨 精靈圖資料夾自動載入總覽</h3>
-      <button class="btn sm primary" onclick="preloadFolderSprites()">🔄 重新掃描資料夾</button>
-    </div>
-    <div style="font-size:0.73rem; color:#cbd5e1; line-height:1.45;">
-      請將 <strong>768×640（6欄×5列＝30格）</strong> 圖集直接丟進專案的 <code style="color:#fde047;">assets/sprites/</code> 資料夾並依下列檔名命名。程式開局會自動讀取；<strong>尚未放入的角色會自動維持原本的白盒方塊，絕不報錯當機！</strong>
-    </div>
-    <div class="sprite-status-list" id="spriteStatusList"></div>
-
-    <div class="section-divider">單張臨時覆蓋測試（免重整直接挑檔預覽）</div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-      <select id="artTargetKey" class="select-mobile">
-        <option value="p_kong">孔子 (kong.png)</option>
-        <option value="p_lu">子路 (lu.png)</option>
-        <option value="p_hui">顏回 (hui.png)</option>
-        <option value="p_gong">子貢 (gong.png)</option>
-        <option value="p_wo">宰我 (wo.png)</option>
-        <option value="chariot">僱傭戰車 (chariot.png)</option>
-        <option value="soldier">近戰盾兵 (soldier.png)</option>
-        <option value="archer">遠程弓手 (archer.png)</option>
-        <option value="boss">首領·心魔 (boss.png)</option>
-      </select>
-      <select id="artChromaMode" class="select-mobile">
-        <option value="auto">自動左上角去背</option>
-        <option value="none">已是透明 PNG</option>
-      </select>
-    </div>
-    <input type="file" id="artFileInput" accept="image/png,image/webp,image/jpeg" style="font-size:0.76rem;">
-    <div style="display:flex; gap:8px;">
-      <button class="btn danger" style="flex:1;" onclick="clearCustomSprites()">清除手動覆蓋</button>
-      <button class="btn primary" style="flex:1;" onclick="closeModal('artModal')">完成</button>
-    </div>
   </div>
 </div>
 
@@ -1650,55 +1723,16 @@ function processChromaKeyToCanvas(img) {
 function preloadFolderSprites() {
   Object.entries(DATA_UNITS).forEach(([tplKey, tpl]) => {
     if (!tpl.spriteSheetKey) return;
-    spriteLoadStatus[tplKey] = 'loading';
     const img = new Image();
-    // 加上時間戳避免手動按下「重新掃描資料夾」時讀到舊快取
-    const cacheBust = `?v=${Date.now()}`;
     img.onload = () => {
       autoLoadedSprites[tplKey] = processChromaKeyToCanvas(img);
-      spriteLoadStatus[tplKey] = 'loaded';
-      renderSpriteStatusList();
       if (currentScene === 'battle') renderUnits();
     };
     img.onerror = () => {
-      // 找不到檔案時安靜退回白盒模式，不拋出錯誤也不影響遊戲運作
+      // 找不到檔案時安靜退回白盒模式，絕不報錯當機
       delete autoLoadedSprites[tplKey];
-      spriteLoadStatus[tplKey] = 'missing';
-      renderSpriteStatusList();
-      if (currentScene === 'battle') renderUnits();
     };
-    img.src = tpl.spriteSheetKey + cacheBust;
-  });
-  renderSpriteStatusList();
-}
-
-function renderSpriteStatusList() {
-  const list = document.getElementById('spriteStatusList');
-  if (!list) return;
-  list.innerHTML = '';
-  Object.entries(DATA_UNITS).forEach(([tplKey, tpl]) => {
-    const hasCustom = Boolean(customSprites[tplKey]);
-    const st = spriteLoadStatus[tplKey] || 'missing';
-    let badgeHtml = '';
-    if (hasCustom) {
-      badgeHtml = '<span class="pill gold">🎨 手動覆蓋中</span>';
-    } else if (st === 'loaded') {
-      badgeHtml = '<span class="pill green">✅ 已自動載入</span>';
-    } else if (st === 'loading') {
-      badgeHtml = '<span class="pill player">⏳ 掃描中...</span>';
-    } else {
-      badgeHtml = '<span class="pill">⬜ 未放圖（白盒運作中）</span>';
-    }
-    const row = document.createElement('div');
-    row.className = 'sprite-status-row';
-    row.innerHTML = `
-      <div>
-        <strong>[${tpl.char}] ${tpl.name}</strong>
-        <div class="sprite-path">${tpl.spriteSheetKey}</div>
-      </div>
-      ${badgeHtml}
-    `;
-    list.appendChild(row);
+    img.src = tpl.spriteSheetKey;
   });
 }
 
@@ -1796,7 +1830,7 @@ function toggleSound() {
 let currentScene = 'map';
 function switchScene(scene) {
   currentScene = scene;
-  ['map', 'camp', 'battle'].forEach(s => {
+  ['map', 'camp', 'shop', 'battle'].forEach(s => {
     document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1)).classList.toggle('active', s === scene);
   });
   const shell = document.querySelector('.mobile-shell');
@@ -1804,8 +1838,10 @@ function switchScene(scene) {
   document.getElementById('bottomNav').style.display = (scene === 'battle') ? 'none' : 'grid';
   document.getElementById('navMap').classList.toggle('active', scene === 'map');
   document.getElementById('navCamp').classList.toggle('active', scene === 'camp');
+  document.getElementById('navShop').classList.toggle('active', scene === 'shop');
   if (scene === 'map') renderMapScene();
   if (scene === 'camp') renderCampScene();
+  if (scene === 'shop') renderShopScene();
   if (scene === 'battle') resizeBoard();
   updateGlobalNav();
 }
@@ -2054,129 +2090,181 @@ function buyEquipAndWear(uid, slot, eqId) {
 function buyEquipToBag(eqId) {
   const eq = DATA_EQUIPS[eqId]; if (!eq || saveData.gold < eq.price) return;
   saveData.gold -= eq.price; saveData.equipInventory[eqId] = (saveData.equipInventory[eqId] || 0) + 1;
-  AudioManager.play('guqin'); persistSave(); renderCampScene();
+  AudioManager.play('guqin'); persistSave();
+  if (currentScene === 'shop') renderShopScene(); else renderCampScene();
 }
 
-function switchCampTab(tab) {
-  ['roster', 'equip', 'talent', 'bond'].forEach(t => {
-    document.getElementById('tabBtn_' + t).classList.toggle('active', t === tab);
-    document.getElementById('campPane_' + t).classList.toggle('active', t === tab);
+let campMode = 'char'; // 'char' | 'bond'
+let campFocusSubTab = 'profile'; // 'profile' | 'equip' | 'talent'
+let campRosterFilter = 'all'; // 'all' | 'deployed'
+
+function switchCampMode(mode) {
+  campMode = mode;
+  ['char', 'bond'].forEach(m => {
+    document.getElementById('campModeBtn_' + m).classList.toggle('active', m === mode);
+    document.getElementById('campMode_' + m).classList.toggle('active', m === mode);
   });
   renderCampScene();
 }
 
+function switchFocusSubTab(tab) {
+  campFocusSubTab = tab;
+  ['profile', 'equip', 'talent'].forEach(t => {
+    document.getElementById('focusTab_' + t).classList.toggle('active', t === tab);
+    document.getElementById('focusPane_' + t).classList.toggle('active', t === tab);
+  });
+  renderCampScene();
+}
+
+function setCampRosterFilter(f) {
+  campRosterFilter = f;
+  document.getElementById('filterBtn_all').classList.toggle('active', f === 'all');
+  document.getElementById('filterBtn_deployed').classList.toggle('active', f === 'deployed');
+  renderCampScene();
+}
+
+function selectCampChar(uid) {
+  campTalentCharId = uid;
+  renderCampScene();
+}
+
 function renderCampScene() {
-  const rGrid = document.getElementById('campRosterGrid'); rGrid.innerHTML = '';
   const allIds = Object.keys(saveData.roster);
   const orderedIds = [
     ...saveData.deployedIds.filter(id => saveData.roster[id]),
     ...allIds.filter(id => !saveData.deployedIds.includes(id))
   ];
+  const visibleIds = (campRosterFilter === 'deployed')
+    ? orderedIds.filter(id => saveData.deployedIds.includes(id))
+    : orderedIds;
 
-  orderedIds.forEach(id => {
+  if (!visibleIds.includes(campTalentCharId)) {
+    campTalentCharId = visibleIds[0] || allIds[0];
+  }
+
+  document.getElementById('campDeploySummary').textContent = `出戰編制：${saveData.deployedIds.length} / 6 人（橫滑選角）`;
+
+  // 1. 頂部橫向頭像列（含 3 顆裝備狀態點）
+  const carousel = document.getElementById('campRosterCarousel');
+  carousel.innerHTML = '';
+  visibleIds.forEach(id => {
     const tpl = DATA_UNITS[id], prog = saveData.roster[id];
     const depIdx = saveData.deployedIds.indexOf(id), deployed = depIdx >= 0;
-    const basicSk = DATA_SKILLS[tpl.basicId];
-    const div = document.createElement('div');
-    div.className = 'mobile-card' + (deployed ? ' deployed' : '');
-    div.innerHTML = `
-      <div class="row-between">
-        <div style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;" onclick="openCharDetail('${id}')">
-          <span class="char-chip" style="background:${tpl.color};">${tpl.char}</span>
-          <div>
-            <div><strong>${tpl.name}</strong> <span style="font-size:0.74rem; color:#fde047;">Lv.${prog.lv}</span> <span class="pill" style="font-size:0.65rem;">${tpl.yinYang}</span></div>
-            <div style="font-size:0.71rem; color:#93c5fd;">${tpl.role}｜${basicSk ? basicSk.rangeText : ''}</div>
-            <div style="font-size:0.7rem; color:#94a3b8;">HP ${tpl.maxHp + (prog.lv-1)*10 + (prog.inner.li||0)*18}｜攻 ${tpl.baseAtk + (prog.lv-1)*3 + (prog.inner.she||0)*5}｜移 ${tpl.baseMove + (prog.inner.yu||0)}｜六藝${prog.liuyiPts}/悟道${prog.wudaoPts}</div>
-          </div>
-        </div>
-        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
-          <div style="display:flex; gap:4px;">
-            <button class="btn sm" onclick="openCharDetail('${id}')">詳情</button>
-            ${deployed && depIdx > 0 ? `<button class="btn sm" onclick="moveDeployOrder('${id}',-1)">↑</button>` : ''}
-          </div>
-          <button class="btn sm ${deployed ? 'danger' : 'primary'}" onclick="toggleDeploy('${id}')">${deployed ? `#${depIdx+1} 撤下` : '加入出戰'}</button>
-        </div>
-      </div>`;
-    rGrid.appendChild(div);
+    const isSel = (id === campTalentCharId);
+    const eq = prog.equip || {};
+    const dotsHtml = ['weapon', 'ritual', 'book'].map(sl => {
+      const hasEq = Boolean(eq[sl] && eq[sl] !== 'none');
+      return `<span class="eq-dot ${hasEq ? 'on' : ''}" title="${SLOT_LABELS[sl]}"></span>`;
+    }).join('');
+
+    const tile = document.createElement('button');
+    tile.className = 'roster-tile' + (deployed ? ' deployed' : '') + (isSel ? ' selected' : '');
+    tile.onclick = () => selectCampChar(id);
+    tile.innerHTML = `
+      ${deployed ? `<span class="roster-tile-order">#${depIdx + 1}</span>` : ''}
+      <span class="roster-tile-lv">Lv${prog.lv}</span>
+      <span class="char-chip" style="background:${tpl.color}; margin-top:6px;">${tpl.char}</span>
+      <span class="roster-tile-name">${tpl.name}</span>
+      <div class="eq-dots-row">${dotsHtml}</div>`;
+    carousel.appendChild(tile);
   });
 
-  const eqList = document.getElementById('campEquipList'); eqList.innerHTML = '';
-  orderedIds.forEach(id => {
-    const tpl = DATA_UNITS[id], eq = saveData.roster[id].equip;
-    const slotsHtml = ['weapon', 'ritual', 'book'].map(slot => {
+  // 2. 單一弟子聚焦儀表板
+  const uid = campTalentCharId;
+  const tpl = DATA_UNITS[uid], prog = saveData.roster[uid];
+  if (tpl && prog) {
+    const depIdx = saveData.deployedIds.indexOf(uid), deployed = depIdx >= 0;
+    const lvB = prog.lv - 1, inner = prog.inner || {};
+    const hpBonus = lvB * 10 + (inner.li || 0) * 18;
+    const atkBonus = lvB * 3 + (inner.she || 0) * 5;
+    const defBonus = lvB * 2 + (inner.shu || 0) * 3;
+    const moveBonus = (inner.yu || 0);
+    const startQi = Math.min(100, 50 + (inner.yue || 0) * 15);
+    const critBonus = Math.round((inner.num || 0) * 8);
+    const basicSk = DATA_SKILLS[tpl.basicId];
+    const skillSk = tpl.skillId ? DATA_SKILLS[tpl.skillId] : null;
+    const ultSk = tpl.ultId ? DATA_SKILLS[tpl.ultId] : null;
+    const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
+    const effYY = prog.equip.book === 'lianshan' ? '陽/陰（連山易）' : tpl.yinYang;
+
+    document.getElementById('focusCharHeader').innerHTML = `
+      <div class="row-between">
+        <div style="display:flex; align-items:center; gap:9px; min-width:0;">
+          <span class="char-chip" style="background:${tpl.color}; width:42px; height:42px; font-size:1.25rem;">${tpl.char}</span>
+          <div style="min-width:0;">
+            <div style="font-size:0.95rem; font-weight:900; color:#fff;">
+              ${tpl.name} <span style="color:#fde047; font-size:0.8rem;">Lv.${prog.lv}</span>
+              <span class="pill" style="font-size:0.64rem;">${effYY}</span>
+            </div>
+            <div style="font-size:0.72rem; color:#93c5fd;">${tpl.role}｜本命：${trigramName}｜開局氣 ${startQi}</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:4px; flex-shrink:0;">
+          ${deployed && depIdx > 0 ? `<button class="btn sm" onclick="moveDeployOrder('${uid}',-1)" title="出戰順位提前">↑</button>` : ''}
+          <button class="btn sm ${deployed ? 'danger' : 'primary'}" onclick="toggleDeploy('${uid}')">${deployed ? `#${depIdx + 1} 撤下` : '加入出戰'}</button>
+        </div>
+      </div>`;
+
+    // 子頁 1：履歷招式
+    document.getElementById('focusStatsGrid').innerHTML = `
+      <div class="stat-box">生命 HP<div class="val">${tpl.maxHp + hpBonus} <span class="bonus">${hpBonus ? `(+${hpBonus})` : ''}</span></div></div>
+      <div class="stat-box">攻擊 ATK<div class="val">${tpl.baseAtk + atkBonus} <span class="bonus">${atkBonus ? `(+${atkBonus})` : ''}</span></div></div>
+      <div class="stat-box">防禦 DEF<div class="val">${tpl.baseDef + defBonus} <span class="bonus">${defBonus ? `(+${defBonus})` : ''}</span></div></div>
+      <div class="stat-box">移動力<div class="val">${tpl.baseMove + moveBonus} 格 <span class="bonus">${moveBonus ? `(+${moveBonus})` : ''}</span></div></div>
+      <div class="stat-box">普攻射程<div class="val">${basicSk ? basicSk.rangeText : '1 格'}</div></div>
+      <div class="stat-box">天賦暴擊<div class="val">+${critBonus}%</div></div>`;
+
+    const skillsHtml = [];
+    if (basicSk) skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【普攻】${basicSk.name}</span><span class="pill player">${basicSk.rangeText}</span></div><div class="skill-detail-desc">${basicSk.desc}</div></div>`);
+    if (skillSk) {
+      const extra = skillSk.goldCost ? `＋${skillSk.goldCost}兩` : '';
+      skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【絕招】${skillSk.name}</span><span class="pill gold">${skillSk.qiCost}氣${extra}・${skillSk.rangeText}</span></div><div class="skill-detail-desc">${skillSk.desc}</div></div>`);
+    }
+    if (ultSk) {
+      const extra = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
+      skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#fed7aa;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extra}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
+    }
+    if (uid === 'p_kong') {
+      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#a855f7;"><div class="skill-detail-head"><span style="color:#e9d5ff;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」，可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+    }
+    document.getElementById('focusSkillsList').innerHTML = skillsHtml.join('');
+
+    // 子頁 2：裝備配戴（僅顯示當前弟子 3 槽）
+    const eq = prog.equip;
+    document.getElementById('focusEquipSlots').innerHTML = ['weapon', 'ritual', 'book'].map(slot => {
       const eid = eq[slot];
       const item = (eid && eid !== 'none') ? DATA_EQUIPS[eid] : null;
       return `
-        <button class="equip-slot-btn ${item ? 'equipped' : ''}" onclick="openEquipDrawer('${id}','${slot}')">
+        <button class="equip-slot-btn ${item ? 'equipped' : ''}" onclick="openEquipDrawer('${uid}','${slot}')">
           <div class="slot-top">
             <span>${SLOT_LABELS[slot]}：${item ? item.name : '未裝備'}</span>
-            <span style="color:#38bdf8; font-size:0.72rem;">${item ? '更換 ▸' : '裝備 / 來源 ▸'}</span>
+            <span style="color:#38bdf8; font-size:0.74rem;">${item ? '更換 / 卸下 ▸' : '裝備 / 來源 ▸'}</span>
           </div>
-          <div class="slot-sub">${item ? item.shortDesc : '點擊開啟裝備庫檢視詞條與取得方式'}</div>
+          <div class="slot-sub">${item ? item.shortDesc : '點擊開啟裝備庫檢視詞條、轉移他人裝備或購買'}</div>
         </button>`;
     }).join('');
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `
-      <div class="row-between">
-        <div style="display:flex; align-items:center; gap:6px;"><span class="char-chip" style="width:26px;height:26px;font-size:0.85rem;background:${tpl.color};">${tpl.char}</span><strong>${tpl.name}</strong></div>
-        <button class="btn sm" onclick="openCharDetail('${id}')">看履歷</button>
-      </div>
-      <div class="equip-slot-list">${slotsHtml}</div>`;
-    eqList.appendChild(div);
-  });
 
-  const eqShop = document.getElementById('campEquipShopList'); eqShop.innerHTML = '';
-  Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'shop').forEach(eq => {
-    const owned = saveData.equipInventory[eq.id] || 0;
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `
-      <div class="row-between">
-        <div><strong>[${SLOT_LABELS[eq.slot]}] ${eq.name}</strong> <span class="pill ${owned>0?'green':''}">持有:${owned}</span></div>
-        <button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipToBag('${eq.id}')">${eq.price}兩 購買</button>
-      </div>
-      <div style="font-size:0.73rem; color:#cbd5e1;">${eq.shortDesc}</div>`;
-    eqShop.appendChild(div);
-  });
+    // 子頁 3：天賦盤
+    document.getElementById('talentLiuyiPts').textContent = `六藝點：${prog.liuyiPts}`;
+    document.getElementById('talentWudaoPts').textContent = `悟道點：${prog.wudaoPts}`;
 
-  const itShop = document.getElementById('campItemShopList'); itShop.innerHTML = '';
-  [
-    { key: 'yarrow', name: '蓍草（預告4回合 / 重骰天時）', price: 150 },
-    { key: 'potion', name: '一般傷藥（回血 +40）', price: 100 },
-    { key: 'bento',  name: '簞食瓢飲（回血 +50 / 禁補豁免）', price: 220 },
-    { key: 'suxiu',  name: '束脩（羈絆室送禮解鎖合體奧義）', price: 250 }
-  ].forEach(it => {
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#94a3b8;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
-    itShop.appendChild(div);
-  });
+    const inG = document.getElementById('innerTalentGrid'); inG.innerHTML = '';
+    TALENTS_INNER.forEach(t => {
+      const lv = prog.inner[t.id] || 0;
+      const div = document.createElement('div'); div.className = 'mobile-card';
+      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#38bdf8;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
+      inG.appendChild(div);
+    });
+    const outG = document.getElementById('outerTalentGrid'); outG.innerHTML = '';
+    TALENTS_OUTER.forEach(t => {
+      const lv = prog.outer[t.id] || 0;
+      const div = document.createElement('div'); div.className = 'mobile-card';
+      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#facc15;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
+      outG.appendChild(div);
+    });
+  }
 
-  const tBtns = document.getElementById('talentCharBtns'); tBtns.innerHTML = '';
-  Object.keys(saveData.roster).forEach(id => {
-    const b = document.createElement('button');
-    b.className = 'btn sm' + (campTalentCharId === id ? ' active' : '');
-    b.textContent = DATA_UNITS[id].name;
-    b.onclick = () => { campTalentCharId = id; renderCampScene(); };
-    tBtns.appendChild(b);
-  });
-  const prog = saveData.roster[campTalentCharId];
-  document.getElementById('talentLiuyiPts').textContent = `六藝點：${prog.liuyiPts}`;
-  document.getElementById('talentWudaoPts').textContent = `悟道點：${prog.wudaoPts}`;
-
-  const inG = document.getElementById('innerTalentGrid'); inG.innerHTML = '';
-  TALENTS_INNER.forEach(t => {
-    const lv = prog.inner[t.id] || 0;
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#38bdf8;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
-    inG.appendChild(div);
-  });
-  const outG = document.getElementById('outerTalentGrid'); outG.innerHTML = '';
-  TALENTS_OUTER.forEach(t => {
-    const lv = prog.outer[t.id] || 0;
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#facc15;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
-    outG.appendChild(div);
-  });
-
+  // 3. 束脩羈絆
   const bList = document.getElementById('campBondList'); bList.innerHTML = '';
   BOND_PAIRS.forEach(bp => {
     const lv = saveData.bonds[bp.id] || 1, unlocked = lv >= bp.unlockLv;
@@ -2186,6 +2274,36 @@ function renderCampScene() {
       <div style="font-size:0.74rem; color:#cbd5e1;">【${bp.comboName}】${bp.desc}</div>
       <button class="btn sm gold" ${saveData.items.suxiu<=0||lv>=3?'disabled':''} onclick="giftSuxiu('${bp.id}')">贈送束脩 (+1級)</button>`;
     bList.appendChild(div);
+  });
+}
+
+function renderShopScene() {
+  const eqShop = document.getElementById('shopEquipList'); eqShop.innerHTML = '';
+  Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'shop').forEach(eq => {
+    const owned = saveData.equipInventory[eq.id] || 0;
+    const wearers = getEquipWearers(eq.id);
+    const wearerTxt = wearers.length ? `｜穿戴中：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '';
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `
+      <div class="row-between">
+        <div><strong>[${SLOT_LABELS[eq.slot]}] ${eq.name}</strong> <span class="pill ${owned>0?'green':''}">持有:${owned}</span></div>
+        <button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipToBag('${eq.id}')">${eq.price}兩 購買</button>
+      </div>
+      <div style="font-size:0.73rem; color:#cbd5e1; line-height:1.4;">${eq.fullDesc}</div>
+      ${wearerTxt ? `<div style="font-size:0.7rem; color:#fde68a;">${wearerTxt.slice(1)}</div>` : ''}`;
+    eqShop.appendChild(div);
+  });
+
+  const itShop = document.getElementById('shopItemList'); itShop.innerHTML = '';
+  [
+    { key: 'yarrow', name: '蓍草（預告4回合 / 重骰天時）', price: 150 },
+    { key: 'potion', name: '一般傷藥（回血 +40）', price: 100 },
+    { key: 'bento',  name: '簞食瓢飲（回血 +50 / 禁補豁免）', price: 220 },
+    { key: 'suxiu',  name: '束脩（羈絆室送禮解鎖合體奧義）', price: 250 }
+  ].forEach(it => {
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#94a3b8;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
+    itShop.appendChild(div);
   });
 }
 
@@ -2201,44 +2319,20 @@ function moveDeployOrder(id, d) {
   [saveData.deployedIds[i], saveData.deployedIds[ni]] = [saveData.deployedIds[ni], saveData.deployedIds[i]];
   persistSave(); renderCampScene();
 }
-function buyShopItem(key, price) { if (saveData.gold < price) return; saveData.gold -= price; saveData.items[key]++; persistSave(); renderCampScene(); }
+function buyShopItem(key, price) {
+  if (saveData.gold < price) return;
+  saveData.gold -= price; saveData.items[key]++;
+  AudioManager.play('guqin'); persistSave();
+  if (currentScene === 'shop') renderShopScene(); else renderCampScene();
+}
 function upgradeTalent(ring, tid) {
   const p = saveData.roster[campTalentCharId];
   if (ring === 'inner' && p.liuyiPts > 0) { p.liuyiPts--; p.inner[tid] = (p.inner[tid]||0) + 1; }
   if (ring === 'outer' && p.wudaoPts > 0) { p.wudaoPts--; p.outer[tid] = (p.outer[tid]||0) + 1; }
-  persistSave(); renderCampScene();
+  AudioManager.play('guqin'); persistSave(); renderCampScene();
 }
 function giftSuxiu(bid) { if (saveData.items.suxiu <= 0) return; saveData.items.suxiu--; saveData.bonds[bid] = (saveData.bonds[bid]||1) + 1; AudioManager.play('guqin'); persistSave(); renderCampScene(); }
 
-// 手動選檔熱替換 & 存檔彈窗
-function openArtModal() { renderSpriteStatusList(); document.getElementById('artModal').classList.add('show'); }
-document.getElementById('artFileInput').addEventListener('change', e => {
-  const file = e.target.files[0]; if (!file) return;
-  const targetKey = document.getElementById('artTargetKey').value;
-  const chromaMode = document.getElementById('artChromaMode').value;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const img = new Image();
-    img.onload = () => {
-      if (chromaMode === 'auto') {
-        customSprites[targetKey] = processChromaKeyToCanvas(img);
-      } else {
-        const cvs = document.createElement('canvas'); cvs.width = 768; cvs.height = 640;
-        const c2 = cvs.getContext('2d'); c2.imageSmoothingEnabled = false; c2.drawImage(img, 0, 0, 768, 640);
-        customSprites[targetKey] = cvs;
-      }
-      renderSpriteStatusList();
-      if (currentScene === 'battle') renderUnits();
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-});
-function clearCustomSprites() {
-  customSprites = {};
-  renderSpriteStatusList();
-  if (currentScene === 'battle') renderUnits();
-}
 function openSaveModal() { document.getElementById('saveCodeArea').value = JSON.stringify(saveData); document.getElementById('saveModal').classList.add('show'); }
 function copySaveCode() { const el = document.getElementById('saveCodeArea'); el.select(); document.execCommand('copy'); alert('已複製存檔碼！'); }
 function importSaveCode() {
