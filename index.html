@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.4 — 戰場鏡頭與古風現代化 UI 重構版</title>
+<title>《論語戰棋》v0.5 — 15名將全陣容・12城列國收徒完整版</title>
 <style>
   :root {
     --bg: #090e1a;
@@ -501,6 +501,33 @@
     border-color: rgba(147, 197, 253, 0.35);
     box-shadow: inset 0 0 18px rgba(15, 35, 60, 0.45);
   }
+  /* 冉有【足民之策】木柵欄障礙 */
+  .tile.fence {
+    background: repeating-linear-gradient(90deg, #6b4423 0px, #6b4423 14px, #4a2d14 14px, #4a2d14 20px);
+    border: 2px solid #a16207;
+    box-shadow: inset 0 4px 10px rgba(255,230,180,0.2), inset 0 -8px 12px rgba(0,0,0,0.6);
+  }
+  .tile.fence::after {
+    content: "柵";
+    position: absolute; inset: 16px;
+    border: 1.5px solid rgba(253, 224, 71, 0.35); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(254, 243, 199, 0.65); font-size: 28px; font-weight: 900;
+  }
+  .unit-anchor.stealth { opacity: 0.48; }
+  .unit-anchor.frozen .unit-box, .unit-anchor.frozen .sprite-canvas { filter: hue-rotate(155deg) brightness(1.12); }
+  .unit-anchor.fortress .unit-box { box-shadow: 0 0 18px 4px #94a3b8; border-color: #e2e8f0; }
+  .recruit-callout {
+    background: linear-gradient(135deg, #3b2609, #1f160a);
+    border: 2px solid #facc15; border-radius: 10px; padding: 10px 14px;
+    color: #fef08a; font-size: 0.85rem; font-weight: 900; line-height: 1.5;
+    box-shadow: 0 0 22px rgba(250, 204, 21, 0.35);
+  }
+  .shield-bar-bg {
+    height: 3px; background: rgba(0,0,0,0.75); border-radius: 2px; overflow: hidden;
+  }
+  .shield-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #e0f2fe); transition: width 0.2s; }
+
   .tile.water::after {
     content: "水";
     position: absolute;
@@ -1140,7 +1167,7 @@
 <div class="mobile-shell">
   <!-- 頂部共用狀態列 -->
   <div class="top-header">
-    <div class="brand-title">論語戰棋 v0.4</div>
+    <div class="brand-title">論語戰棋 v0.5</div>
     <div class="res-pills">
       <span class="pill gold" id="navGold">1000兩</span>
       <span class="pill" id="navSuxiu">束脩:2</span>
@@ -1460,7 +1487,7 @@
 // ============================================================================
 // 一、 資料定義（裝備資料庫、技能射程標籤、關卡首通掉落）
 // ============================================================================
-const SAVE_KEY = 'confucius_tactics_v032_mobile_save';
+const SAVE_KEY = 'confucius_tactics_v05_mobile_save';
 const GRID_SIZE = 8;
 const TILE_PX = 128;
 const WORLD_PX = GRID_SIZE * TILE_PX;
@@ -1520,39 +1547,115 @@ const DATA_HEXAGRAMS = [
 ];
 
 const DATA_SKILLS = {
-  kong_basic: { name: '六藝普攻', range: 1, rangeText: '近戰 1 格', qiCost: 0, type: 'damage', mult: 1.0, desc: '對單體敵軍造成禮樂震擊傷害，命中獲得 +25 浩然氣。' },
-  kong_skill: { name: '有教無類', range: 2, rangeText: '周圍 2 格範圍', qiCost: 50, type: 'aoe_buff', desc: '消耗 50 氣：周圍 2 格內所有友軍全屬性 +20%（持續 2 回合）並回復 20 HP。' },
-  kong_ult:   { name: '朝聞道，夕死可矣', range: 5, rangeText: '直線 5 格貫穿', qiCost: 100, type: 'line_true', desc: '消耗 100 氣：燃燒自身當前 80% HP，對直線 5 格造成巨量真實傷害；若擊殺敵軍則保留 1 HP 並獲得【無敵 1 回合】。' },
+  // 1. 孔子
+  kong_basic: { name: '六藝兼通', range: 1, rangeText: '近戰 1 格(克制)', qiCost: 0, type: 'kong_adaptive', mult: 1.05, desc: '近戰劍擊（+25 氣），自動克制弱點：對重甲盾兵附加破防，對遠程／法師附加沉默 1 回合。' },
+  kong_skill: { name: '有教無類', range: 3, rangeText: '周圍 3 格友軍', qiCost: 50, type: 'aoe_buff', desc: '消耗 50 氣：清除周圍 3 格內友軍負面狀態，賦予「受教」全屬性 +15%（2回合）並回復 20 HP。' },
+  kong_ult:   { name: '朝聞道，夕死可矣', range: 5, rangeText: '直線 5 格貫穿', qiCost: 100, type: 'line_true', desc: '消耗 100 氣：燃燒當前 80% HP，對直線 5 格造成巨量真實傷害；若擊殺敵軍則保留 1 HP 並無敵 1 回合。' },
 
-  lu_basic:   { name: '長戟突刺', range: 1, rangeText: '近戰 1 格(貫穿)', qiCost: 0, type: 'pierce', mult: 1.0, desc: '攻擊單體敵軍（+25 氣），若敵人背後為空地則直接穿過敵人進行位移。' },
-  lu_skill:   { name: '暴虎馮河', range: 3, rangeText: '直線 3 格衝鋒', qiCost: 50, type: 'charge_stun', mult: 1.4, desc: '消耗 50 氣：直線衝鋒至多 3 格撞擊首名敵軍，造成 1.4 倍傷害並使其【暈眩 1 回合】。' },
-  lu_ult:     { name: '結纓而死', range: 0, rangeText: '自身(HP<30%)', qiCost: 100, type: 'self_berserk', hpBelowPct: 0.30, desc: '僅限 HP < 30% 解鎖！消耗 100 氣：2 回合內鎖血 1 點、攻擊翻倍、受擊發動 150% 反擊。' },
+  // 2. 顏回
+  hui_basic:  { name: '聞一知十', range: 2, rangeText: '遠程 2 格(追擊)', qiCost: 0, type: 'hui_echo', mult: 1.0, desc: '遠程文氣攻擊（+25 氣）；若目標已有負面狀態，額外追加 1 次相同傷害的「連帶領悟」打擊。' },
+  hui_skill:  { name: '一簞食，一瓢飲', range: 2, rangeText: '自身+2格友軍', qiCost: 40, type: 'heal_ap_aoe', desc: '消耗 40 氣：為目標及周圍 1 格友軍回復 HP 並 +1 行動點（陳蔡絕糧禁補豁免且效果翻倍）。' },
+  hui_ult:    { name: '不遷怒，不貳過', range: 0, rangeText: '全軍領域(3回合)', qiCost: 100, type: 'domain', desc: '消耗 100 氣：展開 3 回合【心齋領域】，全軍免疫控制並獲得一次「抵擋致命傷轉為回血」。' },
 
-  hui_basic:  { name: '竹簡遠攻', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage', mult: 1.0, desc: '射程 2 格的純陰遠程攻擊（+25 氣），與相鄰陽屬性角色連動可觸發太極合擊。' },
-  hui_skill:  { name: '一簞食', range: 2, rangeText: '友軍 2 格', qiCost: 50, type: 'heal_ap', desc: '消耗 50 氣：為射程 2 格內友軍回復 +50 HP 並【+1 行動點 / 重置行動】（陳蔡絕糧禁補豁免）。' },
-  hui_ult:    { name: '不遷怒，不貳過', range: 0, rangeText: '全軍領域(3回合)', qiCost: 100, type: 'domain', desc: '消耗 100 氣：展開 3 回合【心齋領域】，我方全體免疫控制並獲得一次「抵擋致命傷轉為回血」。' },
+  // 3. 子路
+  lu_basic:   { name: '長纓突刺', range: 2, rangeText: '突刺 2 格(貫穿)', qiCost: 0, type: 'pierce', mult: 1.0, desc: '射程 2 格長戟突刺（+25 氣），攻擊後若敵人背後為空地則直接貫穿位移 1 格。' },
+  lu_skill:   { name: '暴虎馮河', range: 4, rangeText: '無視地形衝鋒4格', qiCost: 50, type: 'charge_stun', mult: 1.4, desc: '消耗 50 氣：無視地形障礙直線衝鋒 4 格撞擊路徑敵軍並暈眩 1 回合，自身防禦 -30%（2回合）。' },
+  lu_ult:     { name: '結纓而死', range: 0, rangeText: '自身(HP<30%)', qiCost: 100, type: 'self_berserk', hpBelowPct: 0.30, desc: '僅限 HP < 30% 發動！2 回合內鎖血 1 點、攻擊翻倍、每次受擊必發動 150% 反擊。' },
 
-  gong_basic: { name: '貨殖擲金', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage_gold', mult: 0.9, desc: '射程 2 格遠程攻擊（+25 氣），每次命中額外賺取 +100 兩軍資金。' },
-  gong_skill: { name: '千金散盡', range: 3, rangeText: '敵兵 3 格', qiCost: 50, goldCost: 300, type: 'bribe', desc: '消耗 50 氣＋300 兩：收買射程 3 格內血量 ≤ 40% 的敵方小兵，直接轉化為我方受控單位！' },
-  gong_ult:   { name: '結駟連騎', range: 2, rangeText: '空地 2 格召喚', qiCost: 100, goldCost: 200, type: 'summon', desc: '消耗 100 氣＋200 兩：於射程 2 格空地召喚我方單位【僱傭戰車】（當回合可立即行動）。' },
+  // 4. 子貢
+  gong_basic: { name: '億則屢中', range: 2, rangeText: '遠程 2 格(高暴)', qiCost: 0, type: 'damage_gold', mult: 0.95, extraCrit: 0.25, desc: '算籌遠程精準打擊（+25% 暴擊率），命中 50% 機率額外榨取 +120 兩軍資金。' },
+  gong_skill: { name: '千金散盡', range: 3, rangeText: '敵兵 3 格(≤40%血)', qiCost: 50, goldCost: 300, type: 'bribe', desc: '消耗 50 氣＋300 兩：收買血量 ≤ 40% 的非 Boss 敵軍，立刻倒戈成為我方單位！' },
+  gong_ult:   { name: '結駟連騎', range: 2, rangeText: '空地召喚2戰車+盾', qiCost: 100, goldCost: 200, type: 'summon_chariots', desc: '消耗 100 氣＋200 兩：召喚最多 2 支【僱傭戰車】入場助戰，並為我方全軍賦予 45 點護盾。' },
 
-  wo_basic:   { name: '利口攻心', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage', mult: 0.95, desc: '射程 2 格心理戰術攻擊（+25 氣）。' },
-  wo_skill:   { name: '朽木不可雕也', range: 3, rangeText: '敵軍 3 格', qiCost: 50, type: 'sleep', desc: '消耗 50 氣：使目標陷入【睡眠 2 回合】無法行動，受擊時立刻驚醒並承受 1.5 倍暴擊。' },
-  wo_ult:     { name: '三寸不爛之舌', range: 3, rangeText: '扇形 3 格挑撥', qiCost: 100, type: 'infight', desc: '消耗 100 氣：令目標及周圍 1 格敵軍陷入【內訌】，於玩家回合內強制執行敵人互打！' }
+  // 5. 閔子騫
+  min_basic:  { name: '克己復禮', range: 1, rangeText: '近戰 1 格(防禦)', qiCost: 0, type: 'min_guard', mult: 0.95, desc: '持盾近戰打擊（+25 氣），攻擊後進入防禦姿態，受到傷害減少 25%（1 回合）。' },
+  min_skill:  { name: '孝感動天', range: 2, rangeText: '友軍 2 格(分傷)', qiCost: 45, type: 'link_guard', desc: '消耗 45 氣：與一名友軍建立 2 回合【共患難】連結，替其承受 70% 傷害並將承傷轉為自身浩然氣。' },
+  min_ult:    { name: '蘆衣順母', range: 3, rangeText: '周圍 3 格極寒凍結', qiCost: 100, type: 'frost_domain', desc: '消耗 100 氣：自身防禦暫時歸零（1回合），凍結周圍 3 格內所有敵軍移動力降為 0 且攻擊 -30%（2回合）。' },
+
+  // 6. 冉伯牛
+  boniu_basic:{ name: '診脈點穴', range: 1, rangeText: '近戰 1 格(內傷)', qiCost: 0, type: 'boniu_bleed', mult: 0.95, desc: '點穴攻擊（+25 氣），附加【內傷】狀態（每回合損失 5% 最大生命值，持續 3 回合）。' },
+  boniu_skill:{ name: '斯人也而有斯疾也', range: 3, rangeText: '周圍 3 格吸狀態', qiCost: 45, type: 'absorb_debuffs', desc: '消耗 45 氣：吸收周圍 3 格內所有友軍的負面狀態轉移到自己身上，每吸收 1 個回復自身 15% HP。' },
+  boniu_ult:  { name: '天喪予', range: 3, rangeText: '周圍 3 格反彈引爆', qiCost: 100, type: 'detonate_debuffs', desc: '消耗 100 氣：引爆自身背負的所有負面狀態，將 Debuff 連同雙倍厄運真傷反彈給 3 格內敵軍，自身淨化回血。' },
+
+  // 7. 仲弓
+  zhong_basic:{ name: '南面而立', range: 1, rangeText: '近戰 1 格(未移+30%)', qiCost: 0, type: 'zhong_still', mult: 1.0, desc: '重劍劈砍（+25 氣）；若本回合尚未移動，傷害 +30% 並將敵軍擊退 1 格。' },
+  zhong_skill:{ name: '居敬行簡', range: 0, rangeText: '自身(宗廟之器)', qiCost: 45, type: 'fortress_stance', desc: '消耗 45 氣：進入 2 回合【宗廟之器】狀態，移動力降為 0，但防禦力提升 80%！' },
+  zhong_ult:  { name: '犁牛之子', range: 3, rangeText: '周圍 3 格嘲諷反傷', qiCost: 100, type: 'taunt_thorns', desc: '消耗 100 氣：嘲諷周圍 3 格敵軍強制攻擊自己，並獲得等同防禦力 200% 的【角力反傷護盾】。' },
+
+  // 8. 冉有
+  ranyou_basic:{ name: '策馬奔襲', range: 1, rangeText: '近戰 1 格(打帶跑)', qiCost: 0, type: 'hit_and_run', mult: 1.0, desc: '騎乘突擊（+25 氣），攻擊後若仍有行動餘裕可再次移動（打帶跑）。' },
+  ranyou_skill:{ name: '足民之策', range: 2, rangeText: '空地 2 格建箭塔/柵欄', qiCost: 45, type: 'build_tower', desc: '消耗 45 氣：在 2 格內空地建造【瞭望箭塔】（回合結束自動射擊附近敵軍）並在旁設防。' },
+  ranyou_ult:  { name: '季氏伐顓臾', range: 3, rangeText: '指定 3×3 區域轟炸', qiCost: 100, type: 'siege_3x3', desc: '消耗 100 氣：對指定 3×3 區域發動攻城齊射，造成巨量物理傷害並徹底摧毀區域內的障礙與石碑！' },
+
+  // 9. 宰我
+  wo_basic:   { name: '利口辯辭', range: 2, rangeText: '遠程 2 格(40%混亂)', qiCost: 0, type: 'wo_confuse', mult: 0.95, desc: '遠程音波攻擊（+25 氣），40% 機率使敵人陷入【混亂 1 回合】（隨機攻擊最近單位）。' },
+  wo_skill:   { name: '朽木不可雕也', range: 3, rangeText: '敵軍 3 格(睡眠)', qiCost: 50, type: 'sleep', desc: '消耗 50 氣：使目標陷入【睡眠 2 回合】無法行動，受擊驚醒時承受 1.5 倍暴擊。' },
+  wo_ult:     { name: '三寸不爛之舌', range: 3, rangeText: '扇形 3 格內訌', qiCost: 100, type: 'infight', desc: '消耗 100 氣：令目標及周圍 1 格敵軍陷入【內訌】，強制於我方回合內互相普攻！' },
+
+  // 10. 子游
+  ziyou_basic:{ name: '弦歌之聲', range: 2, rangeText: '遠程 2 格(濺射補血)', qiCost: 0, type: 'ziyou_song', mult: 0.95, desc: '彈奏琴瑟遠程攻擊（+25 氣），同時為目標身旁 2 格內最虛弱的我方單位回復 18 HP。' },
+  ziyou_skill:{ name: '武城弦歌', range: 3, rangeText: '周圍 3 格加速加暴', qiCost: 45, type: 'wucheng_buff', desc: '消耗 45 氣：周圍 3 格內友軍移動 +2、暴擊 +20%（2回合），並解除混亂與暈眩。' },
+  ziyou_ult:  { name: '君子學道則愛人', range: 0, rangeText: '全場雅樂共鳴', qiCost: 100, type: 'ya_music_all', desc: '消耗 100 氣：對全場敵軍造成音波傷害，敵軍越多，我方全體獲得的攻擊力加成越高（2回合）。' },
+
+  // 11. 子夏
+  zixia_basic:{ name: '百步穿楊', range: 4, rangeText: '超遠 4 格(穿甲30%)', qiCost: 0, type: 'armor_pierce', mult: 1.0, desc: '射程 4 格精準弓箭射擊（+25 氣），無視目標 30% 防禦力。' },
+  zixia_skill:{ name: '切問而近思', range: 4, rangeText: '敵軍 4 格(易傷35%)', qiCost: 45, type: 'mark_vuln', desc: '消耗 45 氣：剖析敵將弱點，使其 2 回合內承受所有傷害提升 35% 且無法閃避。' },
+  zixia_ult:  { name: '博學而篤志', range: 7, rangeText: '貫穿全圖直線神箭', qiCost: 100, type: 'full_line_arrow', desc: '消耗 100 氣：射出貫穿全圖的經義神箭，對直線上所有敵人造成高額穿透傷害並清除敵方強化。' },
+
+  // 12. 南子（歷史女角）
+  nanzi_basic:{ name: '環佩玎璫', range: 2, rangeText: '遠程 2 格(破防降抗)', qiCost: 0, type: 'nanzi_chime', mult: 0.95, desc: '玉佩聲波攻擊（+25 氣），降低目標防禦與暴擊抵抗 2 回合。' },
+  nanzi_skill:{ name: '帷幕之眼', range: 3, rangeText: '隱身+魅惑敵軍', qiCost: 50, type: 'stealth_charm', desc: '消耗 50 氣：自身進入【隱身 1 回合】（敵軍無法鎖定），並魅惑目標使其混亂自相殘殺 1 回合。' },
+  nanzi_ult:  { name: '子見南子', range: 0, rangeText: '全場動搖+暗殺連擊', qiCost: 100, type: 'nanzi_assassinate', desc: '消耗 100 氣：令全場敵軍陷入【心神動搖】（防禦 -40%），隨即對所有動搖敵軍發動暗殺連擊！' },
+
+  // 13. 泰山婦人（歷史女角）
+  taishan_basic:{ name: '哀歌泣血', range: 2, rangeText: '遠程 2 格(驅散增傷)', qiCost: 0, type: 'taishan_wail', mult: 1.0, desc: '怨念打擊（+25 氣），目標身上每有 1 個增益或狀態，傷害提升 25%。' },
+  taishan_skill:{ name: '苛政猛於虎', range: 0, rangeText: '敵方全體詛咒', qiCost: 50, type: 'harsh_tax_curse', desc: '消耗 50 氣：為敵方全體施加 2 回合【苛政】詛咒，敵軍行動時即遭幽冥猛虎撕咬承受 28 真實傷害。' },
+  taishan_ult:  { name: '三世之怨', range: 3, rangeText: '3格三虎吞噬回血', qiCost: 100, type: 'three_tigers', desc: '消耗 100 氣：召喚三頭幽冥猛虎撲擊目標及周圍 1 格，吞噬敵軍護盾與強化並轉化為自身生命！' },
+
+  // 14. 阿谷處女（歷史女角）
+  agu_basic:  { name: '浣紗拂水', range: 1, rangeText: '近戰 1 格(+30%閃避)', qiCost: 0, type: 'agu_dodge', mult: 1.05, desc: '靈巧近戰打擊（+25 氣），攻擊後自身獲得 +30% 閃避率，持續 1 回合。' },
+  agu_skill:  { name: '贈佩試心', range: 0, rangeText: '自身(80%閃避反擊)', qiCost: 45, type: 'counter_stance', desc: '消耗 45 氣：進入 1 回合【機鋒反擊】架勢，80% 機率完全閃避敵方攻擊並立刻反擊！' },
+  agu_ult:    { name: '阿谷清流', range: 3, rangeText: '敵陣5段清流穿梭', qiCost: 100, type: 'agu_five_hits', desc: '消耗 100 氣：化作清流在敵陣中連續穿梭打擊最多 5 次，洗去敵軍所有強化狀態並返回原位。' },
+
+  // 15. 顏徵在（歷史女角）
+  yan_basic:  { name: '俎豆禮容', range: 2, rangeText: '遠程 2 格(克心魔)', qiCost: 0, type: 'yan_purify', mult: 1.0, desc: '溫和禮法光波（+25 氣），對首領／心魔系敵人造成雙倍淨化傷害！' },
+  yan_skill:  { name: '慈母教誨', range: 3, rangeText: '友軍 3 格(護盾免控)', qiCost: 45, type: 'mother_shield', desc: '消耗 45 氣：為友軍賦予 65 點【禮容護盾】並清除負面狀態，護盾期間免疫控制。' },
+  yan_ult:    { name: '聖母庇佑', range: 0, rangeText: '復活陣亡友軍+全軍光環', qiCost: 100, type: 'revive_aura', desc: '消耗 100 氣：復活一名本場陣亡的我方武將（50% HP），若無人陣亡則全軍回血 45% 並附加正氣光環！' }
 };
 
-// 所有角色對應 assets/sprites/ 資料夾中的精靈圖路徑
+// 全 15 位可招募武將 + 召喚物 + 敵軍
 const DATA_UNITS = {
-  p_kong: { id: 'p_kong', char: '孔', name: '孔子', role: '全能統帥・主動變卦', team: 'player', color: '#2563eb', yinYang: '陽/陰', trigram: 'qian', maxHp: 145, baseAtk: 34, baseDef: 15, baseMove: 3, basicId: 'kong_basic', skillId: 'kong_skill', ultId: 'kong_ult', spriteSheetKey: 'assets/sprites/kong.png' },
-  p_lu:   { id: 'p_lu',   char: '路', name: '子路', role: '純陽先鋒・貫穿衝鋒', team: 'player', color: '#ea580c', yinYang: '陽',   trigram: 'li',   maxHp: 135, baseAtk: 42, baseDef: 12, baseMove: 4, basicId: 'lu_basic',   skillId: 'lu_skill',   ultId: 'lu_ult',   spriteSheetKey: 'assets/sprites/lu.png' },
-  p_hui:  { id: 'p_hui',  char: '回', name: '顏回', role: '純陰補師・再動領域', team: 'player', color: '#16a34a', yinYang: '陰',   trigram: 'kan',  maxHp: 100, baseAtk: 28, baseDef: 9,  baseMove: 3, basicId: 'hui_basic',  skillId: 'hui_skill',  ultId: 'hui_ult',  spriteSheetKey: 'assets/sprites/hui.png' },
-  p_gong: { id: 'p_gong', char: '貢', name: '子貢', role: '經濟召喚・收買倒戈', team: 'player', color: '#ca8a04', yinYang: '陰',   trigram: 'kun',  maxHp: 120, baseAtk: 29, baseDef: 14, baseMove: 3, basicId: 'gong_basic', skillId: 'gong_skill', ultId: 'gong_ult', spriteSheetKey: 'assets/sprites/gong.png' },
-  p_wo:   { id: 'p_wo',   char: '我', name: '宰我', role: '控場法師・睡眠內訌', team: 'player', color: '#0891b2', yinYang: '陰',   trigram: 'xun',  maxHp: 105, baseAtk: 30, baseDef: 10, baseMove: 3, basicId: 'wo_basic',   skillId: 'wo_skill',   ultId: 'wo_ult',   spriteSheetKey: 'assets/sprites/wo.png' },
-  chariot:{ char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
-  soldier:{ char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier', color: '#dc2626', yinYang: '無', trigram: 'gen', maxHp: 95,  baseAtk: 26, baseDef: 14, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
-  archer: { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',  color: '#c026d3', yinYang: '無', trigram: 'xun', maxHp: 68,  baseAtk: 28, baseDef: 6,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
-  boss:   { char: '魔', name: '首領·心魔', role: '首領・半血二階段狂暴', team: 'enemy', enemyType: 'boss',   color: '#4c1d95', yinYang: '魔', trigram: 'kan', maxHp: 280, baseAtk: 38, baseDef: 16, baseMove: 3, range: 2, spriteSheetKey: 'assets/sprites/boss.png' }
+  // ---- 孔門核心陣容 (11人) ----
+  p_kong:      { id: 'p_kong',      char: '孔', name: '孔子',   role: '中軍統帥・主動變卦', team: 'player', color: '#2563eb', yinYang: '陽/陰', trigram: 'qian', maxHp: 145, baseAtk: 34, baseDef: 15, baseMove: 3, basicId: 'kong_basic',   skillId: 'kong_skill',   ultId: 'kong_ult',   spriteSheetKey: 'assets/sprites/kong.png' },
+  p_lu:        { id: 'p_lu',        char: '路', name: '子路',   role: '純陽先鋒・貫穿衝鋒', team: 'player', color: '#ea580c', yinYang: '陽',   trigram: 'li',   maxHp: 135, baseAtk: 42, baseDef: 12, baseMove: 4, basicId: 'lu_basic',     skillId: 'lu_skill',     ultId: 'lu_ult',     spriteSheetKey: 'assets/sprites/lu.png' },
+  p_hui:       { id: 'p_hui',       char: '回', name: '顏回',   role: '最強續航・再動領域', team: 'player', color: '#16a34a', yinYang: '陰',   trigram: 'kan',  maxHp: 105, baseAtk: 28, baseDef: 10, baseMove: 3, basicId: 'hui_basic',    skillId: 'hui_skill',    ultId: 'hui_ult',    spriteSheetKey: 'assets/sprites/hui.png' },
+  p_gong:      { id: 'p_gong',      char: '貢', name: '子貢',   role: '經濟控場・召喚倒戈', team: 'player', color: '#ca8a04', yinYang: '陰',   trigram: 'kun',  maxHp: 120, baseAtk: 30, baseDef: 14, baseMove: 3, basicId: 'gong_basic',   skillId: 'gong_skill',   ultId: 'gong_ult',   spriteSheetKey: 'assets/sprites/gong.png' },
+  p_wo:        { id: 'p_wo',        char: '我', name: '宰我',   role: '嘴砲控場・睡眠內訌', team: 'player', color: '#0891b2', yinYang: '陽',   trigram: 'xun',  maxHp: 108, baseAtk: 31, baseDef: 10, baseMove: 3, basicId: 'wo_basic',     skillId: 'wo_skill',     ultId: 'wo_ult',     spriteSheetKey: 'assets/sprites/wo.png' },
+  p_min:       { id: 'p_min',       char: '騫', name: '閔子騫', role: '守護坦輔・分傷極寒', team: 'player', color: '#0284c7', yinYang: '陰',   trigram: 'gen',  maxHp: 155, baseAtk: 29, baseDef: 20, baseMove: 3, basicId: 'min_basic',    skillId: 'min_skill',    ultId: 'min_ult',    spriteSheetKey: 'assets/sprites/min.png' },
+  p_boniu:     { id: 'p_boniu',     char: '牛', name: '冉伯牛', role: '狀態轉移・詛咒反彈', team: 'player', color: '#65a30d', yinYang: '陰',   trigram: 'kan',  maxHp: 130, baseAtk: 30, baseDef: 14, baseMove: 3, basicId: 'boniu_basic',  skillId: 'boniu_skill',  ultId: 'boniu_ult',  spriteSheetKey: 'assets/sprites/boniu.png' },
+  p_zhonggong: { id: 'p_zhonggong', char: '弓', name: '仲弓',   role: '陣地重裝・嘲諷反傷', team: 'player', color: '#475569', yinYang: '陽',   trigram: 'gen',  maxHp: 165, baseAtk: 35, baseDef: 22, baseMove: 2, basicId: 'zhong_basic',  skillId: 'zhong_skill',  ultId: 'zhong_ult',  spriteSheetKey: 'assets/sprites/zhonggong.png' },
+  p_ranyou:    { id: 'p_ranyou',    char: '有', name: '冉有',   role: '戰場工兵・打帶跑箭塔', team: 'player', color: '#b45309', yinYang: '陽',   trigram: 'zhen', maxHp: 125, baseAtk: 36, baseDef: 13, baseMove: 4, basicId: 'ranyou_basic', skillId: 'ranyou_skill', ultId: 'ranyou_ult', spriteSheetKey: 'assets/sprites/ranyou.png' },
+  p_ziyou:     { id: 'p_ziyou',     char: '游', name: '子游',   role: '音律法師・群體增益', team: 'player', color: '#0d9488', yinYang: '陰',   trigram: 'dui',  maxHp: 110, baseAtk: 32, baseDef: 11, baseMove: 3, basicId: 'ziyou_basic',  skillId: 'ziyou_skill',  ultId: 'ziyou_ult',  spriteSheetKey: 'assets/sprites/ziyou.png' },
+  p_zixia:     { id: 'p_zixia',     char: '夏', name: '子夏',   role: '精準射手・4格破甲',  team: 'player', color: '#4f46e5', yinYang: '陽',   trigram: 'li',   maxHp: 102, baseAtk: 39, baseDef: 9,  baseMove: 3, basicId: 'zixia_basic',  skillId: 'zixia_skill',  ultId: 'zixia_ult',  spriteSheetKey: 'assets/sprites/zixia.png' },
+
+  // ---- 歷史典故女性角色 (4人) ----
+  p_nanzi:     { id: 'p_nanzi',     char: '南', name: '南子',     role: '政治控場・隱身魅惑', team: 'player', color: '#be185d', yinYang: '陰', trigram: 'dui',  maxHp: 112, baseAtk: 37, baseDef: 11, baseMove: 4, basicId: 'nanzi_basic',   skillId: 'nanzi_skill',   ultId: 'nanzi_ult',   spriteSheetKey: 'assets/sprites/nanzi.png' },
+  p_taishan:   { id: 'p_taishan',   char: '婦', name: '泰山婦人', role: '暗黑巫祝・苛政反傷', team: 'player', color: '#7e22ce', yinYang: '陰', trigram: 'kan',  maxHp: 118, baseAtk: 35, baseDef: 12, baseMove: 3, basicId: 'taishan_basic', skillId: 'taishan_skill', ultId: 'taishan_ult', spriteSheetKey: 'assets/sprites/taishan.png' },
+  p_agu:       { id: 'p_agu',       char: '谷', name: '阿谷處女', role: '高閃武僧・機鋒反擊', team: 'player', color: '#0ea5e9', yinYang: '陽', trigram: 'xun',  maxHp: 115, baseAtk: 38, baseDef: 11, baseMove: 4, basicId: 'agu_basic',     skillId: 'agu_skill',     ultId: 'agu_ult',     spriteSheetKey: 'assets/sprites/agu.png' },
+  p_yanzhengzai:{ id: 'p_yanzhengzai', char: '徵', name: '顏徵在', role: '英靈守護・復活淨化', team: 'player', color: '#d97706', yinYang: '陰', trigram: 'kun',  maxHp: 125, baseAtk: 31, baseDef: 16, baseMove: 3, basicId: 'yan_basic',     skillId: 'yan_skill',     ultId: 'yan_ult',     spriteSheetKey: 'assets/sprites/yanzhengzai.png' },
+
+  // ---- 召喚單位與敵軍 ----
+  chariot:     { char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
+  arrow_tower: { char: '塔', name: '瞭望箭塔', role: '工兵建築・自動射擊', team: 'player', isTower: true, color: '#92400e', yinYang: '無', trigram: 'gen', maxHp: 90, baseAtk: 30, baseDef: 18, baseMove: 0, range: 3, basicId: null, skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/tower.png' },
+  soldier:     { char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier', color: '#dc2626', yinYang: '無', trigram: 'gen', maxHp: 95,  baseAtk: 26, baseDef: 14, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
+  archer:      { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',  color: '#c026d3', yinYang: '無', trigram: 'xun', maxHp: 68,  baseAtk: 28, baseDef: 6,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
+  boss:        { char: '魔', name: '首領·心魔', role: '首領・半血二階段狂暴', team: 'enemy', enemyType: 'boss',   color: '#4c1d95', yinYang: '魔', trigram: 'kan', maxHp: 280, baseAtk: 38, baseDef: 16, baseMove: 3, range: 2, spriteSheetKey: 'assets/sprites/boss.png' }
 };
+
+const ALL_PLAYER_IDS = [
+  'p_kong','p_lu','p_hui','p_gong','p_wo','p_min','p_boniu','p_zhonggong',
+  'p_ranyou','p_ziyou','p_zixia','p_nanzi','p_taishan','p_agu','p_yanzhengzai'
+];
 
 const TALENTS_INNER = [
   { id: 'li',  name: '禮・護體', maxLv: 3, desc: '最大HP +18/級' },
@@ -1567,17 +1670,25 @@ const TALENTS_OUTER = [
   { id: 'hex_adapt', name: '順天應人', maxLv: 2, desc: '天時攻擊 +10%/級' },
   { id: 'qi_flow',   name: '浩氣長存', maxLv: 2, desc: '普攻受擊 +8氣/級' }
 ];
+
+// 全部 7 組跨角色羈絆合體奧義
 const BOND_PAIRS = [
-  { id: 'kong_hui', name: '孔子 × 顏回', comboName: '吾與點也', unlockLv: 2, desc: '全軍滿血滿氣＋全場聖光審判85真傷' },
-  { id: 'kong_lu',  name: '孔子 × 子路', comboName: '死生有命', unlockLv: 2, desc: '子路全圖衝撞115傷暈眩＋孔子瞬移' },
-  { id: 'trio',     name: '孔門三傑(孔/路/回)', comboName: '君子固窮', unlockLv: 2, desc: '均血<25%：全軍血量反轉＋無敵2回合' }
+  { id: 'kong_hui',     name: '孔子 × 顏回',        comboName: '吾與點也', unlockLv: 2, desc: '相鄰滿氣：全軍滿血滿氣淨化＋全場聖光審判真傷' },
+  { id: 'kong_lu',      name: '孔子 × 子路',        comboName: '死生有命', unlockLv: 2, desc: '相鄰滿氣：子路跨圖雷霆突貫115傷暈眩＋孔子瞬移' },
+  { id: 'gong_wo',      name: '子貢 × 宰我',        comboName: '端木賜問', unlockLv: 2, desc: '夾擊或相鄰滿氣：強制扣目標50%現血＋懷疑人生3回合' },
+  { id: 'ziyou_zixia',  name: '子游 × 子夏',        comboName: '文學雙璧', unlockLv: 2, desc: '距離≤3滿氣：天籟聚攏全敵＋萬箭齊發毀滅清場' },
+  { id: 'trio',         name: '孔門三傑(孔/路/回)',  comboName: '君子固窮', unlockLv: 2, desc: '全軍均血<25%：全軍血量百分比反轉＋無敵3回合＋雙倍攻' },
+  { id: 'kong_nanzi',   name: '孔子 × 南子',        comboName: '天厭之！', unlockLv: 2, desc: '相鄰滿氣：全場敵軍混亂自相殘殺＋九天神雷雙倍暴擊' },
+  { id: 'lu_taishan',   name: '子路 × 泰山婦人',     comboName: '以直報怨', unlockLv: 2, desc: '相鄰滿氣：白額猛虎衝陣造成範圍真傷並附大範圍暈眩' }
 ];
 
+// 12 關春秋列國輿圖（7 主線 + 5 隱藏支線，完整覆蓋 12 位新武將首通收徒）
 const DATA_STAGES = [
+  // ---- 主線 7 站 ----
   {
-    id: 'lu_kuang', cityLabel: '魯・匡城', x: 285, y: 158, req: null,
-    region: '第一站・魯衛之交', name: '匡地突圍',
-    victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null,
+    id: 'lu_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
+    region: '主線第1站・魯衛之交', name: '匡地突圍',
+    victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
     obstacles: [[2,1],[2,6],[5,1],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[3,3],[3,4],[4,3],[2,3],[4,4],[3,2]],
@@ -1590,9 +1701,9 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 200, y: 142, req: 'lu_kuang',
-    region: '第二站・衛國', name: '子見南子・宮門截擊',
-    victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu',
+    id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
+    region: '主線第2站・衛國', name: '子見南子・宮門截擊',
+    victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
     obstacles: [[1,3],[1,4],[6,3],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,3],[4,4],[5,3],[5,4],[4,2],[5,2]],
@@ -1605,9 +1716,9 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'song_huan', cityLabel: '宋・商丘', x: 258, y: 222, req: 'wei_nanzi',
-    region: '第三站・宋國', name: '桓魋伐樹・微服突襲',
-    victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan',
+    id: 'song_huan', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
+    region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
+    victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
     obstacles: [[2,2],[3,5],[5,2],[5,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[3,3],[3,4],[4,3],[4,4],[2,4],[4,2]],
@@ -1621,9 +1732,39 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 292, req: 'song_huan',
-    region: '第四站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
-    victoryType: 'survive', surviveTurns: 6, rewardGold: 800, rewardExp: 200, firstClearEquip: null,
+    id: 'lu_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
+    region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
+    victoryType: 'annihilate', rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
+    obstacles: [[2,3],[2,4],[5,3],[5,4]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[4,1],[4,2],[3,1],[3,2],[5,1],[5,2]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '齊國侵兵甲', r: 2, c: 6 },
+      { tpl: 'soldier', name: '齊國侵兵乙', r: 5, c: 6 },
+      { tpl: 'soldier', name: '齊國重甲',   r: 3, c: 5 },
+      { tpl: 'archer',  name: '齊國弩手甲', r: 1, c: 7 },
+      { tpl: 'archer',  name: '齊國弩手乙', r: 6, c: 7 }
+    ]
+  },
+  {
+    id: 'wei_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
+    region: '主線第5站・西河', name: '設教西河・考據破甲',
+    victoryType: 'annihilate', rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
+    obstacles: [[1,2],[3,4],[4,4],[6,2]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[6,5],[6,6],[5,5],[5,6],[7,5],[7,6]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '晉軍鐵衛甲', r: 1, c: 1 },
+      { tpl: 'soldier', name: '晉軍鐵衛乙', r: 2, c: 3 },
+      { tpl: 'archer',  name: '西河神射甲', r: 0, c: 2 },
+      { tpl: 'archer',  name: '西河神射乙', r: 0, c: 5 },
+      { tpl: 'archer',  name: '西河神射丙', r: 2, c: 6 }
+    ]
+  },
+  {
+    id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
+    region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
+    victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_boniu',
     obstacles: [[2,2],[2,5],[5,2],[5,5]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
     playerSlots: [[3,3],[3,4],[4,3],[4,4],[3,2],[4,2]],
@@ -1637,9 +1778,9 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chu_boss', cityLabel: '楚・葉邑', x: 140, y: 365, req: 'chencai',
-    region: '第五站・楚國', name: '問津心魔（首領戰）',
-    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 260, firstClearEquip: null,
+    id: 'chu_boss', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
+    region: '主線第7站・楚國', name: '問津心魔（首領戰）',
+    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
     obstacles: [[2,1],[2,6],[5,1],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,3],[4,4],[5,3],[3,3],[5,4],[4,2]],
@@ -1650,10 +1791,12 @@ const DATA_STAGES = [
       { tpl: 'archer',  name: '妄念弓手',   r: 1, c: 4 }
     ]
   },
+
+  // ---- 隱藏外傳 / 歷史支線 5 站 ----
   {
-    id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 332, y: 124, req: 'lu_kuang', isSecret: true,
+    id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
-    victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null,
+    victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
     obstacles: [[3,1],[3,6],[4,1],[4,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,3],[7,4]],
@@ -1662,6 +1805,65 @@ const DATA_STAGES = [
       { tpl: 'archer',  name: '幻影弓手甲', r: 0, c: 1 },
       { tpl: 'archer',  name: '幻影弓手乙', r: 0, c: 6 },
       { tpl: 'soldier', name: '幻影盾衛',   r: 2, c: 4 }
+    ]
+  },
+  {
+    id: 'ex_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
+    region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
+    victoryType: 'annihilate', rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
+    obstacles: [[2,2],[2,5],[4,3],[4,4]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,2],[7,5]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '衛宮影衛甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '衛宮影衛乙', r: 1, c: 5 },
+      { tpl: 'archer',  name: '宮廷樂師甲', r: 0, c: 3 },
+      { tpl: 'archer',  name: '宮廷樂師乙', r: 0, c: 4 }
+    ]
+  },
+  {
+    id: 'ex_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
+    region: '隱藏支線・泰山', name: '苛政猛於虎',
+    victoryType: 'annihilate', rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
+    obstacles: [[1,1],[3,3],[3,4],[6,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[5,1],[5,2],[6,1],[6,2],[5,3],[6,3]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '苛稅官兵甲', r: 1, c: 4 },
+      { tpl: 'soldier', name: '苛稅官兵乙', r: 2, c: 5 },
+      { tpl: 'soldier', name: '猛虎精銳',   r: 1, c: 6 },
+      { tpl: 'archer',  name: '山林獵手甲', r: 0, c: 5 },
+      { tpl: 'archer',  name: '山林獵手乙', r: 3, c: 6 }
+    ]
+  },
+  {
+    id: 'ex_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
+    region: '隱藏支線・費邑', name: '季氏伐顓臾',
+    victoryType: 'annihilate', rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
+    obstacles: [[2,1],[2,2],[2,5],[2,6],[5,3],[5,4]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,3],[7,4]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '季氏家臣甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '季氏家臣乙', r: 1, c: 5 },
+      { tpl: 'soldier', name: '攻城重盾',   r: 3, c: 3 },
+      { tpl: 'archer',  name: '費邑弩兵甲', r: 0, c: 1 },
+      { tpl: 'archer',  name: '費邑弩兵乙', r: 0, c: 6 }
+    ]
+  },
+  {
+    id: 'ex_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
+    region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
+    victoryType: 'annihilate', rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
+    obstacles: [[1,3],[1,4],[4,1],[4,6]],
+    modifiers: { lockHexagram: 'kan', starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,2],[7,5]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '水澤武者甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '水澤武者乙', r: 1, c: 5 },
+      { tpl: 'archer',  name: '清流弓手甲', r: 0, c: 3 },
+      { tpl: 'archer',  name: '清流弓手乙', r: 0, c: 4 },
+      { tpl: 'soldier', name: '阿谷守衛',   r: 2, c: 3 }
     ]
   }
 ];
@@ -1739,26 +1941,47 @@ function preloadFolderSprites() {
 // ============================================================================
 // 三、 存檔與裝備庫存管理
 // ============================================================================
+function makeRosterEntry(lv = 1) {
+  return {
+    lv, exp: 0, liuyiPts: Math.max(2, lv + 1), wudaoPts: Math.max(1, lv),
+    equip: { weapon: 'none', ritual: 'none', book: 'none' },
+    inner: { li: 0, yue: 0, she: 0, yu: 0, shu: 0, num: 0 },
+    outer: { taiji_amp: 0, hex_adapt: 0, qi_flow: 0 }
+  };
+}
+
+function getAverageRosterLv() {
+  const vals = Object.values(saveData.roster || {});
+  if (!vals.length) return 1;
+  return Math.max(1, Math.round(vals.reduce((s, r) => s + (r.lv || 1), 0) / vals.length));
+}
+
+function recruitUnitToRoster(uid) {
+  if (!DATA_UNITS[uid] || saveData.roster[uid]) return false;
+  const avgLv = getAverageRosterLv();
+  saveData.roster[uid] = makeRosterEntry(avgLv);
+  if (saveData.deployedIds.length < 6 && !saveData.deployedIds.includes(uid)) {
+    saveData.deployedIds.push(uid);
+  }
+  return true;
+}
+
 function createDefaultSave() {
   const roster = {};
-  ['p_kong', 'p_lu', 'p_hui', 'p_gong', 'p_wo'].forEach(id => {
-    roster[id] = {
-      lv: 1, exp: 0, liuyiPts: 2, wudaoPts: 1,
-      equip: { weapon: 'none', ritual: 'none', book: 'none' },
-      inner: { li: 0, yue: 0, she: 0, yu: 0, shu: 0, num: 0 },
-      outer: { taiji_amp: 0, hex_adapt: 0, qi_flow: 0 }
-    };
+  // 開局 3 人核心鐵三角：孔子、子路、顏回
+  ['p_kong', 'p_lu', 'p_hui'].forEach(id => {
+    roster[id] = makeRosterEntry(1);
   });
   return {
-    version: '0.3.3-folder-sprites',
+    version: '0.5.0-full-15-roster',
     gold: 1000,
     items: { yarrow: 3, potion: 3, bento: 2, suxiu: 2 },
     equipInventory: { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 },
     clearedStages: [],
     selectedStageId: 'lu_kuang',
-    deployedIds: ['p_kong', 'p_lu', 'p_hui', 'p_gong', 'p_wo'],
+    deployedIds: ['p_kong', 'p_lu', 'p_hui'],
     roster,
-    bonds: { kong_hui: 1, kong_lu: 1, trio: 1 }
+    bonds: { kong_hui: 1, kong_lu: 1, gong_wo: 1, ziyou_zixia: 1, trio: 1, kong_nanzi: 1, lu_taishan: 1 }
   };
 }
 
@@ -1774,6 +1997,8 @@ function loadSaveData() {
       const p = JSON.parse(raw);
       if (p && p.roster && p.items) {
         if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
+        if (!p.bonds) p.bonds = {};
+        BOND_PAIRS.forEach(b => { if (!p.bonds[b.id]) p.bonds[b.id] = 1; });
         return p;
       }
     }
@@ -1928,10 +2153,15 @@ function renderMapScene() {
   stEl.className = 'pill ' + (isCleared ? 'gold' : 'player');
 
   let dropLine = '';
+  if (sel.firstClearRecruit && DATA_UNITS[sel.firstClearRecruit]) {
+    const rec = DATA_UNITS[sel.firstClearRecruit];
+    const joined = Boolean(saveData.roster[sel.firstClearRecruit]);
+    dropLine += `<br><span style="color:#86efac;">👤 首通收徒入隊：<strong>${rec.name}</strong>（${rec.role}）${joined ? '【已入隊】' : '【未招募】'}</span>`;
+  }
   if (sel.firstClearEquip) {
     const eq = DATA_EQUIPS[sel.firstClearEquip];
     const owned = (saveData.equipInventory[sel.firstClearEquip] || 0) > 0;
-    dropLine = `<br><span style="color:#fde047;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
+    dropLine += `<br><span style="color:#fde047;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
   }
   document.getElementById('briefMeta').innerHTML =
     `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>｜出戰：${saveData.deployedIds.length}/6 人<br>` +
@@ -1941,7 +2171,9 @@ function renderMapScene() {
 
 function devUnlockAll() {
   DATA_STAGES.forEach(s => { if (!saveData.clearedStages.includes(s.id)) saveData.clearedStages.push(s.id); });
-  saveData.gold += 2000; saveData.items.suxiu += 6;
+  ALL_PLAYER_IDS.forEach(uid => { if (!saveData.roster[uid]) saveData.roster[uid] = makeRosterEntry(2); });
+  BOND_PAIRS.forEach(b => { saveData.bonds[b.id] = Math.max(2, saveData.bonds[b.id] || 1); });
+  saveData.gold += 3000; saveData.items.suxiu += 8;
   Object.keys(DATA_EQUIPS).forEach(eid => { saveData.equipInventory[eid] = Math.max(1, saveData.equipInventory[eid] || 0); });
   Object.values(saveData.roster).forEach(r => { r.liuyiPts += 4; r.wudaoPts += 3; });
   persistSave(); renderMapScene();
@@ -2548,7 +2780,7 @@ const STATE = { PLAYER_TURN: 'PLAYER_TURN', ANIMATION_BUSY: 'ANIMATION_BUSY', EN
 let activeStage = null, gameState = STATE.PLAYER_TURN, turnNumber = 1;
 let hexIndex = 0, hexCountdown = 2, hexLockedByStage = false, hexFlipRemaining = 2;
 let forecastVisible = false, xinzhaiDomainTurns = 0, summonCounter = 1, showGuides = false;
-let grid = [], units = [], selectedUnitId = null, actionMode = 'move', activeComboDef = null;
+let grid = [], units = [], fallenAllies = [], selectedUnitId = null, actionMode = 'move', activeComboDef = null;
 let reachableTiles = new Map(), targetableTiles = new Set(), lastPlayerAction = null, pendingMove = null;
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -2670,7 +2902,7 @@ function startSelectedStage() {
   activeStage.obstacles.forEach(([r, c]) => { grid[r][c] = 1; });
   applyHexagramTerrain();
 
-  units = [];
+  units = []; fallenAllies = [];
   saveData.deployedIds.forEach((id, idx) => {
     const slot = activeStage.playerSlots[idx] || [3, 3];
     units.push(instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]));
@@ -2714,8 +2946,16 @@ function instantiateUnit(tpl, r, c, customId, prog) {
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
     basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
     ap: 2, maxAp: 2, moved: false, acted: false,
+    isTower: Boolean(tpl.isTower),
     stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
-    buffTurns: 0, invincibleTurns: 0, lockHpTurns: 0, fatalShield: false, phase: 1,
+    internalBleedTurns: 0, vulnerableTurns: 0, confusedTurns: 0, frozenTurns: 0,
+    silenceTurns: 0, harshTaxTurns: 0, shakenTurns: 0, doubtTurns: 0,
+    buffTurns: 0, hasteBuffTurns: 0, yaAtkBonus: 0,
+    defStanceTurns: 0, fortressTurns: 0, armorBrokenTurns: 0,
+    tauntTurns: 0, dodgeTurns: 0, dodgeCounterTurns: 0, stealthTurns: 0,
+    linkGuardianId: null, linkTurns: 0,
+    shield: 0, thornsShield: 0,
+    invincibleTurns: 0, lockHpTurns: 0, fatalShield: false, phase: 1,
     equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
     spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
     animState: 'idle', animFrame: 0, animTimer: 0
@@ -2743,26 +2983,71 @@ function hasZhouJadeBonus(u) {
 function getSkillQiCost(u, baseCost) { return (getActiveSynergies().waterFire && (u.id==='p_lu'||u.id==='p_hui')) ? Math.floor(baseCost*0.5) : baseCost; }
 function getEffectiveStats(u) {
   const hex = getHex();
-  const buffM = u.buffTurns > 0 ? 1.2 : 1, jadeM = hasZhouJadeBonus(u) ? 1.15 : 1;
-  const bossM = (u.enemyType==='boss' && u.phase===2) ? 1.25 : 1, lockM = u.lockHpTurns > 0 ? 2 : 1, defB = u.defBreakTurns > 0 ? 0.7 : 1;
+  const buffM = u.buffTurns > 0 ? 1.2 : 1;
+  const jadeM = hasZhouJadeBonus(u) ? 1.15 : 1;
+  const bossM = (u.enemyType === 'boss' && u.phase === 2) ? 1.25 : 1;
+  const lockM = u.lockHpTurns > 0 ? 2 : 1;
+  const yaM = 1 + (u.yaAtkBonus || 0);
+  const frozenAtkM = u.frozenTurns > 0 ? 0.7 : 1;
+  const doubtM = u.doubtTurns > 0 ? 0.5 : 1;
+
+  const defB = u.defBreakTurns > 0 ? 0.7 : 1;
+  const shakenM = u.shakenTurns > 0 ? 0.6 : 1;
+  const fortM = u.fortressTurns > 0 ? 1.8 : 1;
+  const armorZeroM = u.armorBrokenTurns > 0 ? 0 : 1;
+
   const hexT = 1 + ((u.outerTalents && u.outerTalents.hex_adapt) ? u.outerTalents.hex_adapt * 0.1 : 0);
   let mMod = hex.moveMod; if (mMod < 0 && u.equip && u.equip.book === 'qian_zaodu') mMod = 0;
-  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM);
-  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB);
-  const move = Math.max(1, u.baseMove + mMod + (u.buffTurns > 0 ? 1 : 0));
-  return { atk, def, move, range: u.range + hex.rangeMod, atkBuffed: atk>u.baseAtk, defBuffed: def>u.baseDef, defDebuffed: def<u.baseDef, moveBuffed: move>u.baseMove, moveDebuffed: move<u.baseMove };
+
+  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM * yaM * frozenAtkM * doubtM);
+  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB * shakenM * fortM * armorZeroM * doubtM);
+  let move = Math.max(1, u.baseMove + mMod + (u.buffTurns > 0 ? 1 : 0) + (u.hasteBuffTurns > 0 ? 2 : 0));
+  if (u.isTower || u.frozenTurns > 0 || u.fortressTurns > 0) move = 0;
+  return {
+    atk, def, move, range: u.range + hex.rangeMod,
+    atkBuffed: atk > u.baseAtk, defBuffed: def > u.baseDef, defDebuffed: def < u.baseDef,
+    moveBuffed: move > u.baseMove, moveDebuffed: move < u.baseMove
+  };
 }
+
 function getAvailableCombo(u) {
-  if (!u || u.team !== 'player' || u.acted || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return null;
+  if (!u || u.team !== 'player' || u.acted || u.ap <= 0 || u.stunned || u.sleepTurns > 0 || u.silenceTurns > 0 || u.doubtTurns > 0) return null;
   const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), hui = getUnitById('p_hui');
-  const aliveP = units.filter(p => p.team === 'player' && p.hp > 0);
-  const avgHp = aliveP.reduce((s, p) => s + p.hp/p.maxHp, 0) / Math.max(1, aliveP.length);
-  if ((saveData.bonds.trio||1)>=2 && kong && lu && hui && avgHp < 0.25 && ['p_kong','p_lu','p_hui'].includes(u.id))
-    return { id: 'combo_trio', name: '君子固窮', partners: [kong,lu,hui], needTarget: false, desc: '全軍血量反轉＋無敵2回合！' };
-  if ((saveData.bonds.kong_hui||1)>=2 && kong && hui && manhattan(kong.r,kong.c,hui.r,hui.c)===1 && kong.qi>=100 && hui.qi>=100 && (u.id==='p_kong'||u.id==='p_hui'))
-    return { id: 'combo_kong_hui', name: '吾與點也', partners: [kong,hui], needTarget: false, desc: '全軍滿血滿氣＋全場聖光85真傷！' };
-  if ((saveData.bonds.kong_lu||1)>=2 && kong && lu && manhattan(kong.r,kong.c,lu.r,lu.c)===1 && kong.qi>=100 && lu.qi>=100 && (u.id==='p_kong'||u.id==='p_lu'))
-    return { id: 'combo_kong_lu', name: '死生有命', partners: [kong,lu], needTarget: true, desc: '子路全圖衝撞115傷暈眩＋孔子瞬移！' };
+  const gong = getUnitById('p_gong'), wo = getUnitById('p_wo');
+  const ziyou = getUnitById('p_ziyou'), zixia = getUnitById('p_zixia');
+  const nanzi = getUnitById('p_nanzi'), taishan = getUnitById('p_taishan');
+
+  const aliveP = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower);
+  const avgHp = aliveP.reduce((s, p) => s + p.hp / p.maxHp, 0) / Math.max(1, aliveP.length);
+
+  // 5. 君子固窮 (三人絕境)
+  if ((saveData.bonds.trio || 1) >= 2 && kong && lu && hui && avgHp < 0.25 && ['p_kong', 'p_lu', 'p_hui'].includes(u.id))
+    return { id: 'combo_trio', name: '君子固窮', partners: [kong, lu, hui], needTarget: false, desc: '全軍血量百分比反轉＋無敵3回合＋雙倍攻！' };
+
+  // 1. 吾與點也 (孔+回)
+  if ((saveData.bonds.kong_hui || 1) >= 2 && kong && hui && manhattan(kong.r, kong.c, hui.r, hui.c) === 1 && kong.qi >= 100 && hui.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_hui'))
+    return { id: 'combo_kong_hui', name: '吾與點也', partners: [kong, hui], needTarget: false, desc: '全軍滿血滿氣淨化＋全場聖光審判真傷！' };
+
+  // 2. 死生有命 (孔+路)
+  if ((saveData.bonds.kong_lu || 1) >= 2 && kong && lu && manhattan(kong.r, kong.c, lu.r, lu.c) === 1 && kong.qi >= 100 && lu.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_lu'))
+    return { id: 'combo_kong_lu', name: '死生有命', partners: [kong, lu], needTarget: true, desc: '子路跨圖雷霆突貫115傷暈眩＋孔子瞬移！' };
+
+  // 3. 端木賜問 (貢+我)
+  if ((saveData.bonds.gong_wo || 1) >= 2 && gong && wo && manhattan(gong.r, gong.c, wo.r, wo.c) <= 2 && gong.qi >= 100 && wo.qi >= 100 && (u.id === 'p_gong' || u.id === 'p_wo'))
+    return { id: 'combo_gong_wo', name: '端木賜問', partners: [gong, wo], needTarget: true, desc: '扣除目標50%現血＋懷疑人生(全屬性-50%禁技3回合)！' };
+
+  // 4. 文學雙璧 (游+夏)
+  if ((saveData.bonds.ziyou_zixia || 1) >= 2 && ziyou && zixia && manhattan(ziyou.r, ziyou.c, zixia.r, zixia.c) <= 3 && ziyou.qi >= 100 && zixia.qi >= 100 && (u.id === 'p_ziyou' || u.id === 'p_zixia'))
+    return { id: 'combo_ziyou_zixia', name: '文學雙璧', partners: [ziyou, zixia], needTarget: false, desc: '天籟聚攏全敵＋萬箭齊發毀滅清場！' };
+
+  // 6. 天厭之！(孔+南子)
+  if ((saveData.bonds.kong_nanzi || 1) >= 2 && kong && nanzi && manhattan(kong.r, kong.c, nanzi.r, nanzi.c) === 1 && kong.qi >= 100 && nanzi.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_nanzi'))
+    return { id: 'combo_kong_nanzi', name: '天厭之！', partners: [kong, nanzi], needTarget: false, desc: '全場敵軍混亂＋九天神雷雙倍暴擊轟擊！' };
+
+  // 7. 以直報怨 (路+泰山婦人)
+  if ((saveData.bonds.lu_taishan || 1) >= 2 && lu && taishan && manhattan(lu.r, lu.c, taishan.r, taishan.c) === 1 && lu.qi >= 100 && taishan.qi >= 100 && (u.id === 'p_lu' || u.id === 'p_taishan'))
+    return { id: 'combo_lu_taishan', name: '以直報怨', partners: [lu, taishan], needTarget: true, desc: '白額猛虎衝陣造成範圍真傷＋大範圍暈眩！' };
+
   return null;
 }
 
@@ -2775,7 +3060,7 @@ function computeReachable(unit) {
     if (cur.cost > dist.get(keyOf(cur.r, cur.c))) continue;
     for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
       const nr = cur.r+dr, nc = cur.c+dc;
-      if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1) continue;
+      if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1||grid[nr][nc]===3) continue;
       const occ = getUnitAt(nr, nc); if (occ && occ.team !== unit.team) continue;
       const ncst = cur.cost + ((grid[nr][nc]===2 && !ignoreWater) ? 2 : 1);
       if (ncst <= maxMove) {
@@ -2798,28 +3083,61 @@ function computeReachable(unit) {
 function computeTargetable(unit, mode) {
   const targets = new Set(), s = getEffectiveStats(unit);
   if (mode === 'basic') {
-    for (let r=0; r<GRID_SIZE; r++) for (let c=0; c<GRID_SIZE; c++)
-      if (manhattan(unit.r,unit.c,r,c)>=1 && manhattan(unit.r,unit.c,r,c)<=s.range) { const occ = getUnitAt(r,c); if (occ && occ.team !== unit.team) targets.add(keyOf(r,c)); }
+    for (let r = 0; r < GRID_SIZE; r++) for (let c = 0; c < GRID_SIZE; c++) {
+      const d = manhattan(unit.r, unit.c, r, c);
+      if (d >= 1 && d <= s.range) { const occ = getUnitAt(r, c); if (occ && occ.team !== unit.team) targets.add(keyOf(r, c)); }
+    }
     return targets;
   }
   if (mode === 'combo') {
     const cb = getAvailableCombo(unit); if (!cb) return targets;
     if (!cb.needTarget) targets.add(keyOf(unit.r, unit.c));
-    else units.filter(e => e.team==='enemy' && e.hp>0).forEach(e => targets.add(keyOf(e.r, e.c)));
+    else units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => targets.add(keyOf(e.r, e.c)));
     return targets;
   }
-  const sk = DATA_SKILLS[mode==='skill' ? unit.skillId : unit.ultId]; if (!sk) return targets;
-  if (sk.type==='aoe_buff') { for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (manhattan(unit.r,unit.c,r,c)<=sk.range) targets.add(keyOf(r,c)); }
-  else if (sk.type==='charge_stun') {
-    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) for (let st=1; st<=sk.range; st++) {
-      const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1) break;
-      const occ = getUnitAt(nr,nc); if (occ) { if (occ.team==='enemy') targets.add(keyOf(nr,nc)); break; }
+  const sk = DATA_SKILLS[mode === 'skill' ? unit.skillId : unit.ultId]; if (!sk) return targets;
+  const rBonus = getHex().rangeMod || 0;
+
+  // 自身即時或全場技能
+  if (['self_berserk','domain','fortress_stance','taunt_thorns','frost_domain','absorb_debuffs','detonate_debuffs','wucheng_buff','ya_music_all','nanzi_assassinate','harsh_tax_curse','counter_stance','revive_aura'].includes(sk.type)) {
+    targets.add(keyOf(unit.r, unit.c));
+    return targets;
+  }
+  if (sk.type === 'aoe_buff') {
+    for (let r = 0; r < GRID_SIZE; r++) for (let c = 0; c < GRID_SIZE; c++) if (manhattan(unit.r, unit.c, r, c) <= sk.range) targets.add(keyOf(r, c));
+  } else if (sk.type === 'charge_stun') {
+    // 子路【暴虎馮河】無視地形阻礙直線衝鋒 4 格
+    for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) for (let st = 1; st <= sk.range; st++) {
+      const nr = unit.r + dr * st, nc = unit.c + dc * st;
+      if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+      const occ = getUnitAt(nr, nc);
+      if (occ && occ.team === 'enemy') targets.add(keyOf(nr, nc));
     }
-  } else if (sk.type==='heal_ap') { units.filter(a=>a.team==='player'&&a.hp>0&&manhattan(unit.r,unit.c,a.r,a.c)<=sk.range+getHex().rangeMod).forEach(a=>targets.add(keyOf(a.r,a.c))); }
-  else if (sk.type==='bribe') { units.filter(e=>e.team==='enemy'&&e.hp>0&&e.enemyType!=='boss'&&(e.hp/e.maxHp)<=0.4&&manhattan(unit.r,unit.c,e.r,e.c)<=sk.range+getHex().rangeMod).forEach(e=>targets.add(keyOf(e.r,e.c))); }
-  else if (sk.type==='sleep'||sk.type==='infight') { units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(unit.r,unit.c,e.r,e.c)<=sk.range+getHex().rangeMod).forEach(e=>targets.add(keyOf(e.r,e.c))); }
-  else if (sk.type==='line_true') { for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) for (let st=1;st<=sk.range;st++) { const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE) break; targets.add(keyOf(nr,nc)); } }
-  else if (sk.type==='summon') { for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (manhattan(unit.r,unit.c,r,c)>=1&&manhattan(unit.r,unit.c,r,c)<=sk.range&&grid[r][c]!==1&&!getUnitAt(r,c)) targets.add(keyOf(r,c)); }
+  } else if (['heal_ap_aoe', 'link_guard', 'mother_shield'].includes(sk.type)) {
+    units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && (sk.type !== 'link_guard' || a.id !== unit.id) && manhattan(unit.r, unit.c, a.r, a.c) <= sk.range + rBonus)
+      .forEach(a => targets.add(keyOf(a.r, a.c)));
+  } else if (sk.type === 'bribe') {
+    units.filter(e => e.team === 'enemy' && e.hp > 0 && e.enemyType !== 'boss' && (e.hp / e.maxHp) <= 0.4 && manhattan(unit.r, unit.c, e.r, e.c) <= sk.range + rBonus)
+      .forEach(e => targets.add(keyOf(e.r, e.c)));
+  } else if (['sleep', 'infight', 'mark_vuln', 'stealth_charm', 'three_tigers', 'agu_five_hits'].includes(sk.type)) {
+    units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= sk.range + rBonus)
+      .forEach(e => targets.add(keyOf(e.r, e.c)));
+  } else if (sk.type === 'line_true' || sk.type === 'full_line_arrow') {
+    const maxLen = sk.type === 'full_line_arrow' ? GRID_SIZE : sk.range;
+    for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) for (let st = 1; st <= maxLen; st++) {
+      const nr = unit.r + dr * st, nc = unit.c + dc * st;
+      if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+      targets.add(keyOf(nr, nc));
+    }
+  } else if (sk.type === 'summon_chariots' || sk.type === 'build_tower') {
+    for (let r = 0; r < GRID_SIZE; r++) for (let c = 0; c < GRID_SIZE; c++)
+      if (manhattan(unit.r, unit.c, r, c) >= 1 && manhattan(unit.r, unit.c, r, c) <= sk.range && grid[r][c] !== 1 && grid[r][c] !== 3 && !getUnitAt(r, c))
+        targets.add(keyOf(r, c));
+  } else if (sk.type === 'siege_3x3') {
+    for (let r = 0; r < GRID_SIZE; r++) for (let c = 0; c < GRID_SIZE; c++)
+      if (manhattan(unit.r, unit.c, r, c) >= 1 && manhattan(unit.r, unit.c, r, c) <= sk.range + rBonus)
+        targets.add(keyOf(r, c));
+  }
   return targets;
 }
 
@@ -2942,8 +3260,8 @@ function selectMode(mode) {
     }
   } else if (mode === 'ult') {
     const sk = DATA_SKILLS[u.ultId];
-    if (!sk || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
-    if (sk.type === 'self_berserk' || sk.type === 'domain') {
+    if (!sk || u.silenceTurns > 0 || u.doubtTurns > 0 || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    if (['self_berserk','domain','taunt_thorns','frost_domain','detonate_debuffs','ya_music_all','nanzi_assassinate','revive_aura'].includes(sk.type)) {
       actionMode = 'ult';
       targetableTiles = new Set([keyOf(u.r, u.c)]);
       pendingAction = { unitId: u.id, mode: 'ult', r: u.r, c: u.c };
@@ -2952,7 +3270,14 @@ function selectMode(mode) {
     }
   } else if (mode === 'skill') {
     const sk = DATA_SKILLS[u.skillId];
-    if (!sk || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    if (!sk || u.silenceTurns > 0 || u.doubtTurns > 0 || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    if (['fortress_stance','absorb_debuffs','wucheng_buff','harsh_tax_curse','counter_stance'].includes(sk.type)) {
+      actionMode = 'skill';
+      targetableTiles = new Set([keyOf(u.r, u.c)]);
+      pendingAction = { unitId: u.id, mode: 'skill', r: u.r, c: u.c };
+      renderAll();
+      return;
+    }
   }
 
   actionMode = mode;
@@ -3001,13 +3326,36 @@ async function moveUnitSmooth(unit, path, isPlayer) {
   }
 }
 
+function countUnitDebuffs(u) {
+  let n = 0;
+  if (u.stunned) n++;
+  if (u.sleepTurns > 0) n++;
+  if (u.defBreakTurns > 0) n++;
+  if (u.burnTurns > 0) n++;
+  if (u.internalBleedTurns > 0) n++;
+  if (u.vulnerableTurns > 0) n++;
+  if (u.confusedTurns > 0) n++;
+  if (u.frozenTurns > 0) n++;
+  if (u.silenceTurns > 0) n++;
+  if (u.shakenTurns > 0) n++;
+  if (u.doubtTurns > 0) n++;
+  return n;
+}
+function clearUnitDebuffs(u) {
+  u.stunned = false; u.sleepTurns = 0; u.defBreakTurns = 0; u.burnTurns = 0;
+  u.internalBleedTurns = 0; u.vulnerableTurns = 0; u.confusedTurns = 0; u.frozenTurns = 0;
+  u.silenceTurns = 0; u.shakenTurns = 0; u.doubtTurns = 0;
+}
+
 async function executePlayerAction(unit, mode, tr, tc) {
-  pendingMove = null; pendingAction = null; showCmdPopover = false; setState(STATE.ANIMATION_BUSY); renderFloatingUi(); renderPreviewBanner();
+  pendingMove = null; pendingAction = null; showCmdPopover = false;
+  setState(STATE.ANIMATION_BUSY); renderFloatingUi(); renderPreviewBanner();
   reachableTiles.clear(); targetableTiles.clear(); renderGrid(); renderGhost();
   if (tc < unit.c) unit.facingLeft = true; else if (tc > unit.c) unit.facingLeft = false;
 
   const hex = getHex(), syn = getActiveSynergies(), stats = getEffectiveStats(unit);
   let primaryEnemy = null;
+  let grantPostMove = false;
 
   if (mode === 'basic') {
     const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
@@ -3017,25 +3365,64 @@ async function executePlayerAction(unit, mode, tr, tc) {
       await playLunge(unit, enemy.r, enemy.c);
       const effYY = getEffectiveYinYang(unit);
       const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
-      const pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
-      const isCrit = Math.random() < (hex.critRate + (unit.bonusCrit || 0));
-      const dmg = calcDamage(stats.atk * sk.mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
+      let pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
+      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
+      let mult = sk.mult || 1.0;
+      if (sk.type === 'zhong_still' && !unit.moved) mult *= 1.3;
+      if (sk.type === 'yan_purify' && enemy.enemyType === 'boss') mult *= 2.0;
+      if (sk.type === 'taishan_wail') {
+        const stacks = (enemy.buffTurns > 0 ? 1 : 0) + (enemy.shield > 0 ? 1 : 0) + countUnitDebuffs(enemy);
+        mult *= (1 + stacks * 0.25);
+      }
+      const critChance = hex.critRate + (unit.bonusCrit || 0) + (sk.extraCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0);
+      const isCrit = Math.random() < critChance;
+      const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
       spawnVfx(enemy.r, enemy.c, false); if (isCrit) triggerHitstop(60);
       await applyDamage(enemy, dmg, isCrit, false, unit);
       if (hex.burnOnHit && enemy.hp > 0) enemy.burnTurns = 2;
+
+      // 各武將普攻專屬效果
+      if (sk.type === 'kong_adaptive' && enemy.hp > 0) {
+        if (enemy.enemyType === 'soldier') { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '數・破防', 'info'); }
+        else { enemy.silenceTurns = 1; spawnFloatText(enemy.r, enemy.c, '禮・沉默', 'info'); }
+      }
+      if (sk.type === 'hui_echo' && enemy.hp > 0 && countUnitDebuffs(enemy) > 0) {
+        spawnFloatText(enemy.r, enemy.c, '聞一知十！', 'taiji');
+        await applyDamage(enemy, dmg, false, false, unit);
+      }
+      if (sk.type === 'damage_gold' && Math.random() < 0.5) {
+        saveData.gold += 120; persistSave(); spawnFloatText(unit.r, unit.c, '+120兩', 'taiji');
+      }
+      if (sk.type === 'min_guard') { unit.defStanceTurns = 1; spawnFloatText(unit.r, unit.c, '防禦姿態', 'info'); }
+      if (sk.type === 'boniu_bleed' && enemy.hp > 0) { enemy.internalBleedTurns = 3; spawnFloatText(enemy.r, enemy.c, '內傷！', 'info'); }
+      if (sk.type === 'zhong_still' && !unit.moved && enemy.hp > 0) {
+        const kr = enemy.r + Math.sign(enemy.r - unit.r), kc = enemy.c + Math.sign(enemy.c - unit.c);
+        if (kr >= 0 && kr < GRID_SIZE && kc >= 0 && kc < GRID_SIZE && grid[kr][kc] === 0 && !getUnitAt(kr, kc)) {
+          enemy.r = kr; enemy.c = kc; renderUnits(); spawnFloatText(enemy.r, enemy.c, '擊退！', 'info');
+        }
+      }
+      if (sk.type === 'hit_and_run') grantPostMove = true;
+      if (sk.type === 'wo_confuse' && enemy.hp > 0 && Math.random() < 0.4) { enemy.confusedTurns = 1; spawnFloatText(enemy.r, enemy.c, '混亂！', 'info'); }
+      if (sk.type === 'ziyou_song') {
+        const needy = units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(a.r, a.c, enemy.r, enemy.c) <= 2).sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp))[0];
+        if (needy) { const h = Math.min(needy.maxHp - needy.hp, Math.round(18 * hex.healMult)); needy.hp += h; spawnFloatText(needy.r, needy.c, `弦歌+${h}`, 'heal'); }
+      }
+      if (sk.type === 'nanzi_chime' && enemy.hp > 0) { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '心神失守', 'info'); }
+      if (sk.type === 'agu_dodge') { unit.dodgeTurns = 1; spawnFloatText(unit.r, unit.c, '閃避+30%', 'info'); }
+
       addLog(`${unit.name}【${sk.name}】攻擊 ${enemy.name} 造成 ${dmg} 傷。`, 'player');
     });
-    if (sk.type === 'damage_gold') { saveData.gold += 100; persistSave(); spawnFloatText(unit.r, unit.c, '+100兩', 'taiji'); }
+
     if (unit.equip.weapon === 'bamboo_slip') {
-      units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,enemy.r,enemy.c)<=1).forEach(v=>{ v.defBreakTurns=2; spawnFloatText(v.r,v.c,'破防!','info'); });
+      units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(e.r, e.c, enemy.r, enemy.c) <= 1).forEach(v => { v.defBreakTurns = 2; spawnFloatText(v.r, v.c, '破防!', 'info'); });
     }
     if (sk.type === 'pierce') {
       const br = enemy.r + Math.sign(enemy.r - unit.r), bc = enemy.c + Math.sign(enemy.c - unit.c);
-      if (br>=0&&br<GRID_SIZE&&bc>=0&&bc<GRID_SIZE&&grid[br][bc]!==1&&!getUnitAt(br,bc)) {
+      if (br >= 0 && br < GRID_SIZE && bc >= 0 && bc < GRID_SIZE && grid[br][bc] !== 1 && grid[br][bc] !== 3 && !getUnitAt(br, bc)) {
         unit.r = br; unit.c = bc; AudioManager.play('move'); renderUnits(); spawnFloatText(unit.r, unit.c, '貫穿！', 'info'); await sleep(150);
         if (unit.equip.weapon === 'rooster_halberd') {
-          for (const st of units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,unit.r,unit.c)===1))
-            await applyDamage(st, calcDamage(stats.atk*0.55, getEffectiveStats(st).def, false, st), false, false, unit);
+          for (const st of units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(e.r, e.c, unit.r, unit.c) === 1))
+            await applyDamage(st, calcDamage(stats.atk * 0.55, getEffectiveStats(st).def, false, st), false, false, unit);
         }
       }
     }
@@ -3047,24 +3434,92 @@ async function executePlayerAction(unit, mode, tr, tc) {
       spawnVfx(tr, tc, false, sk.name + '！');
       if (sk.type === 'aoe_buff') {
         AudioManager.play('guqin');
-        units.filter(a=>a.team==='player'&&a.hp>0&&manhattan(unit.r,unit.c,a.r,a.c)<=sk.range).forEach(a=>{ a.buffTurns=2; const h=Math.min(a.maxHp-a.hp, Math.round(20*hex.healMult)); a.hp+=h; spawnFloatText(a.r,a.c,`+20% +${h}`,'heal'); });
+        units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= sk.range).forEach(a => {
+          clearUnitDebuffs(a); a.buffTurns = 2;
+          const h = Math.min(a.maxHp - a.hp, Math.round(20 * hex.healMult)); a.hp += h;
+          spawnFloatText(a.r, a.c, `受教+${h}`, 'heal');
+        });
+      } else if (sk.type === 'heal_ap_aoe') {
+        AudioManager.play('guqin');
+        const multStarve = activeStage.modifiers.starvationPct > 0 ? 2 : 1;
+        units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(tr, tc, a.r, a.c) <= 1).forEach(a => {
+          const h = Math.min(a.maxHp - a.hp, Math.round(45 * multStarve * hex.yinBoost * hex.healMult));
+          a.hp += h; a.ap = Math.min(a.maxAp, a.ap + 1); a.acted = false;
+          spawnFloatText(a.r, a.c, `+${h}HP/+1AP`, 'heal');
+        });
       } else if (sk.type === 'charge_stun') {
         const e = getUnitAt(tr, tc); primaryEnemy = e;
-        unit.r = e.r - Math.sign(e.r - unit.r); unit.c = e.c - Math.sign(e.c - unit.c); renderUnits();
-        triggerCameraShake(4, 180);
-        await applyDamage(e, calcDamage(stats.atk*sk.mult*hex.yangBoost, getEffectiveStats(e).def, Math.random()<(hex.critRate+0.1), e), false, false, unit);
+        const dr = Math.sign(e.r - unit.r), dc = Math.sign(e.c - unit.c);
+        const stopR = e.r - dr, stopC = e.c - dc;
+        if (stopR >= 0 && stopR < GRID_SIZE && stopC >= 0 && stopC < GRID_SIZE && !getUnitAt(stopR, stopC)) { unit.r = stopR; unit.c = stopC; }
+        unit.defBreakTurns = 2; renderUnits(); triggerCameraShake(5, 180);
+        await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def, Math.random() < (hex.critRate + 0.1), e), false, false, unit);
         if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); }
-      } else if (sk.type === 'heal_ap') {
-        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
-        const h = Math.min(a.maxHp - a.hp, Math.round(50 * hex.yinBoost * hex.healMult));
-        a.hp += h; a.ap = Math.min(a.maxAp, a.ap + 1); a.acted = false; spawnFloatText(a.r, a.c, `+${h}HP/+1AP`, 'heal');
       } else if (sk.type === 'bribe') {
         const e = getUnitAt(tr, tc); AudioManager.play('taiji');
-        e.team='player'; e.color='#0d9488'; e.ap=2; e.moved=false; e.acted=false; e.qi=0; e.basicId='kong_basic'; e.name='倒戈·'+e.name;
+        e.team = 'player'; e.color = '#0d9488'; e.ap = 2; e.moved = false; e.acted = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
         spawnFloatText(e.r, e.c, '千金倒戈！', 'taiji'); renderUnits();
       } else if (sk.type === 'sleep') {
         const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('bell');
-        e.sleepTurns = 2; spawnFloatText(e.r, e.c, '睡眠2回合', 'info'); renderUnits();
+        e.sleepTurns = 2; spawnFloatText(e.r, e.c, '晝寢2回合', 'info'); renderUnits();
+      } else if (sk.type === 'link_guard') {
+        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
+        a.linkGuardianId = unit.id; a.linkTurns = 2;
+        spawnFloatText(a.r, a.c, '共患難連結！', 'taiji');
+      } else if (sk.type === 'absorb_debuffs') {
+        AudioManager.play('guqin');
+        let absorbed = 0;
+        units.filter(a => a.team === 'player' && a.hp > 0 && a.id !== unit.id && manhattan(unit.r, unit.c, a.r, a.c) <= 3).forEach(a => {
+          const cnt = countUnitDebuffs(a);
+          if (cnt > 0) {
+            absorbed += cnt;
+            if (a.burnTurns > 0) unit.burnTurns = Math.max(unit.burnTurns, a.burnTurns);
+            if (a.defBreakTurns > 0) unit.defBreakTurns = Math.max(unit.defBreakTurns, a.defBreakTurns);
+            if (a.internalBleedTurns > 0) unit.internalBleedTurns = Math.max(unit.internalBleedTurns, a.internalBleedTurns);
+            clearUnitDebuffs(a);
+            spawnFloatText(a.r, a.c, '淨化！', 'heal');
+          }
+        });
+        if (absorbed > 0) {
+          const heal = Math.min(unit.maxHp - unit.hp, Math.round(unit.maxHp * 0.15 * absorbed));
+          unit.hp += heal; spawnFloatText(unit.r, unit.c, `吸${absorbed}疾 +${heal}`, 'heal');
+        } else {
+          unit.internalBleedTurns = 2;
+          const heal = Math.min(unit.maxHp - unit.hp, Math.round(unit.maxHp * 0.15));
+          unit.hp += heal; spawnFloatText(unit.r, unit.c, `蓄疾 +${heal}`, 'heal');
+        }
+      } else if (sk.type === 'fortress_stance') {
+        AudioManager.play('bell'); unit.fortressTurns = 2;
+        spawnFloatText(unit.r, unit.c, '宗廟之器 防+80%', 'taiji');
+      } else if (sk.type === 'build_tower') {
+        AudioManager.play('bell');
+        units.push(instantiateUnit(DATA_UNITS.arrow_tower, tr, tc, `p_tower_${summonCounter++}`, null));
+        const adj = findEmptyAdjacent(tr, tc);
+        if (adj && grid[adj.r][adj.c] === 0) grid[adj.r][adj.c] = 3;
+        renderGrid(); renderUnits(); spawnFloatText(tr, tc, '箭塔＋柵欄！', 'taiji');
+      } else if (sk.type === 'wucheng_buff') {
+        AudioManager.play('guqin');
+        units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= 3).forEach(a => {
+          a.hasteBuffTurns = 2; a.confusedTurns = 0; a.stunned = false;
+          spawnFloatText(a.r, a.c, '移+2 暴+20%', 'heal');
+        });
+      } else if (sk.type === 'mark_vuln') {
+        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('bell');
+        e.vulnerableTurns = 2; spawnFloatText(e.r, e.c, '易傷+35%！', 'info');
+      } else if (sk.type === 'stealth_charm') {
+        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('guqin');
+        unit.stealthTurns = 1; e.confusedTurns = 1;
+        spawnFloatText(unit.r, unit.c, '隱身！', 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
+      } else if (sk.type === 'harsh_tax_curse') {
+        AudioManager.play('bell');
+        units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => { e.harshTaxTurns = 2; spawnFloatText(e.r, e.c, '苛政詛咒', 'dmg'); });
+      } else if (sk.type === 'counter_stance') {
+        AudioManager.play('guqin'); unit.dodgeCounterTurns = 1;
+        spawnFloatText(unit.r, unit.c, '80%閃避反擊！', 'taiji');
+      } else if (sk.type === 'mother_shield') {
+        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
+        clearUnitDebuffs(a); a.shield = (a.shield || 0) + 65;
+        spawnFloatText(a.r, a.c, '禮容護盾+65', 'heal');
       }
       addLog(`${unit.name} 施展【${sk.name}】！`, 'player');
     });
@@ -3076,23 +3531,117 @@ async function executePlayerAction(unit, mode, tr, tc) {
       AudioManager.play('ult'); triggerHitstop(65); triggerCameraShake(5, 220); spawnVfx(tr, tc, true, sk.name);
       if (sk.type === 'line_true') {
         const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn);
-        const dr = Math.sign(tr-unit.r), dc = Math.sign(tc-unit.c); let killed = false;
-        for (let st=1; st<=5; st++) {
-          const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE) break;
-          const occ = getUnitAt(nr,nc);
-          if (occ && occ.team==='enemy') { primaryEnemy=occ; await applyDamage(occ, 105+Math.round(burn*0.6), false, true, unit); if (occ.hp<=0) killed=true; }
+        const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c); let killed = false;
+        for (let st = 1; st <= 5; st++) {
+          const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+          const occ = getUnitAt(nr, nc);
+          if (occ && occ.team === 'enemy') { primaryEnemy = occ; await applyDamage(occ, 105 + Math.round(burn * 0.6), false, true, unit); if (occ.hp <= 0) killed = true; }
         }
-        if (killed) { unit.hp=Math.max(1,unit.hp); unit.invincibleTurns=1; spawnFloatText(unit.r,unit.c,'無敵1回合','taiji'); }
-      } else if (sk.type === 'self_berserk') { unit.lockHpTurns = 2; spawnFloatText(unit.r,unit.c,'鎖血+雙倍攻','taiji'); }
-      else if (sk.type === 'domain') { xinzhaiDomainTurns=3; units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.fatalShield=true; p.stunned=false; p.sleepTurns=0; }); }
-      else if (sk.type === 'summon') { units.push(instantiateUnit(DATA_UNITS.chariot, tr, tc, `p_chariot_${summonCounter++}`, null)); renderUnits(); }
-      else if (sk.type === 'infight') {
-        for (const v of units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,tr,tc)<=1)) {
-          const others = units.filter(o=>o.team==='enemy'&&o.hp>0&&o.id!==v.id); if (!others.length) continue;
-          others.sort((a,b)=>manhattan(v.r,v.c,a.r,a.c)-manhattan(v.r,v.c,b.r,b.c));
+        if (killed) { unit.hp = Math.max(1, unit.hp); unit.invincibleTurns = 1; spawnFloatText(unit.r, unit.c, '聖人無敵', 'taiji'); }
+      } else if (sk.type === 'self_berserk') {
+        unit.lockHpTurns = 2; spawnFloatText(unit.r, unit.c, '鎖血+雙倍攻', 'taiji');
+      } else if (sk.type === 'domain') {
+        xinzhaiDomainTurns = 3;
+        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.fatalShield = true; clearUnitDebuffs(p); });
+      } else if (sk.type === 'summon_chariots') {
+        units.push(instantiateUnit(DATA_UNITS.chariot, tr, tc, `p_chariot_${summonCounter++}`, null));
+        const adj = findEmptyAdjacent(tr, tc);
+        if (adj) units.push(instantiateUnit(DATA_UNITS.chariot, adj.r, adj.c, `p_chariot_${summonCounter++}`, null));
+        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.shield = (p.shield || 0) + 45; });
+        renderUnits();
+      } else if (sk.type === 'infight') {
+        for (const v of units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(e.r, e.c, tr, tc) <= 1)) {
+          const others = units.filter(o => o.team === 'enemy' && o.hp > 0 && o.id !== v.id); if (!others.length) continue;
+          others.sort((a, b) => manhattan(v.r, v.c, a.r, a.c) - manhattan(v.r, v.c, b.r, b.c));
           await playLunge(v, others[0].r, others[0].c);
-          await applyDamage(others[0], calcDamage(getEffectiveStats(v).atk*1.15, getEffectiveStats(others[0]).def, false, others[0]), false, false, null);
+          await applyDamage(others[0], calcDamage(getEffectiveStats(v).atk * 1.15, getEffectiveStats(others[0]).def, false, others[0]), false, false, null);
         }
+      } else if (sk.type === 'frost_domain') {
+        unit.armorBrokenTurns = 1;
+        units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= 3).forEach(e => {
+          e.frozenTurns = 2; spawnFloatText(e.r, e.c, '極寒凍結！', 'info');
+        });
+      } else if (sk.type === 'detonate_debuffs') {
+        const cnt = Math.max(1, countUnitDebuffs(unit));
+        const dmg = 35 + cnt * 35;
+        clearUnitDebuffs(unit);
+        unit.hp = Math.min(unit.maxHp, unit.hp + Math.round(unit.maxHp * 0.25));
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(unit.r, unit.c, x.r, x.c) <= 3)) {
+          primaryEnemy = e; e.internalBleedTurns = 2; e.defBreakTurns = 2;
+          await applyDamage(e, dmg, false, true, unit);
+        }
+      } else if (sk.type === 'taunt_thorns') {
+        unit.tauntTurns = 2; unit.thornsShield = Math.round(stats.def * 2);
+        unit.shield = (unit.shield || 0) + unit.thornsShield;
+        spawnFloatText(unit.r, unit.c, `嘲諷+反傷盾${unit.thornsShield}`, 'taiji');
+      } else if (sk.type === 'siege_3x3') {
+        for (let rr = tr - 1; rr <= tr + 1; rr++) for (let cc = tc - 1; cc <= tc + 1; cc++) {
+          if (rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) continue;
+          if (grid[rr][cc] === 1 || grid[rr][cc] === 3) grid[rr][cc] = 0;
+          const occ = getUnitAt(rr, cc);
+          if (occ && occ.team === 'enemy') {
+            primaryEnemy = occ;
+            await applyDamage(occ, calcDamage(stats.atk * 1.6, getEffectiveStats(occ).def, false, occ), false, false, unit);
+          }
+        }
+        renderGrid();
+      } else if (sk.type === 'ya_music_all') {
+        const enemies = units.filter(e => e.team === 'enemy' && e.hp > 0);
+        const bonus = Math.min(0.5, enemies.length * 0.08);
+        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.yaAtkBonus = bonus; p.buffTurns = Math.max(p.buffTurns, 2); });
+        for (const e of enemies) {
+          primaryEnemy = e;
+          await applyDamage(e, calcDamage(stats.atk * 1.25, getEffectiveStats(e).def * 0.8, false, e), false, false, unit);
+        }
+      } else if (sk.type === 'full_line_arrow') {
+        const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c);
+        for (let st = 1; st <= GRID_SIZE; st++) {
+          const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+          const occ = getUnitAt(nr, nc);
+          if (occ && occ.team === 'enemy') {
+            primaryEnemy = occ; occ.buffTurns = 0; occ.shield = 0;
+            await applyDamage(occ, calcDamage(stats.atk * 1.75, getEffectiveStats(occ).def * 0.5, true, occ), true, false, unit);
+          }
+        }
+      } else if (sk.type === 'nanzi_assassinate') {
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
+          primaryEnemy = e; e.shakenTurns = 2;
+          await applyDamage(e, calcDamage(stats.atk * 1.45, getEffectiveStats(e).def * 0.6, true, e), true, false, unit);
+        }
+      } else if (sk.type === 'three_tigers') {
+        let totalSteal = 0;
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 1)) {
+          primaryEnemy = e;
+          if (e.shield > 0) { totalSteal += e.shield; e.shield = 0; }
+          if (e.buffTurns > 0) { totalSteal += 20; e.buffTurns = 0; }
+          await applyDamage(e, calcDamage(stats.atk * 1.55, getEffectiveStats(e).def * 0.7, false, e), false, false, unit);
+        }
+        const heal = Math.min(unit.maxHp - unit.hp, 25 + totalSteal);
+        unit.hp += heal; spawnFloatText(unit.r, unit.c, `吞噬+${heal}HP`, 'heal');
+      } else if (sk.type === 'agu_five_hits') {
+        const targets = units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2);
+        for (let i = 0; i < 5; i++) {
+          const aliveT = targets.filter(t => t.hp > 0); if (!aliveT.length) break;
+          const pick = aliveT[i % aliveT.length]; primaryEnemy = pick;
+          pick.buffTurns = 0; pick.shield = 0;
+          await applyDamage(pick, calcDamage(stats.atk * 0.65, getEffectiveStats(pick).def * 0.7, false, pick), false, false, unit);
+        }
+      } else if (sk.type === 'revive_aura') {
+        if (fallenAllies.length > 0) {
+          const fallen = fallenAllies.shift();
+          const spot = findEmptyAdjacent(unit.r, unit.c) || { r: unit.r, c: unit.c };
+          fallen.hp = Math.round(fallen.maxHp * 0.5); fallen.r = spot.r; fallen.c = spot.c;
+          fallen.ap = 1; fallen.moved = false; fallen.acted = false; fallen.animState = 'idle';
+          clearUnitDebuffs(fallen);
+          spawnFloatText(fallen.r, fallen.c, '英靈復活！', 'taiji');
+        } else {
+          units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
+            const h = Math.min(p.maxHp - p.hp, Math.round(p.maxHp * 0.45)); p.hp += h;
+            spawnFloatText(p.r, p.c, `庇佑+${h}`, 'heal');
+          });
+        }
+        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.buffTurns = Math.max(p.buffTurns, 2); });
+        renderUnits();
       }
       addLog(`★ ${unit.name} 爆發大絕【${sk.name}】！`, 'ult');
     });
@@ -3100,13 +3649,46 @@ async function executePlayerAction(unit, mode, tr, tc) {
     const cdef = activeComboDef; cdef.partners.forEach(p => { p.qi = 0; });
     await playAnimWithHitSync(unit, 'cast', async () => {
       AudioManager.play('ult'); triggerHitstop(70); triggerCameraShake(5, 240); spawnVfx(tr, tc, true, cdef.name);
-      if (cdef.id === 'combo_trio') { units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.hp=Math.max(1,Math.round(p.maxHp*Math.max(0.1,1-p.hp/p.maxHp))); p.invincibleTurns=2; }); }
-      else if (cdef.id === 'combo_kong_hui') { units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.hp=p.maxHp; p.qi=100; }); for (const e of units.filter(x=>x.team==='enemy'&&x.hp>0)) await applyDamage(e, 85, false, true, unit); }
-      else if (cdef.id === 'combo_kong_lu') {
-        const kong=getUnitById('p_kong'), lu=getUnitById('p_lu'), enemy=getUnitAt(tr,tc); primaryEnemy=enemy;
-        const a1=findEmptyAdjacent(enemy.r,enemy.c); if (a1) { lu.r=a1.r; lu.c=a1.c; }
-        const a2=findEmptyAdjacent(lu.r,lu.c); if (a2&&kong) { kong.r=a2.r; kong.c=a2.c; }
-        renderUnits(); await applyDamage(enemy, 115, true, false, lu); if (enemy.hp>0) enemy.stunned=true;
+      if (cdef.id === 'combo_trio') {
+        units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
+          p.hp = Math.max(1, Math.round(p.maxHp * Math.max(0.15, 1 - p.hp / p.maxHp)));
+          p.invincibleTurns = 3; p.lockHpTurns = 2;
+        });
+      } else if (cdef.id === 'combo_kong_hui') {
+        const aliveCnt = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).length;
+        units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => { p.hp = p.maxHp; p.qi = 100; clearUnitDebuffs(p); });
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) await applyDamage(e, 50 + aliveCnt * 12, false, true, unit);
+      } else if (cdef.id === 'combo_kong_lu') {
+        const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        const a1 = findEmptyAdjacent(enemy.r, enemy.c); if (a1 && lu) { lu.r = a1.r; lu.c = a1.c; }
+        const a2 = findEmptyAdjacent(lu.r, lu.c); if (a2 && kong) { kong.r = a2.r; kong.c = a2.c; }
+        renderUnits(); await applyDamage(enemy, 115, true, false, lu); if (enemy.hp > 0) enemy.stunned = true;
+      } else if (cdef.id === 'combo_gong_wo') {
+        const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        const cut = Math.max(30, Math.round(enemy.hp * 0.5));
+        enemy.doubtTurns = 3;
+        await applyDamage(enemy, cut, false, true, unit);
+        if (enemy.hp > 0) spawnFloatText(enemy.r, enemy.c, '懷疑人生3回合！', 'taiji');
+      } else if (cdef.id === 'combo_ziyou_zixia') {
+        const enemies = units.filter(x => x.team === 'enemy' && x.hp > 0);
+        for (const e of enemies) {
+          primaryEnemy = e;
+          const pullR = e.r + Math.sign(3 - e.r), pullC = e.c + Math.sign(3 - e.c);
+          if (grid[pullR]?.[pullC] === 0 && !getUnitAt(pullR, pullC)) { e.r = pullR; e.c = pullC; }
+          await applyDamage(e, 95, true, false, unit);
+        }
+        renderUnits();
+      } else if (cdef.id === 'combo_kong_nanzi') {
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
+          primaryEnemy = e; e.confusedTurns = 1;
+          await applyDamage(e, 105, true, false, unit);
+        }
+      } else if (cdef.id === 'combo_lu_taishan') {
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2)) {
+          primaryEnemy = e;
+          await applyDamage(e, 95, false, true, unit);
+          if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); }
+        }
       }
       addLog(`★★★ 合體奧義【${cdef.name}】發動！`, 'ult');
     });
@@ -3114,7 +3696,16 @@ async function executePlayerAction(unit, mode, tr, tc) {
   }
 
   await checkTaijiCombo(unit, primaryEnemy);
-  unit.acted = true; unit.ap = Math.max(0, unit.ap - 1); actionMode = 'move';
+  unit.acted = true;
+  if (grantPostMove && unit.hp > 0) {
+    // 冉有【策馬奔襲】打帶跑：攻擊後保留 1 次移動機會
+    unit.moved = false; unit.ap = Math.max(1, unit.ap);
+    reachableTiles = computeReachable(unit);
+    spawnFloatText(unit.r, unit.c, '打帶跑！可再移動', 'taiji');
+  } else {
+    unit.ap = Math.max(0, unit.ap - 1);
+  }
+  actionMode = 'move';
   lastPlayerAction = { unitId: unit.id, name: unit.name, yinYang: getEffectiveYinYang(unit) };
   renderAll();
   if (checkVictoryOrDefeat()) return;
@@ -3122,8 +3713,9 @@ async function executePlayerAction(unit, mode, tr, tc) {
 }
 
 function findEmptyAdjacent(r, c) {
-  for (const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]) {
-    const nr=r+dr, nc=c+dc; if (nr>=0&&nr<GRID_SIZE&&nc>=0&&nc<GRID_SIZE&&grid[nr][nc]!==1&&!getUnitAt(nr,nc)) return { r:nr, c:nc };
+  for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]]) {
+    const nr = r + dr, nc = c + dc;
+    if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1 && grid[nr][nc] !== 3 && !getUnitAt(nr, nc)) return { r: nr, c: nc };
   }
   return null;
 }
@@ -3131,12 +3723,12 @@ function findEmptyAdjacent(r, c) {
 async function checkTaijiCombo(currUnit, targetEnemy) {
   if (!lastPlayerAction || lastPlayerAction.unitId === currUnit.id) return;
   const prev = getUnitById(lastPlayerAction.unitId); if (!prev) return;
-  if (manhattan(prev.r,prev.c,currUnit.r,currUnit.c)===1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
+  if (manhattan(prev.r, prev.c, currUnit.r, currUnit.c) === 1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
     AudioManager.play('taiji'); triggerHitstop(60);
-    const dmg = 50 + (getHex().taijiBonus||0) + ((prev.outerTalents.taiji_amp||0)+(currUnit.outerTalents.taiji_amp||0))*20;
-    const victim = (targetEnemy&&targetEnemy.hp>0) ? targetEnemy : units.filter(e=>e.team==='enemy'&&e.hp>0)[0];
-    if (victim) { spawnVfx(victim.r,victim.c,true,'太極合擊！'); spawnFloatText(victim.r,victim.c,`太極 +${dmg}`,'taiji'); await applyDamage(victim,dmg,false,true,null); }
-    [prev,currUnit].forEach(u=>{ u.hp=Math.min(u.maxHp,u.hp+20); u.qi=Math.min(100,u.qi+30); });
+    const dmg = 50 + (getHex().taijiBonus || 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 20;
+    const victim = (targetEnemy && targetEnemy.hp > 0) ? targetEnemy : units.filter(e => e.team === 'enemy' && e.hp > 0)[0];
+    if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！'); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
+    [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 20); u.qi = Math.min(100, u.qi + 30); });
     addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血 +30 氣！`, 'taiji');
   }
 }
@@ -3145,33 +3737,84 @@ function calcDamage(atk, def, isCrit, target) {
   let raw = Math.max(8, Math.round(atk - def * 0.55));
   if (isCrit) raw = Math.round(raw * 1.5);
   if (getHex().stillDmgRed && target && !target.moved) raw = Math.round(raw * (1 - getHex().stillDmgRed));
-  if (target && target.id==='p_gong' && getActiveSynergies().earthSky) raw = Math.round(raw * 0.6);
+  if (target && target.id === 'p_gong' && getActiveSynergies().earthSky) raw = Math.round(raw * 0.6);
+  if (target && target.defStanceTurns > 0) raw = Math.round(raw * 0.75);
+  if (target && target.vulnerableTurns > 0) raw = Math.round(raw * 1.35);
   return Math.max(1, raw);
 }
 
 async function playLunge(attacker, tr, tc) {
   const box = document.querySelector(`[data-uid="${attacker.id}"] .unit-box`); if (!box) return;
-  box.style.transform = `translate(${Math.sign(tc-attacker.c)*32}px,${Math.sign(tr-attacker.r)*32}px) scale(1.08)`;
+  box.style.transform = `translate(${Math.sign(tc - attacker.c) * 32}px,${Math.sign(tr - attacker.r) * 32}px) scale(1.08)`;
   await sleep(90); box.style.transform = '';
 }
 
 async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null) {
   if (target.invincibleTurns > 0) { spawnFloatText(target.r, target.c, '無敵！', 'taiji'); return; }
+
+  // 阿谷處女閃避與機鋒反擊判定（易傷狀態下無法閃避）
+  if (!isTrue && attacker && target.vulnerableTurns <= 0) {
+    const dodgeChance = target.dodgeCounterTurns > 0 ? 0.80 : (target.dodgeTurns > 0 ? 0.30 : 0);
+    if (dodgeChance > 0 && Math.random() < dodgeChance) {
+      spawnFloatText(target.r, target.c, '閃避！', 'taiji');
+      if (target.dodgeCounterTurns > 0 && attacker.hp > 0 && attacker.team !== target.team) {
+        const cd = calcDamage(getEffectiveStats(target).atk * 1.2, getEffectiveStats(attacker).def, false, attacker);
+        spawnFloatText(target.r, target.c, '機鋒反擊！', 'taiji');
+        await playLunge(target, attacker.r, attacker.c);
+        await applyDamage(attacker, cd, false, false, null);
+      }
+      return;
+    }
+  }
+
   let finalDmg = dmg, woke = false;
   if (target.sleepTurns > 0) { target.sleepTurns = 0; finalDmg = Math.round(dmg * 1.5); woke = true; }
+
+  // 閔子騫【孝感動天】共患難分傷 70% -> 轉化為浩然氣
+  if (target.linkTurns > 0 && target.linkGuardianId) {
+    const guardian = getUnitById(target.linkGuardianId);
+    if (guardian && guardian.hp > 0 && guardian.id !== target.id) {
+      const share = Math.round(finalDmg * 0.7);
+      finalDmg -= share;
+      guardian.qi = Math.min(100, guardian.qi + Math.min(40, Math.round(share * 0.8)));
+      spawnFloatText(guardian.r, guardian.c, `代傷-${share}`, 'info');
+      await applyDamage(guardian, share, false, true, null);
+    }
+  }
+
+  // 護盾吸收（仲弓反傷盾／顏徵在護盾／子貢護盾）
+  if (target.shield > 0 && finalDmg > 0) {
+    const absorb = Math.min(target.shield, finalDmg);
+    target.shield -= absorb; finalDmg -= absorb;
+    spawnFloatText(target.r, target.c, `盾抵${absorb}`, 'info');
+    if (target.thornsShield > 0 && attacker && attacker.hp > 0 && attacker.team !== target.team) {
+      const refDmg = Math.max(10, Math.round(absorb * 0.7));
+      spawnFloatText(attacker.r, attacker.c, `反傷-${refDmg}`, 'dmg');
+      attacker.hp = Math.max(0, attacker.hp - refDmg);
+      if (attacker.hp <= 0) { attacker.animState = 'die'; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); }
+    }
+    if (finalDmg <= 0) { renderUnits(); return; }
+  }
+
   AudioManager.play('slash'); target.animState = 'hurt'; target.animFrame = 0;
-  if (target.team === 'player') target.qi = Math.min(100, target.qi + 15 + ((target.outerTalents.qi_flow||0)*8));
+  if (target.team === 'player') target.qi = Math.min(100, target.qi + 15 + ((target.outerTalents.qi_flow || 0) * 8));
 
   const nextHp = target.hp - finalDmg;
   if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
   else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '心齋抵死！', 'heal'); }
-  else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit||woke)?'crit':'dmg'); }
+  else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit || woke) ? 'crit' : 'dmg'); }
   const anc = document.querySelector(`[data-uid="${target.id}"]`);
   if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
   renderUnits(); await sleep(180);
 
-  if (target.enemyType==='boss' && target.hp>0 && target.phase===1 && target.hp<=target.maxHp*0.5) { target.phase=2; target.color='#7e22ce'; spawnVfx(target.r,target.c,true,'心魔二階段！'); renderUnits(); }
-  if (target.hp <= 0) { target.animState = 'die'; spawnFloatText(target.r, target.c, '擊破！', 'info'); renderUnits(); return; }
+  if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= target.maxHp * 0.5) { target.phase = 2; target.color = '#7e22ce'; spawnVfx(target.r, target.c, true, '心魔二階段！'); renderUnits(); }
+  if (target.hp <= 0) {
+    target.animState = 'die';
+    if (target.team === 'player' && !target.isTower && saveData.roster[target.id] && !fallenAllies.includes(target)) {
+      fallenAllies.push(target);
+    }
+    spawnFloatText(target.r, target.c, '擊破！', 'info'); renderUnits(); return;
+  }
   if (target.lockHpTurns > 0 && attacker && attacker.hp > 0 && attacker.team !== target.team) {
     const cd = calcDamage(getEffectiveStats(target).atk * 1.5, getEffectiveStats(attacker).def, false, attacker);
     spawnFloatText(target.r, target.c, '150%反擊！', 'taiji'); await playLunge(target, attacker.r, attacker.c); await applyDamage(attacker, cd, false, false, null);
@@ -3181,32 +3824,74 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 async function endPlayerTurn() {
   if (gameState !== STATE.PLAYER_TURN) return;
   pendingMove = null; pendingAction = null; showCmdPopover = false; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+
+  // 冉有【瞭望箭塔】於玩家回合結束自動射擊 3 格內敵軍
+  for (const tower of units.filter(u => u.team === 'player' && u.isTower && u.hp > 0)) {
+    const nearE = units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(tower.r, tower.c, e.r, e.c) <= 3).sort((a, b) => a.hp - b.hp)[0];
+    if (nearE) {
+      focusCameraOn(tower.r, tower.c);
+      await sleep(160);
+      spawnVfx(nearE.r, nearE.c, false);
+      const dmg = calcDamage(getEffectiveStats(tower).atk, getEffectiveStats(nearE).def, false, nearE);
+      await applyDamage(nearE, dmg, false, false, tower);
+      addLog(`瞭望箭塔自動射擊 ${nearE.name} 造成 ${dmg} 傷。`, 'player');
+      if (checkVictoryOrDefeat()) return;
+    }
+  }
+
   setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await sleep(240);
 
   for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
     focusCameraOn(enemy.r, enemy.c);
     await sleep(220);
+
+    // 泰山婦人【苛政猛於虎】敵軍行動時觸發猛虎撕咬
+    if (enemy.harshTaxTurns > 0) {
+      spawnFloatText(enemy.r, enemy.c, '猛虎撕咬！', 'dmg');
+      await applyDamage(enemy, 28, false, true, null);
+      if (checkVictoryOrDefeat() || enemy.hp <= 0) continue;
+    }
+
     if (enemy.stunned) { enemy.stunned = false; spawnFloatText(enemy.r, enemy.c, '暈眩', 'info'); continue; }
     if (enemy.sleepTurns > 0) { enemy.sleepTurns--; spawnFloatText(enemy.r, enemy.c, 'Zzz', 'info'); continue; }
 
-    const players = units.filter(u => u.team === 'player' && u.hp > 0); if (!players.length) break;
-    const target = (enemy.enemyType==='archer' && players.find(p=>p.id==='p_hui')) || players.sort((a,b)=>manhattan(enemy.r,enemy.c,a.r,a.c)-manhattan(enemy.r,enemy.c,b.r,b.c))[0];
+    // 混亂狀態（宰我／南子）：隨機攻擊最近的單位（含敵友）
+    if (enemy.confusedTurns > 0) {
+      enemy.confusedTurns--;
+      const others = units.filter(u => u.hp > 0 && u.id !== enemy.id && u.stealthTurns <= 0).sort((a, b) => manhattan(enemy.r, enemy.c, a.r, a.c) - manhattan(enemy.r, enemy.c, b.r, b.c));
+      const eRange = getEffectiveStats(enemy).range;
+      const inR = others.find(o => manhattan(enemy.r, enemy.c, o.r, o.c) <= eRange);
+      if (inR) {
+        spawnFloatText(enemy.r, enemy.c, '混亂互打！', 'taiji');
+        await playLunge(enemy, inR.r, inR.c);
+        await applyDamage(inR, calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(inR).def, false, inR), false, false, enemy);
+      } else {
+        spawnFloatText(enemy.r, enemy.c, '混亂迷失', 'info');
+      }
+      continue;
+    }
+
+    // 篩選可見的我方目標（排除隱身中的南子，若仲弓嘲諷則強制鎖定仲弓）
+    const players = units.filter(u => u.team === 'player' && u.hp > 0 && u.stealthTurns <= 0);
+    if (!players.length) break;
+    const taunter = players.find(p => p.tauntTurns > 0 && manhattan(enemy.r, enemy.c, p.r, p.c) <= 4);
+    const target = taunter || (enemy.enemyType === 'archer' && players.find(p => p.id === 'p_hui')) || players.sort((a, b) => manhattan(enemy.r, enemy.c, a.r, a.c) - manhattan(enemy.r, enemy.c, b.r, b.c))[0];
     const eRange = getEffectiveStats(enemy).range;
 
-    if (manhattan(enemy.r,enemy.c,target.r,target.c) > eRange) {
-      const reach = computeReachable(enemy); let bestMove = null, bestSc = manhattan(enemy.r,enemy.c,target.r,target.c);
+    if (manhattan(enemy.r, enemy.c, target.r, target.c) > eRange && getEffectiveStats(enemy).move > 0) {
+      const reach = computeReachable(enemy); let bestMove = null, bestSc = manhattan(enemy.r, enemy.c, target.r, target.c);
       for (const [k, info] of reach.entries()) {
-        const [rr, cc] = k.split(',').map(Number), d = manhattan(rr,cc,target.r,target.c);
-        const sc = (enemy.enemyType==='archer' && d>=2 && d<=eRange) ? d - 5 : d;
+        const [rr, cc] = k.split(',').map(Number), d = manhattan(rr, cc, target.r, target.c);
+        const sc = (enemy.enemyType === 'archer' && d >= 2 && d <= eRange) ? d - 5 : d;
         if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
       }
       if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
     }
 
-    const inRange = units.filter(u=>u.team==='player'&&u.hp>0&&manhattan(enemy.r,enemy.c,u.r,u.c)<=eRange);
+    const inRange = players.filter(u => manhattan(enemy.r, enemy.c, u.r, u.c) <= eRange);
     if (inRange.length) {
-      const atkT = (enemy.enemyType==='archer' && inRange.find(p=>p.id==='p_hui')) || inRange.sort((a,b)=>a.hp-b.hp)[0];
+      const atkT = (taunter && inRange.includes(taunter)) ? taunter : ((enemy.enemyType === 'archer' && inRange.find(p => p.id === 'p_hui')) || inRange.sort((a, b) => a.hp - b.hp)[0]);
       await playAnimWithHitSync(enemy, 'attack', async () => {
         await playLunge(enemy, atkT.r, atkT.c);
         const dmg = calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(atkT).def, false, atkT);
@@ -3218,7 +3903,10 @@ async function endPlayerTurn() {
   }
 
   setState(STATE.TURN_END_CHECK);
-  for (const u of units.filter(x=>x.hp>0&&x.burnTurns>0)) { u.burnTurns--; await applyDamage(u, 12, false, true, null); }
+  for (const u of units.filter(x => x.hp > 0 && (x.burnTurns > 0 || x.internalBleedTurns > 0))) {
+    if (u.burnTurns > 0) { u.burnTurns--; await applyDamage(u, 12, false, true, null); }
+    if (u.hp > 0 && u.internalBleedTurns > 0) { u.internalBleedTurns--; await applyDamage(u, Math.max(5, Math.round(u.maxHp * 0.05)), false, true, null); }
+  }
   if (checkVictoryOrDefeat()) return;
 
   turnNumber++; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
@@ -3230,24 +3918,34 @@ async function endPlayerTurn() {
   }
   lastPlayerAction = null;
   units.forEach(u => {
-    if (u.hp <= 0) return; u.ap = u.maxAp; u.moved = false; u.acted = false;
-    if (u.buffTurns>0) u.buffTurns--; if (u.defBreakTurns>0) u.defBreakTurns--; if (u.invincibleTurns>0) u.invincibleTurns--; if (u.lockHpTurns>0) u.lockHpTurns--;
+    if (u.hp <= 0) return;
+    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false;
+    ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
+      if (u[k] > 0) u[k]--;
+    });
+    if (u.linkTurns <= 0) u.linkGuardianId = null;
+    if (u.buffTurns <= 0) u.yaAtkBonus = 0;
+    if (u.shield <= 0) u.thornsShield = 0;
   });
   if (activeStage.modifiers.starvationPct > 0) {
-    units.filter(u=>u.team==='player'&&u.hp>0).forEach(u => { const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct); u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg'); });
+    units.filter(u => u.team === 'player' && u.hp > 0 && !u.isTower).forEach(u => {
+      const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct);
+      u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg');
+    });
   }
-  const firstP = units.find(u => u.team === 'player' && u.hp > 0);
+  const firstP = units.find(u => u.team === 'player' && u.hp > 0 && !u.isTower);
   if (firstP) focusCameraOn(firstP.r, firstP.c);
   setState(STATE.PLAYER_TURN); renderAll();
 }
 
 function checkVictoryOrDefeat() {
-  const pAlive = units.filter(u=>u.team==='player'&&u.hp>0).length, eAlive = units.filter(u=>u.team==='enemy'&&u.hp>0).length;
+  const pAlive = units.filter(u => u.team === 'player' && u.hp > 0 && !u.isTower).length;
+  const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
   if (eAlive === 0) { triggerBattleVictory(); return true; }
   if (pAlive === 0) {
     setState(STATE.GAME_OVER);
     document.getElementById('endTitle').textContent = '全軍覆沒';
-    document.getElementById('endSubtitle').textContent = '可回營地點亮天賦、購買裝備後再戰！';
+    document.getElementById('endSubtitle').innerHTML = '可回營地點亮天賦、購買裝備後再戰！';
     document.getElementById('endOverlay').classList.add('show');
     return true;
   }
@@ -3260,6 +3958,12 @@ function triggerBattleVictory() {
   if (isFirstClear) saveData.clearedStages.push(activeStage.id);
   saveData.gold += activeStage.rewardGold;
 
+  let recruitBanner = '';
+  if (activeStage.firstClearRecruit && recruitUnitToRoster(activeStage.firstClearRecruit)) {
+    const rec = DATA_UNITS[activeStage.firstClearRecruit];
+    recruitBanner = `<div class="recruit-callout">🎉 【列國收徒】新名將 <strong>${rec.name}</strong>（${rec.role}）正式拜入孔門！</div>`;
+  }
+
   let dropMsg = '';
   if (isFirstClear && activeStage.firstClearEquip) {
     const eid = activeStage.firstClearEquip;
@@ -3267,14 +3971,19 @@ function triggerBattleVictory() {
     dropMsg = ` 🎁 首通獲得典籍【${DATA_EQUIPS[eid].name}】！`;
   }
 
+  // 出戰弟子獲得 100% EXP，板凳弟子「孔門共修」同步獲得 50% EXP
   const lvUps = [];
-  saveData.deployedIds.forEach(id => {
-    const p = saveData.roster[id]; p.exp += activeStage.rewardExp;
+  Object.keys(saveData.roster).forEach(id => {
+    const p = saveData.roster[id];
+    const isDep = saveData.deployedIds.includes(id);
+    p.exp += isDep ? activeStage.rewardExp : Math.round(activeStage.rewardExp * 0.5);
     while (p.exp >= p.lv * 100) { p.exp -= p.lv * 100; p.lv++; p.liuyiPts++; p.wudaoPts++; lvUps.push(`${DATA_UNITS[id].name}→Lv.${p.lv}`); }
   });
   persistSave();
   document.getElementById('endTitle').textContent = '🚩 攻克城池！';
-  document.getElementById('endSubtitle').textContent = `獲得 ${activeStage.rewardGold} 兩與 ${activeStage.rewardExp} EXP。${dropMsg}` + (lvUps.length ? ` 升級：${lvUps.join('、')}` : '');
+  document.getElementById('endSubtitle').innerHTML =
+    `${recruitBanner}<div style="margin-top:6px;">獲得 ${activeStage.rewardGold} 兩與 ${activeStage.rewardExp} EXP（板凳共修 50%）。${dropMsg}` +
+    (lvUps.length ? `<br>升級：${lvUps.join('、')}` : '') + `</div>`;
   document.getElementById('endOverlay').classList.add('show');
 }
 function finishBattleAndReturn() { switchScene('map'); }
@@ -3388,12 +4097,12 @@ function renderGrid() {
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
       const t = document.createElement('div'), k = keyOf(r, c);
-      let cls = 'tile ' + (grid[r][c] === 1 ? 'wall' : grid[r][c] === 2 ? 'water' : ((r + c) % 2 === 0 ? 'plain' : 'plain alt'));
+      let cls = 'tile ' + (grid[r][c] === 1 ? 'wall' : grid[r][c] === 3 ? 'fence' : grid[r][c] === 2 ? 'water' : ((r + c) % 2 === 0 ? 'plain' : 'plain alt'));
       if (sel && sel.r === r && sel.c === c) cls += ' selected-tile';
       if (actionMode === 'move' && reachableTiles.has(k)) cls += ' move-range';
       if (actionMode === 'basic' && targetableTiles.has(k)) cls += ' attack-range';
       if (['skill', 'ult', 'combo'].includes(actionMode) && targetableTiles.has(k)) {
-        cls += (sel && ((actionMode === 'skill' && ['p_kong', 'p_hui'].includes(sel.id)) || (actionMode === 'ult' && sel.id === 'p_gong'))) ? ' heal-range' : ' special-range';
+        cls += (sel && ((actionMode === 'skill' && ['p_kong', 'p_hui', 'p_min', 'p_ranyou', 'p_yanzhengzai'].includes(sel.id)) || (actionMode === 'ult' && sel.id === 'p_gong'))) ? ' heal-range' : ' special-range';
       }
       if (pendingAction && pendingAction.r === r && pendingAction.c === c) cls += ' preview-target';
       t.className = cls;
@@ -3431,6 +4140,9 @@ function renderUnits() {
     anc.classList.toggle('invincible', u.invincibleTurns > 0);
     anc.classList.toggle('lockhp', u.lockHpTurns > 0);
     anc.classList.toggle('sleeping', u.sleepTurns > 0);
+    anc.classList.toggle('stealth', u.stealthTurns > 0);
+    anc.classList.toggle('frozen', u.frozenTurns > 0);
+    anc.classList.toggle('fortress', u.fortressTurns > 0);
     anc.classList.toggle('flip-left', u.facingLeft);
     updateUnitVisualFrame(u, anc);
 
@@ -3445,8 +4157,17 @@ function renderUnits() {
     if (u.fatalShield) flags.push('齋');
     if (u.stunned) flags.push('暈');
     if (u.sleepTurns > 0) flags.push('眠');
-    if (u.defBreakTurns > 0) flags.push('破');
-    if (u.buffTurns > 0) flags.push('教↑');
+    if (u.defBreakTurns > 0 || u.shakenTurns > 0) flags.push('破');
+    if (u.vulnerableTurns > 0) flags.push('易傷');
+    if (u.confusedTurns > 0) flags.push('亂');
+    if (u.frozenTurns > 0) flags.push('凍');
+    if (u.internalBleedTurns > 0) flags.push('傷');
+    if (u.harshTaxTurns > 0) flags.push('苛');
+    if (u.doubtTurns > 0) flags.push('疑');
+    if (u.tauntTurns > 0) flags.push('嘲');
+    if (u.dodgeCounterTurns > 0) flags.push('反');
+    if (u.stealthTurns > 0) flags.push('隱');
+    if (u.buffTurns > 0 || u.hasteBuffTurns > 0) flags.push('增↑');
     const effYY = getEffectiveYinYang(u);
     const yyShort = effYY === '陽/陰' ? '陰陽' : effYY;
 
@@ -3457,8 +4178,9 @@ function renderUnits() {
         ${u.team === 'player' ? `<span class="hud-ap-circle">${u.ap}</span>` : ''}
       </div>
       <div class="hud-bars">
+        ${u.shield > 0 ? `<div class="shield-bar-bg"><div class="shield-bar-fill" style="width:${Math.min(100, Math.round((u.shield / u.maxHp) * 100))}%"></div></div>` : ''}
         <div class="hp-bar-bg"><div class="hp-bar-fill ${u.team === 'enemy' ? 'enemy' : ''}" style="width:${hpPct}%"></div></div>
-        ${u.team === 'player' ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
+        ${u.team === 'player' && !u.isTower ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
       </div>`;
   });
 }
@@ -3530,7 +4252,7 @@ function renderFloatingUi() {
 
   if (gameState !== STATE.PLAYER_TURN || pendingAction || actionMode !== 'move') return;
   const u = getUnitById(selectedUnitId);
-  if (!u || u.team !== 'player' || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return;
+  if (!u || u.team !== 'player' || u.isTower || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return;
 
   // 階段 1：尚未移動、未展開指令窗 -> 腳邊顯示【原地出招 / 待機】快捷浮標
   if (!showCmdPopover && !u.moved) {
