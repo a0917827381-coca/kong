@@ -1,0 +1,2391 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>《論語戰棋》v0.3.3 — 資料夾自動載入精靈圖與白盒容錯版</title>
+<style>
+  :root {
+    --bg: #090e1a;
+    --panel: #162033;
+    --panel-dark: #0c1322;
+    --panel-border: #2a3a54;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --gold: #facc15;
+    --amber: #f59e0b;
+    --danger: #ef4444;
+    --heal: #22c55e;
+    --tile-plain: #e2e8f0;
+    --tile-plain-alt: #cbd5e1;
+    --tile-wall: #111827;
+    --tile-water: #93c5fd;
+  }
+
+  * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #04070f;
+    color: var(--text);
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    justify-content: center;
+    overflow-x: hidden;
+  }
+
+  .mobile-shell {
+    width: 100%;
+    max-width: 480px;
+    min-height: 100dvh;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 0 36px rgba(0, 0, 0, 0.8);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* 頂部狀態列 */
+  .top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #0f172a;
+    border-bottom: 1px solid var(--panel-border);
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .brand-title { font-size: 0.92rem; font-weight: 900; color: var(--gold); white-space: nowrap; }
+  .res-pills { display: flex; align-items: center; gap: 5px; }
+  .pill {
+    padding: 2px 7px; border-radius: 999px; font-size: 0.72rem; font-weight: 800;
+    background: var(--panel-dark); border: 1px solid #334155; color: #e2e8f0; white-space: nowrap;
+  }
+  .pill.gold { color: #fde047; border-color: #a16207; background: #3b1e06; }
+  .pill.player { color: #38bdf8; border-color: #0284c7; }
+  .pill.enemy { color: #f87171; border-color: #dc2626; }
+  .pill.busy { color: #facc15; border-color: #ca8a04; }
+  .pill.green { color: #86efac; border-color: #16a34a; background: #052e16; }
+
+  .icon-btn {
+    background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
+    border-radius: 7px; padding: 5px 8px; font-size: 0.75rem; font-weight: 700;
+    cursor: pointer; min-height: 32px;
+  }
+  .icon-btn:active { transform: scale(0.96); }
+
+  .btn {
+    background: #243249; color: #f8fafc; border: 1px solid #3b4f6e;
+    border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 800;
+    cursor: pointer; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+    transition: transform 0.08s;
+  }
+  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.36; cursor: not-allowed; }
+  .btn.primary { background: #2563eb; border-color: #60a5fa; color: #fff; }
+  .btn.gold { background: #92400e; border-color: #facc15; color: #fef08a; }
+  .btn.danger { background: #7f1d1d; border-color: #ef4444; color: #fecaca; }
+  .btn.dev { background: #3b0764; border-color: #a855f7; color: #e9d5ff; }
+  .btn.active { background: #0284c7; border-color: #38bdf8; }
+  .btn.sm { min-height: 30px; padding: 4px 8px; font-size: 0.74rem; }
+
+  .scene { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
+  .scene.active { display: flex; }
+
+  /* ==================== 場景 1：春秋中國輿圖 ==================== */
+  .map-scene-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
+  .map-frame {
+    position: relative; width: 100%; border-radius: 12px; overflow: hidden;
+    border: 2px solid #785a28; background: #1a1f29;
+    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .china-svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
+  .map-float-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; z-index: 5; }
+  .map-watermark {
+    position: absolute; top: 10px; left: 10px;
+    background: rgba(15, 23, 42, 0.78); border: 1px solid #a16207; color: #fde68a;
+    font-size: 0.75rem; font-weight: 900; padding: 3px 8px; border-radius: 6px; letter-spacing: 2px; pointer-events: none;
+  }
+  .city-node { cursor: pointer; }
+  .city-node.locked { cursor: not-allowed; opacity: 0.48; }
+  .city-ring-pulse { animation: cityPulse 1.8s infinite ease-in-out; transform-box: fill-box; transform-origin: center; }
+  @keyframes cityPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.22); opacity: 0.35; } }
+
+  .briefing-card {
+    background: linear-gradient(180deg, #172136, #0f172a);
+    border: 2px solid #475569; border-radius: 12px; padding: 12px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .briefing-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .briefing-title { font-size: 1rem; font-weight: 900; color: var(--gold); }
+  .briefing-meta { font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; }
+  .briefing-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 8px; }
+
+  /* ==================== 場景 2：孔門營地 ==================== */
+  .camp-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
+  .camp-tab-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .camp-pane { display: none; flex-direction: column; gap: 8px; }
+  .camp-pane.active { display: flex; }
+
+  .mobile-card {
+    background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .mobile-card.deployed { border-color: #22c55e; background: #07261b; }
+  .char-chip {
+    width: 34px; height: 34px; border-radius: 7px; display: inline-flex;
+    align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.05rem; flex-shrink: 0;
+  }
+  .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .select-mobile {
+    width: 100%; background: var(--panel-dark); color: #f8fafc;
+    border: 1px solid #3b4f6e; border-radius: 6px; padding: 7px 6px; font-size: 0.76rem;
+  }
+
+  .equip-slot-list { display: flex; flex-direction: column; gap: 5px; }
+  .equip-slot-btn {
+    width: 100%; text-align: left; background: var(--panel-dark);
+    border: 1px solid #334155; border-radius: 7px; padding: 7px 9px;
+    color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+  }
+  .equip-slot-btn.equipped { border-color: #ca8a04; background: #1e180c; }
+  .equip-slot-btn:active { transform: scale(0.99); }
+  .slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 800; }
+  .slot-sub { font-size: 0.71rem; color: #94a3b8; line-height: 1.35; }
+  .equip-slot-btn.equipped .slot-sub { color: #fde68a; }
+
+  .equip-item-card {
+    background: var(--panel-dark); border: 1px solid #334155; border-radius: 9px;
+    padding: 10px; display: flex; flex-direction: column; gap: 5px;
+  }
+  .equip-item-card.owned { border-color: #38bdf8; }
+  .equip-item-card.active-eq { border-color: var(--gold); background: #261b08; }
+  .equip-item-card.locked { opacity: 0.72; border-style: dashed; }
+
+  .stat-pill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .stat-box {
+    background: var(--panel-dark); border: 1px solid #334155; border-radius: 7px;
+    padding: 6px 8px; font-size: 0.74rem;
+  }
+  .stat-box .val { font-size: 0.9rem; font-weight: 900; color: #fff; margin-top: 2px; }
+  .stat-box .bonus { font-size: 0.7rem; color: #4ade80; font-weight: 700; }
+  .skill-detail-card {
+    background: var(--panel-dark); border: 1px solid #334155; border-radius: 8px;
+    padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .skill-detail-card.ult { border-color: #ea580c; background: #220d05; }
+  .skill-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 900; }
+  .skill-detail-desc { font-size: 0.74rem; color: #cbd5e1; line-height: 1.4; }
+
+  .section-divider {
+    font-size: 0.78rem; font-weight: 900; color: var(--gold);
+    border-left: 3px solid var(--gold); padding-left: 7px; margin-top: 4px;
+  }
+
+  .bottom-nav {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    background: #0f172a; border-top: 1px solid var(--panel-border);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 4px; flex-shrink: 0;
+  }
+  .nav-tab {
+    background: transparent; color: var(--muted); border: none; border-radius: 8px;
+    padding: 6px 2px; font-size: 0.72rem; font-weight: 800; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+  }
+  .nav-tab.active { background: #1e293b; color: var(--gold); }
+
+  /* ==================== 場景 3：手機戰棋戰鬥 ==================== */
+  .battle-wrap { flex: 1; display: flex; flex-direction: column; padding: 6px; gap: 6px; }
+  .battle-hex-bar {
+    background: var(--panel); border: 1px solid var(--panel-border);
+    border-radius: 9px; padding: 6px 10px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .hex-row-top { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .hex-name-txt { font-size: 0.86rem; font-weight: 900; color: var(--gold); }
+  .hex-desc-txt { font-size: 0.72rem; color: #cbd5e1; }
+  .syn-strip { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+  .syn-tag {
+    font-size: 0.67rem; font-weight: 800; padding: 1px 6px; border-radius: 999px;
+    background: #0f172a; border: 1px solid #334155; color: #64748b;
+  }
+  .syn-tag.on { background: #713f12; border-color: #facc15; color: #fef08a; }
+  .syn-tag.domain { background: #064e3b; border-color: #34d399; color: #a7f3d0; }
+
+  .board-viewport {
+    position: relative; width: 100%; max-width: 468px; aspect-ratio: 1 / 1; margin: 0 auto;
+    border: 2px solid #475569; border-radius: 8px; overflow: hidden; background: #020617;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55); touch-action: manipulation;
+  }
+  .board-scale-root { position: absolute; left: 0; top: 0; width: 512px; height: 512px; transform-origin: top left; }
+  .board-shake-wrap { position: absolute; inset: 0; transition: transform 0.04s linear; }
+  .grid-layer { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(8, 64px); grid-template-rows: repeat(8, 64px); }
+  .tile { width: 64px; height: 64px; position: relative; border: 1px solid rgba(15, 23, 42, 0.14); cursor: pointer; }
+  .tile.plain { background-color: var(--tile-plain); }
+  .tile.plain.alt { background-color: var(--tile-plain-alt); }
+  .tile.wall { background-color: var(--tile-wall); border-color: #1f2937; cursor: not-allowed; }
+  .tile.wall::after { content: "障"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #374151; font-size: 15px; font-weight: 800; }
+  .tile.water { background-color: var(--tile-water); }
+  .tile.water::after { content: "水"; position: absolute; right: 4px; bottom: 2px; color: #1d4ed8; font-size: 12px; font-weight: 800; opacity: 0.78; }
+  .tile.move-range::before { content: ""; position: absolute; inset: 2px; background: rgba(56, 189, 248, 0.54); border: 2px solid #0284c7; border-radius: 4px; pointer-events: none; }
+  .tile.attack-range::before { content: ""; position: absolute; inset: 2px; background: rgba(239, 68, 68, 0.48); border: 2px solid #dc2626; border-radius: 4px; pointer-events: none; }
+  .tile.heal-range::before { content: ""; position: absolute; inset: 2px; background: rgba(34, 197, 94, 0.48); border: 2px solid #16a34a; border-radius: 4px; pointer-events: none; }
+  .tile.special-range::before { content: ""; position: absolute; inset: 2px; background: rgba(250, 204, 21, 0.50); border: 2px solid #ca8a04; border-radius: 4px; pointer-events: none; }
+  .tile.selected-tile { box-shadow: inset 0 0 0 3px #facc15; }
+
+  .ghost-layer { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
+  .move-ghost {
+    position: absolute; width: 56px; height: 56px; margin: 4px; border-radius: 6px;
+    border: 2px dashed #38bdf8; background: rgba(56, 189, 248, 0.22);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #e0f2fe; font-weight: 900; font-size: 18px; line-height: 1; text-shadow: 0 1px 3px #000;
+  }
+  .move-ghost span { font-size: 9px; color: #bae6fd; margin-top: 2px; }
+
+  .unit-layer { position: absolute; inset: 0; pointer-events: none; }
+  .unit-anchor { position: absolute; width: 64px; height: 64px; transition: left 0.18s ease, top 0.18s ease; pointer-events: none; }
+  .unit-box {
+    position: absolute; left: 4px; top: 4px; width: 56px; height: 56px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900; color: #fff;
+    text-shadow: 0 2px 3px rgba(0,0,0,0.65); box-shadow: 0 4px 8px rgba(0,0,0,0.35);
+    border: 2px solid rgba(255,255,255,0.68); transition: transform 0.1s ease, filter 0.08s ease;
+  }
+  .unit-anchor.selected .unit-box { border: 3px solid #facc15; box-shadow: 0 0 14px rgba(250, 204, 21, 0.9); }
+  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 6px #facc15); }
+  .unit-anchor.exhausted .unit-box, .unit-anchor.exhausted .sprite-canvas { filter: saturate(0.42) brightness(0.74); }
+  .unit-anchor.hit-flash .unit-box, .unit-anchor.hit-flash .sprite-canvas { filter: brightness(4) contrast(0.5) !important; }
+  .unit-anchor.invincible .unit-box { box-shadow: 0 0 12px 3px #fde047; border-color: #fef08a; }
+  .unit-anchor.lockhp .unit-box { box-shadow: 0 0 12px 3px #ef4444; border-color: #fca5a5; }
+  .unit-anchor.sleeping .unit-box { filter: brightness(0.65) hue-rotate(25deg); }
+  .sprite-canvas { position: absolute; left: -32px; top: -52px; width: 128px; height: 128px; image-rendering: pixelated; pointer-events: none; }
+  .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
+
+  .art-guide { display: none; position: absolute; left: -32px; top: -52px; width: 128px; height: 128px; border: 1px dashed rgba(250, 204, 21, 0.8); pointer-events: none; }
+  .art-guide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 16px; border-bottom: 1px solid rgba(239, 68, 68, 0.9); }
+  .show-guides .art-guide { display: block; }
+  .anim-pill {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    background: rgba(2, 6, 23, 0.88); color: #38bdf8; border: 1px solid #334155;
+    font-size: 9px; font-family: monospace; padding: 0 4px; border-radius: 3px; white-space: nowrap;
+  }
+  .anim-pill.hit { background: #7f1d1d; color: #fef08a; border-color: #facc15; }
+  @keyframes hitShake { 0% { transform: translateX(0); } 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-4px); } 100% { transform: translateX(0); } }
+  .unit-anchor.shake .unit-box, .unit-anchor.shake .sprite-canvas { animation: hitShake 0.14s linear; }
+
+  .hud-layer { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
+  .unit-hud { position: absolute; width: 58px; margin-left: 3px; transition: left 0.18s ease, top 0.18s ease; }
+  .hud-top-row { display: flex; justify-content: space-between; font-size: 9px; font-weight: 800; }
+  .hud-yy { background: rgba(0,0,0,0.72); color: #fef08a; padding: 0 3px; border-radius: 2px; }
+  .hud-ap { background: rgba(0,0,0,0.72); color: #7dd3fc; padding: 0 3px; border-radius: 2px; }
+  .hud-bars { position: absolute; top: 50px; left: 0; right: 0; display: flex; flex-direction: column; gap: 1px; }
+  .hp-bar-bg { height: 5px; background: rgba(0,0,0,0.78); border-radius: 2px; overflow: hidden; }
+  .hp-bar-fill { height: 100%; background: #22c55e; transition: width 0.2s; }
+  .hp-bar-fill.enemy { background: #f87171; }
+  .qi-bar-bg { height: 3px; background: rgba(0,0,0,0.78); border-radius: 2px; overflow: hidden; }
+  .qi-bar-fill { height: 100%; background: #facc15; transition: width 0.2s; }
+  .hud-status { position: absolute; top: 37px; right: 0; font-size: 9px; font-weight: 900; background: rgba(0,0,0,0.85); color: #facc15; padding: 0 3px; border-radius: 2px; }
+
+  .vfx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 55; overflow: hidden; }
+  .vfx-slash { position: absolute; width: 72px; height: 72px; transform: translate(-50%, -50%); border-radius: 50%; border: 4px solid #f8fafc; box-shadow: 0 0 14px #38bdf8, inset 0 0 12px #0f172a; animation: vfxBurst 0.34s ease-out forwards; }
+  .vfx-slash.ult { width: 112px; height: 112px; border-color: #facc15; box-shadow: 0 0 24px #f97316, inset 0 0 18px #7c2d12; }
+  @keyframes vfxBurst { 0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.35) rotate(-25deg); } 60% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1) rotate(18deg); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35) rotate(35deg); } }
+  .vfx-stamp { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); background: rgba(127, 29, 29, 0.94); color: #fef08a; border: 3px solid #facc15; border-radius: 8px; padding: 6px 16px; font-size: 1.5rem; font-weight: 900; letter-spacing: 3px; box-shadow: 0 10px 25px rgba(0,0,0,0.75); animation: stampPop 0.9s ease-out forwards; white-space: nowrap; }
+  @keyframes stampPop { 0% { opacity: 0; transform: translate(-50%, -50%) scale(1.6); } 20% { opacity: 1; transform: translate(-50%, -50%) scale(0.96); } 80% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -62%) scale(0.95); } }
+
+  .fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
+  .float-text { position: absolute; font-weight: 900; font-size: 18px; text-shadow: 0 2px 4px rgba(0,0,0,0.95), 0 0 2px #000; transform: translate(-50%, 0); animation: floatUp 0.95s ease-out forwards; white-space: nowrap; }
+  .float-text.dmg { color: #ff4d4f; font-size: 20px; }
+  .float-text.crit { color: #fb923c; font-size: 23px; }
+  .float-text.heal { color: #4ade80; font-size: 19px; }
+  .float-text.info { color: #38bdf8; font-size: 16px; }
+  .float-text.taiji { color: #fde047; font-size: 20px; background: rgba(15,23,42,0.92); border: 2px solid #facc15; padding: 2px 8px; border-radius: 6px; animation: floatUpBig 1.35s ease-out forwards; }
+  @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -36px); } }
+  @keyframes floatUpBig { 0% { opacity: 0; transform: translate(-50%, 8px) scale(0.85); } 18% { opacity: 1; transform: translate(-50%, -8px) scale(1.1); } 82% { opacity: 1; transform: translate(-50%, -26px) scale(1); } 100% { opacity: 0; transform: translate(-50%, -42px) scale(0.95); } }
+
+  /* 戰鬥拇指操作區 */
+  .thumb-panel { background: var(--panel); border: 1px solid var(--panel-border); border-radius: 10px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
+  .unit-mini-strip {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--panel-dark); border: 1px solid #334155; border-radius: 7px;
+    padding: 5px 8px; font-size: 0.74rem; gap: 6px; flex-wrap: wrap; cursor: pointer;
+  }
+  .stat-val.buffed { color: #4ade80; font-weight: 800; }
+  .stat-val.debuffed { color: #f87171; font-weight: 800; }
+
+  .act-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .btn-act { min-height: 40px; padding: 5px 4px; border-radius: 8px; border: 2px solid #3b4f6e; background: var(--panel-dark); color: #f8fafc; font-size: 0.76rem; font-weight: 800; cursor: pointer; line-height: 1.2; }
+  .btn-act:active:not(:disabled) { transform: scale(0.96); }
+  .btn-act.active { border-color: var(--gold); background: #854d0e; color: #fef08a; }
+  .btn-act.ult:not(:disabled) { border-color: #ea580c; color: #fed7aa; background: #431407; }
+  .btn-act.combo:not(:disabled) { border-color: #facc15; color: #fef08a; background: linear-gradient(180deg, #854d0e, #713f12); box-shadow: 0 0 8px rgba(250,204,21,0.45); }
+  .btn-act.hexflip:not(:disabled) { border-color: #a855f7; color: #e9d5ff; background: #2e1065; }
+  .btn-act:disabled { opacity: 0.34; cursor: not-allowed; }
+
+  .dock-row { display: grid; grid-template-columns: 1.15fr 0.85fr 1.25fr; gap: 6px; }
+  .btn-undo { min-height: 44px; border-radius: 8px; border: 2px solid #334155; background: #1e293b; color: #94a3b8; font-size: 0.82rem; font-weight: 900; cursor: pointer; }
+  .btn-undo.ready { border-color: #38bdf8; background: linear-gradient(180deg, #0284c7, #0369a1); color: #fff; box-shadow: 0 0 10px rgba(56, 189, 248, 0.5); }
+  .btn-undo:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+  .btn-end-turn { min-height: 44px; border-radius: 8px; border: 2px solid #f59e0b; background: linear-gradient(180deg, #d97706, #b45309); color: #fff; font-size: 0.88rem; font-weight: 900; cursor: pointer; }
+  .btn-end-turn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .skill-desc-bar { font-size: 0.72rem; color: #cbd5e1; line-height: 1.35; background: rgba(15, 23, 42, 0.65); padding: 4px 7px; border-radius: 6px; min-height: 26px; }
+
+  /* 彈窗抽屜 */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.84); display: none; align-items: flex-end; justify-content: center; z-index: 250; }
+  .modal-backdrop.center { align-items: center; padding: 14px; }
+  .modal-backdrop.show { display: flex; }
+  .modal-sheet {
+    background: var(--panel); border: 2px solid var(--gold);
+    border-radius: 14px 14px 0 0; padding: 14px; width: 100%; max-width: 480px;
+    max-height: 85dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 9px;
+  }
+  .modal-backdrop.center .modal-sheet { border-radius: 12px; }
+  .modal-sheet h3 { margin: 0; font-size: 1rem; color: var(--gold); }
+
+  .hex-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .hex-choice { padding: 8px; border-radius: 8px; border: 2px solid #475569; background: var(--panel-dark); color: #cbd5e1; text-align: left; cursor: pointer; font-size: 0.75rem; }
+  .hex-choice.opposite { border-color: #facc15; background: #422006; color: #fef08a; }
+  .hex-choice:disabled { opacity: 0.35; }
+
+  .sprite-status-list {
+    display: flex; flex-direction: column; gap: 4px;
+    max-height: 210px; overflow-y: auto;
+    background: var(--panel-dark); border: 1px solid #334155;
+    border-radius: 8px; padding: 7px;
+  }
+  .sprite-status-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.73rem; padding: 4px 6px; border-radius: 5px;
+    background: rgba(30, 41, 59, 0.55); gap: 6px;
+  }
+  .sprite-path { font-family: monospace; color: #93c5fd; font-size: 0.69rem; }
+
+  .log-box { max-height: 220px; overflow-y: auto; font-size: 0.75rem; line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
+  .log-entry { padding: 3px 6px; border-radius: 4px; background: rgba(15,23,42,0.6); border-left: 3px solid #475569; }
+  .log-entry.player { border-left-color: #38bdf8; }
+  .log-entry.enemy { border-left-color: #ef4444; }
+  .log-entry.taiji { border-left-color: #facc15; color: #fef08a; font-weight: 700; }
+  .log-entry.hex { border-left-color: #a855f7; color: #e9d5ff; }
+  .log-entry.ult { border-left-color: #f97316; color: #ffedd5; font-weight: 700; }
+
+  textarea.save-area { width: 100%; height: 110px; background: #020617; color: #86efac; border: 1px solid #475569; border-radius: 6px; padding: 8px; font-family: monospace; font-size: 0.72rem; }
+  .overlay { position: absolute; inset: 0; background: rgba(2, 6, 23, 0.92); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 120; gap: 12px; text-align: center; padding: 18px; }
+  .overlay.show { display: flex; }
+  .overlay h2 { margin: 0; font-size: 1.6rem; color: var(--gold); }
+  .overlay p { margin: 0; color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="mobile-shell">
+  <!-- 頂部共用狀態列 -->
+  <div class="top-header">
+    <div class="brand-title">論語戰棋 v0.3</div>
+    <div class="res-pills">
+      <span class="pill gold" id="navGold">1000兩</span>
+      <span class="pill" id="navSuxiu">束脩:2</span>
+      <button class="icon-btn" id="btnSound" onclick="toggleSound()">🔊</button>
+      <button class="icon-btn" onclick="openArtModal()" title="精靈圖資料夾狀態與熱替換">🎨</button>
+      <button class="icon-btn" onclick="openSaveModal()" title="存檔/讀檔碼">💾</button>
+    </div>
+  </div>
+
+  <!-- ==================== 場景 1：春秋中國輿圖 ==================== -->
+  <div class="scene active" id="sceneMap">
+    <div class="map-scene-wrap">
+      <div class="map-frame">
+        <div class="map-watermark">春秋列國輿圖</div>
+        <div class="map-float-tools">
+          <button class="btn sm dev" onclick="devUnlockAll()">⚡全解鎖+神兵</button>
+        </div>
+        <svg class="china-svg" id="chinaMapSvg" viewBox="0 0 420 440" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="parchmentBg" cx="42%" cy="45%" r="68%">
+              <stop offset="0%" stop-color="#3c3322"/>
+              <stop offset="60%" stop-color="#252119"/>
+              <stop offset="100%" stop-color="#141821"/>
+            </radialGradient>
+            <linearGradient id="seaGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0f2338"/>
+              <stop offset="100%" stop-color="#091524"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="420" height="440" fill="url(#seaGrad)"/>
+          <path d="M 0,0 L 340,0 L 325,38 L 295,62 L 312,86 L 368,88 L 395,112 L 372,142 L 340,162 L 352,218 L 382,272 L 362,320 L 330,375 L 285,425 L 240,440 L 0,440 Z"
+                fill="url(#parchmentBg)" stroke="#7a6238" stroke-width="2.5"/>
+          <g stroke="#5c4d35" stroke-width="1.6" fill="none" opacity="0.65">
+            <path d="M 95,110 L 115,85 L 135,112 M 120,108 L 138,88 L 155,112"/>
+            <path d="M 290,108 L 306,90 L 322,108"/>
+            <path d="M 55,225 L 78,200 L 100,226 M 85,228 L 108,205 L 130,228"/>
+            <path d="M 180,275 L 198,258 L 216,275"/>
+          </g>
+          <text x="372" y="185" fill="#476c8a" font-size="12" font-weight="800" letter-spacing="3">東海</text>
+          <text x="275" y="46" fill="#476c8a" font-size="11" font-weight="800">渤海</text>
+          <text x="95" y="130" fill="#7c6c52" font-size="10" opacity="0.75">太行山</text>
+          <text x="295" y="120" fill="#7c6c52" font-size="10" opacity="0.75">泰山</text>
+          <path d="M 0,188 Q 75,180 130,175 T 230,152 T 320,102 L 348,88" fill="none" stroke="#60a5fa" stroke-width="4" opacity="0.55" stroke-linecap="round"/>
+          <text x="148" y="166" fill="#93c5fd" font-size="10" font-weight="700" opacity="0.85">黃河</text>
+          <path d="M 0,335 Q 70,350 135,342 T 245,328 T 355,295 L 382,282" fill="none" stroke="#38bdf8" stroke-width="5" opacity="0.55" stroke-linecap="round"/>
+          <text x="255" y="344" fill="#7dd3fc" font-size="10" font-weight="700" opacity="0.85">長江</text>
+          <g id="mapRoutesLayer"></g>
+          <g id="mapCitiesLayer"></g>
+        </svg>
+      </div>
+
+      <div class="briefing-card">
+        <div class="briefing-head">
+          <div>
+            <div style="font-size:0.72rem; color:#93c5fd; font-weight:800;" id="briefRegion">第一站・魯衛之交</div>
+            <div class="briefing-title" id="briefName">匡地突圍</div>
+          </div>
+          <span class="pill" id="briefStatus">尚未通關</span>
+        </div>
+        <div class="briefing-meta" id="briefMeta"></div>
+        <div class="briefing-actions">
+          <button class="btn gold" onclick="switchScene('camp')">🏕 營地整備</button>
+          <button class="btn primary" id="btnEnterBattle" onclick="startSelectedStage()">⚔ 帶隊出征</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 場景 2：孔門營地 ==================== -->
+  <div class="scene" id="sceneCamp">
+    <div class="camp-wrap">
+      <div class="camp-tab-bar">
+        <button class="btn sm active" id="tabBtn_roster" onclick="switchCampTab('roster')">編制履歷</button>
+        <button class="btn sm" id="tabBtn_equip" onclick="switchCampTab('equip')">裝備市集</button>
+        <button class="btn sm" id="tabBtn_talent" onclick="switchCampTab('talent')">天賦樹</button>
+        <button class="btn sm" id="tabBtn_bond" onclick="switchCampTab('bond')">束脩羈絆</button>
+      </div>
+
+      <div class="camp-pane active" id="campPane_roster">
+        <div style="font-size:0.74rem; color:#94a3b8;">點擊武將頭像或【詳情】可檢視完整屬性、射程與三段招式；已出戰者依順位 #1→#5 排列。</div>
+        <div id="campRosterGrid" style="display:flex; flex-direction:column; gap:7px;"></div>
+      </div>
+
+      <div class="camp-pane" id="campPane_equip">
+        <div class="section-divider">武將裝備槽（點擊槽位開啟裝備庫・顯示詞條與取得來源）</div>
+        <div id="campEquipList" style="display:flex; flex-direction:column; gap:8px;"></div>
+        <div class="section-divider">列國市集・神兵禮器（購買後存入裝備庫）</div>
+        <div id="campEquipShopList" style="display:flex; flex-direction:column; gap:7px;"></div>
+        <div class="section-divider">列國市集・戰場補給與束脩</div>
+        <div id="campItemShopList" style="display:flex; flex-direction:column; gap:7px;"></div>
+      </div>
+
+      <div class="camp-pane" id="campPane_talent">
+        <div id="talentCharBtns" style="display:flex; gap:5px; flex-wrap:wrap;"></div>
+        <div class="row-between">
+          <span class="pill player" id="talentLiuyiPts">六藝點：0</span>
+          <span class="pill gold" id="talentWudaoPts">悟道點：0</span>
+        </div>
+        <div style="font-weight:800; color:#38bdf8; font-size:0.8rem;">內圈・六藝盤（基礎屬性）</div>
+        <div id="innerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+        <div style="font-weight:800; color:#facc15; font-size:0.8rem; margin-top:4px;">外圈・八卦命格盤（天時與連攜）</div>
+        <div id="outerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+      </div>
+
+      <div class="camp-pane" id="campPane_bond">
+        <div style="font-size:0.74rem; color:#94a3b8;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義。</div>
+        <div id="campBondList" style="display:flex; flex-direction:column; gap:7px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 場景 3：手機戰棋戰鬥 ==================== -->
+  <div class="scene" id="sceneBattle">
+    <div class="battle-wrap">
+      <div class="battle-hex-bar">
+        <div class="hex-row-top">
+          <span class="hex-name-txt" id="hexTitle">【乾卦・剩2回合】</span>
+          <div style="display:flex; align-items:center; gap:4px;">
+            <span class="pill" id="turnBadge">T1</span>
+            <span class="pill player" id="stateBadge">我方</span>
+            <button class="icon-btn" onclick="openBattleToolsModal()" title="日誌/測試/撤退">☰</button>
+          </div>
+        </div>
+        <div class="hex-desc-txt" id="hexDesc"></div>
+        <div class="syn-strip">
+          <span class="syn-tag" id="synWaterFire">水火既濟</span>
+          <span class="syn-tag" id="synEarthSky">地天泰</span>
+          <span class="syn-tag" id="synXinzhai">心齋領域</span>
+          <span class="syn-tag" id="comboHintTag" style="color:#bae6fd; border-color:#1d4ed8;">太極:待前手[陽]</span>
+        </div>
+      </div>
+
+      <div class="board-viewport" id="boardViewport" oncontextmenu="onBoardRightClick(event)">
+        <div class="board-scale-root" id="boardScaleRoot">
+          <div class="board-shake-wrap" id="boardWrapper">
+            <div class="grid-layer" id="gridLayer"></div>
+            <div class="ghost-layer" id="ghostLayer"></div>
+            <div class="unit-layer" id="unitLayer"></div>
+            <div class="hud-layer" id="hudLayer"></div>
+            <div class="vfx-layer" id="vfxLayer"></div>
+            <div class="fx-layer" id="fxLayer"></div>
+          </div>
+        </div>
+        <div class="overlay" id="endOverlay">
+          <h2 id="endTitle">大獲全勝！</h2>
+          <p id="endSubtitle"></p>
+          <div style="display:flex; gap:8px;">
+            <button class="btn primary" onclick="finishBattleAndReturn()">返回春秋輿圖</button>
+            <button class="btn" onclick="startSelectedStage()">重打本關</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="thumb-panel">
+        <div class="unit-mini-strip" id="unitMiniStrip" onclick="openSelectedBattleUnitDetail()" title="點擊查看完整招式與資料">
+          <span style="color:#94a3b8;">點選棋盤方塊檢視數值（點擊此列可看詳細招式）</span>
+        </div>
+        <div class="skill-desc-bar" id="skillDesc">點選我方角色移動，確定攻擊前隨時可按【↩ 悔步】。</div>
+
+        <div class="act-grid-3">
+          <button class="btn-act" id="btnBasic" onclick="selectMode('basic')" disabled>【普攻】</button>
+          <button class="btn-act" id="btnSkill" onclick="selectMode('skill')" disabled>【絕招】</button>
+          <button class="btn-act ult" id="btnUlt" onclick="selectMode('ult')" disabled>【大絕】</button>
+        </div>
+        <div class="act-grid-3">
+          <button class="btn-act combo" id="btnCombo" onclick="selectMode('combo')" disabled>【合體奧義】</button>
+          <button class="btn-act hexflip" id="btnHexFlip" onclick="openHexModal()" disabled>【韋編三絕】</button>
+          <button class="btn-act" id="btnWait" onclick="doWait()" disabled>【待機+20氣】</button>
+        </div>
+        <div class="dock-row">
+          <button class="btn-undo" id="btnUndo" onclick="undoPendingMove()" disabled>↩ 悔步</button>
+          <button class="btn" onclick="openItemModal()">🎒 道具</button>
+          <button class="btn-end-turn" id="btnEndTurn" onclick="endPlayerTurn()">結束回合</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 底部 App 導覽列 -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="nav-tab active" id="navMap" onclick="switchScene('map')"><span>🗺️</span><span>春秋輿圖</span></button>
+    <button class="nav-tab" id="navCamp" onclick="switchScene('camp')"><span>🏕️</span><span>孔門營地</span></button>
+    <button class="nav-tab" onclick="openArtModal()"><span>🎨</span><span>精靈管線</span></button>
+    <button class="nav-tab" onclick="openSaveModal()"><span>💾</span><span>存檔管理</span></button>
+  </div>
+</div>
+
+<!-- 彈窗 1：武將詳細履歷抽屜 -->
+<div class="modal-backdrop" id="charDetailModal" onclick="if(event.target===this) closeModal('charDetailModal')">
+  <div class="modal-sheet">
+    <div class="row-between">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="char-chip" id="cdChip">孔</span>
+        <div>
+          <h3 id="cdName" style="margin:0;">孔子 Lv.1</h3>
+          <div style="font-size:0.74rem; color:#93c5fd;" id="cdTags">陽/陰雙全｜本命卦：乾卦</div>
+        </div>
+      </div>
+      <button class="btn sm" onclick="closeModal('charDetailModal')">關閉</button>
+    </div>
+    <div class="stat-pill-grid" id="cdStatsGrid"></div>
+    <div class="section-divider">目前配戴裝備</div>
+    <div id="cdEquipSummary" style="font-size:0.75rem; color:#fde68a; background:#0c1322; padding:7px 9px; border-radius:7px; border:1px solid #334155;"></div>
+    <div class="section-divider">攻擊方式與《論語》招式</div>
+    <div id="cdSkillsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+  </div>
+</div>
+
+<!-- 彈窗 2：裝備庫抽屜 -->
+<div class="modal-backdrop" id="equipDrawerModal" onclick="if(event.target===this) closeModal('equipDrawerModal')">
+  <div class="modal-sheet">
+    <div class="row-between">
+      <h3 id="eqDrawerTitle">選擇兵器</h3>
+      <button class="btn sm" onclick="closeModal('equipDrawerModal')">關閉</button>
+    </div>
+    <div style="font-size:0.74rem; color:#94a3b8;" id="eqDrawerSub">點擊已持有的裝備即可穿戴或從其他武將轉移。</div>
+    <div id="eqDrawerList" style="display:flex; flex-direction:column; gap:7px;"></div>
+  </div>
+</div>
+
+<!-- 彈窗：戰鬥道具欄 -->
+<div class="modal-backdrop" id="itemModal" onclick="if(event.target===this) closeModal('itemModal')">
+  <div class="modal-sheet">
+    <h3>🎒 戰場補給道具</h3>
+    <div style="font-size:0.75rem; color:#94a3b8;">先點選棋盤上我方角色，再使用回復道具；蓍草可直接卜卦/重骰。</div>
+    <button class="btn" id="btnItemYarrow" onclick="useItem('yarrow')">蓍草·預告4回合 / 重骰天時 (<span id="cntYarrow">0</span>)</button>
+    <button class="btn" id="btnItemPotion" onclick="useItem('potion')">一般傷藥 +40 HP (<span id="cntPotion">0</span>)</button>
+    <button class="btn primary" id="btnItemBento" onclick="useItem('bento')">簞食瓢飲 +50 HP / +20 氣（禁補豁免）(<span id="cntBento">0</span>)</button>
+    <div id="forecastBar" style="font-size:0.76rem; color:#bae6fd; background:#0c4a6e; padding:6px 8px; border-radius:6px; display:none;"></div>
+    <button class="btn" onclick="closeModal('itemModal')">關閉</button>
+  </div>
+</div>
+
+<!-- 彈窗：戰鬥日誌與測試工具 -->
+<div class="modal-backdrop" id="battleToolsModal" onclick="if(event.target===this) closeModal('battleToolsModal')">
+  <div class="modal-sheet">
+    <h3>☰ 戰鬥日誌與測試工具</h3>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+      <button class="btn sm dev" onclick="devBattleCheat('fullQi'); closeModal('battleToolsModal')">⚡全軍滿氣</button>
+      <button class="btn sm dev" onclick="devBattleCheat('lowHp'); closeModal('battleToolsModal')">🩸殘血20%</button>
+      <button class="btn sm" id="btnToggleGuides" onclick="toggleArtGuides()">128x128 基準框：關</button>
+      <button class="btn sm danger" onclick="closeModal('battleToolsModal'); retreatToMap()">撤退回輿圖</button>
+    </div>
+    <div style="font-size:0.78rem; font-weight:800; color:var(--accent); margin-top:4px;">即時戰鬥日誌</div>
+    <div class="log-box" id="logBox"></div>
+    <button class="btn" onclick="closeModal('battleToolsModal')">關閉</button>
+  </div>
+</div>
+
+<!-- 彈窗：韋編三絕 -->
+<div class="modal-backdrop center" id="hexModal">
+  <div class="modal-sheet">
+    <h3>【韋編三絕】翻轉陰陽對立卦</h3>
+    <div style="font-size:0.76rem; color:#cbd5e1;">消耗孔子 1 點行動點（每場限 2 次），強制翻轉當前天時。</div>
+    <div class="hex-choice-grid" id="hexChoiceGrid"></div>
+    <button class="btn" onclick="closeModal('hexModal')">取消</button>
+  </div>
+</div>
+
+<!-- ★ 升級彈窗：資料夾自動載入狀態總覽 + 手動熱替換 -->
+<div class="modal-backdrop center" id="artModal">
+  <div class="modal-sheet">
+    <div class="row-between">
+      <h3>🎨 精靈圖資料夾自動載入總覽</h3>
+      <button class="btn sm primary" onclick="preloadFolderSprites()">🔄 重新掃描資料夾</button>
+    </div>
+    <div style="font-size:0.73rem; color:#cbd5e1; line-height:1.45;">
+      請將 <strong>768×640（6欄×5列＝30格）</strong> 圖集直接丟進專案的 <code style="color:#fde047;">assets/sprites/</code> 資料夾並依下列檔名命名。程式開局會自動讀取；<strong>尚未放入的角色會自動維持原本的白盒方塊，絕不報錯當機！</strong>
+    </div>
+    <div class="sprite-status-list" id="spriteStatusList"></div>
+
+    <div class="section-divider">單張臨時覆蓋測試（免重整直接挑檔預覽）</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+      <select id="artTargetKey" class="select-mobile">
+        <option value="p_kong">孔子 (kong.png)</option>
+        <option value="p_lu">子路 (lu.png)</option>
+        <option value="p_hui">顏回 (hui.png)</option>
+        <option value="p_gong">子貢 (gong.png)</option>
+        <option value="p_wo">宰我 (wo.png)</option>
+        <option value="chariot">僱傭戰車 (chariot.png)</option>
+        <option value="soldier">近戰盾兵 (soldier.png)</option>
+        <option value="archer">遠程弓手 (archer.png)</option>
+        <option value="boss">首領·心魔 (boss.png)</option>
+      </select>
+      <select id="artChromaMode" class="select-mobile">
+        <option value="auto">自動左上角去背</option>
+        <option value="none">已是透明 PNG</option>
+      </select>
+    </div>
+    <input type="file" id="artFileInput" accept="image/png,image/webp,image/jpeg" style="font-size:0.76rem;">
+    <div style="display:flex; gap:8px;">
+      <button class="btn danger" style="flex:1;" onclick="clearCustomSprites()">清除手動覆蓋</button>
+      <button class="btn primary" style="flex:1;" onclick="closeModal('artModal')">完成</button>
+    </div>
+  </div>
+</div>
+
+<!-- 彈窗：存檔與 JSON 存檔碼 -->
+<div class="modal-backdrop center" id="saveModal">
+  <div class="modal-sheet">
+    <h3>💾 本地存檔與 JSON 存檔碼</h3>
+    <textarea class="save-area" id="saveCodeArea"></textarea>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+      <button class="btn primary" onclick="copySaveCode()">複製存檔碼</button>
+      <button class="btn gold" onclick="importSaveCode()">匯入還原</button>
+      <button class="btn danger" onclick="resetSaveData()">重置新遊戲</button>
+      <button class="btn" onclick="closeModal('saveModal')">關閉</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================================
+// 一、 資料定義（裝備資料庫、技能射程標籤、關卡首通掉落）
+// ============================================================================
+const SAVE_KEY = 'confucius_tactics_v032_mobile_save';
+const GRID_SIZE = 8;
+const TILE_PX = 64;
+
+const ANIM_DEFS = {
+  idle:   { start: 0,  count: 4, loop: true,  fps: 6 },
+  walk:   { start: 4,  count: 6, loop: true,  fps: 11 },
+  attack: { start: 10, count: 6, loop: false, fps: 12, hitOffset: 2 },
+  cast:   { start: 16, count: 8, loop: false, fps: 11, hitOffset: 4 },
+  hurt:   { start: 24, count: 2, loop: false, fps: 10 },
+  die:    { start: 26, count: 2, loop: false, fps: 8 }
+};
+
+const SLOT_LABELS = { weapon: '兵器', ritual: '禮器', book: '典籍' };
+const DATA_EQUIPS = {
+  rooster_halberd: {
+    id: 'rooster_halberd', slot: 'weapon', name: '雄雞冠戟',
+    shortDesc: '子路普攻貫穿後對周圍1格敵軍橫掃(55%攻)',
+    fullDesc: '【規則改寫・兵器】裝備者施展貫穿型普攻（如子路長戟突刺）穿過敵人後，對落點周圍 1 格所有敵軍造成 55% 攻擊力的橫掃傷害。',
+    sourceType: 'shop', price: 450, sourceLabel: '列國市集 450 兩購買'
+  },
+  bamboo_slip: {
+    id: 'bamboo_slip', slot: 'weapon', name: '陋巷竹簡',
+    shortDesc: '普攻命中時擴散破防(-30%防,2回合)至周圍1格',
+    fullDesc: '【規則改寫・兵器】普攻命中目標時，對目標及周圍 1 格內所有敵軍附加「破防」狀態（防禦 -30%，持續 2 回合）。',
+    sourceType: 'shop', price: 400, sourceLabel: '列國市集 400 兩購買'
+  },
+  zhou_jade: {
+    id: 'zhou_jade', slot: 'ritual', name: '周公玉圭',
+    shortDesc: '與孔子相鄰時全屬性+15%且免疫控制',
+    fullDesc: '【規則改寫・禮器】當裝備者與【孔子】相鄰（距離 1 格）時，攻擊與防禦即時 +15%，並免疫暈眩與睡眠控制效果。',
+    sourceType: 'shop', price: 500, sourceLabel: '列國市集 500 兩購買'
+  },
+  qian_zaodu: {
+    id: 'qian_zaodu', slot: 'book', name: '《周易·乾鑿度》',
+    shortDesc: '豁免坤卦移動-1與坎卦積水額外消耗',
+    fullDesc: '【規則改寫・典籍】無視「坤卦」全場移動力 -1 的減速懲罰，且行經「坎卦」積水地形時移動消耗仍維持 1 點。',
+    sourceType: 'stage', stageId: 'wei_nanzi', sourceLabel: '首通城池【衛・帝丘】獲得'
+  },
+  lianshan: {
+    id: 'lianshan', slot: 'book', name: '《連山易》',
+    shortDesc: '陰陽轉為「陽/陰雙全」，任意湊太極合擊',
+    fullDesc: '【規則改寫・典籍】改寫裝備者的陰陽屬性為「陽/陰雙全」，讓純陰輔助（如顏回）也能與任意隊友互相觸發【太極合擊】。',
+    sourceType: 'stage', stageId: 'song_huan', sourceLabel: '首通城池【宋・商丘】獲得'
+  }
+};
+
+const DATA_HEXAGRAMS = [
+  { id: 'qian', name: '乾卦', opposite: 'kun', desc: '天行健：攻擊+25%、暴擊+30%', atkMult: 1.25, defMult: 1.0, moveMod: 0, critRate: 0.30, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'kun',  name: '坤卦', opposite: 'qian', desc: '厚德載物：防禦+50%、移動-1', atkMult: 1.0, defMult: 1.5, moveMod: -1, critRate: 0.05, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'kan',  name: '坎卦', opposite: 'li', desc: '習坎重險：場地積水(耗2)、陰招+25%', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: true, yangBoost: 1.0, yinBoost: 1.25, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'li',   name: '離卦', opposite: 'kan', desc: '麗乎明：陽招+25%、普攻附灼燒', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.15, waterMap: false, yangBoost: 1.25, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0, burnOnHit: true },
+  { id: 'zhen', name: '震卦', opposite: 'xun', desc: '驚雷百里：移動+1、攻擊+15%', atkMult: 1.15, defMult: 1.0, moveMod: 1, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'xun',  name: '巽卦', opposite: 'zhen', desc: '隨風無孔：射程+1、行動+10氣', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 1, healMult: 1.0, taijiBonus: 0, bonusQi: 10 },
+  { id: 'gen',  name: '艮卦', opposite: 'dui', desc: '止如山嶽：未移動減傷30%、防禦+20%', atkMult: 1.0, defMult: 1.2, moveMod: 0, critRate: 0.05, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0, stillDmgRed: 0.30 },
+  { id: 'dui',  name: '兌卦', opposite: 'gen', desc: '麗澤相悅：治療+30%、太極合擊+20傷', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.3, taijiBonus: 20 }
+];
+
+const DATA_SKILLS = {
+  kong_basic: { name: '六藝普攻', range: 1, rangeText: '近戰 1 格', qiCost: 0, type: 'damage', mult: 1.0, desc: '對單體敵軍造成禮樂震擊傷害，命中獲得 +25 浩然氣。' },
+  kong_skill: { name: '有教無類', range: 2, rangeText: '周圍 2 格範圍', qiCost: 50, type: 'aoe_buff', desc: '消耗 50 氣：周圍 2 格內所有友軍全屬性 +20%（持續 2 回合）並回復 20 HP。' },
+  kong_ult:   { name: '朝聞道，夕死可矣', range: 5, rangeText: '直線 5 格貫穿', qiCost: 100, type: 'line_true', desc: '消耗 100 氣：燃燒自身當前 80% HP，對直線 5 格造成巨量真實傷害；若擊殺敵軍則保留 1 HP 並獲得【無敵 1 回合】。' },
+
+  lu_basic:   { name: '長戟突刺', range: 1, rangeText: '近戰 1 格(貫穿)', qiCost: 0, type: 'pierce', mult: 1.0, desc: '攻擊單體敵軍（+25 氣），若敵人背後為空地則直接穿過敵人進行位移。' },
+  lu_skill:   { name: '暴虎馮河', range: 3, rangeText: '直線 3 格衝鋒', qiCost: 50, type: 'charge_stun', mult: 1.4, desc: '消耗 50 氣：直線衝鋒至多 3 格撞擊首名敵軍，造成 1.4 倍傷害並使其【暈眩 1 回合】。' },
+  lu_ult:     { name: '結纓而死', range: 0, rangeText: '自身(HP<30%)', qiCost: 100, type: 'self_berserk', hpBelowPct: 0.30, desc: '僅限 HP < 30% 解鎖！消耗 100 氣：2 回合內鎖血 1 點、攻擊翻倍、受擊發動 150% 反擊。' },
+
+  hui_basic:  { name: '竹簡遠攻', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage', mult: 1.0, desc: '射程 2 格的純陰遠程攻擊（+25 氣），與相鄰陽屬性角色連動可觸發太極合擊。' },
+  hui_skill:  { name: '一簞食', range: 2, rangeText: '友軍 2 格', qiCost: 50, type: 'heal_ap', desc: '消耗 50 氣：為射程 2 格內友軍回復 +50 HP 並【+1 行動點 / 重置行動】（陳蔡絕糧禁補豁免）。' },
+  hui_ult:    { name: '不遷怒，不貳過', range: 0, rangeText: '全軍領域(3回合)', qiCost: 100, type: 'domain', desc: '消耗 100 氣：展開 3 回合【心齋領域】，我方全體免疫控制並獲得一次「抵擋致命傷轉為回血」。' },
+
+  gong_basic: { name: '貨殖擲金', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage_gold', mult: 0.9, desc: '射程 2 格遠程攻擊（+25 氣），每次命中額外賺取 +100 兩軍資金。' },
+  gong_skill: { name: '千金散盡', range: 3, rangeText: '敵兵 3 格', qiCost: 50, goldCost: 300, type: 'bribe', desc: '消耗 50 氣＋300 兩：收買射程 3 格內血量 ≤ 40% 的敵方小兵，直接轉化為我方受控單位！' },
+  gong_ult:   { name: '結駟連騎', range: 2, rangeText: '空地 2 格召喚', qiCost: 100, goldCost: 200, type: 'summon', desc: '消耗 100 氣＋200 兩：於射程 2 格空地召喚我方單位【僱傭戰車】（當回合可立即行動）。' },
+
+  wo_basic:   { name: '利口攻心', range: 2, rangeText: '遠程 2 格', qiCost: 0, type: 'damage', mult: 0.95, desc: '射程 2 格心理戰術攻擊（+25 氣）。' },
+  wo_skill:   { name: '朽木不可雕也', range: 3, rangeText: '敵軍 3 格', qiCost: 50, type: 'sleep', desc: '消耗 50 氣：使目標陷入【睡眠 2 回合】無法行動，受擊時立刻驚醒並承受 1.5 倍暴擊。' },
+  wo_ult:     { name: '三寸不爛之舌', range: 3, rangeText: '扇形 3 格挑撥', qiCost: 100, type: 'infight', desc: '消耗 100 氣：令目標及周圍 1 格敵軍陷入【內訌】，於玩家回合內強制執行敵人互打！' }
+};
+
+// 所有角色對應 assets/sprites/ 資料夾中的精靈圖路徑
+const DATA_UNITS = {
+  p_kong: { id: 'p_kong', char: '孔', name: '孔子', role: '全能統帥・主動變卦', team: 'player', color: '#2563eb', yinYang: '陽/陰', trigram: 'qian', maxHp: 145, baseAtk: 34, baseDef: 15, baseMove: 3, basicId: 'kong_basic', skillId: 'kong_skill', ultId: 'kong_ult', spriteSheetKey: 'assets/sprites/kong.png' },
+  p_lu:   { id: 'p_lu',   char: '路', name: '子路', role: '純陽先鋒・貫穿衝鋒', team: 'player', color: '#ea580c', yinYang: '陽',   trigram: 'li',   maxHp: 135, baseAtk: 42, baseDef: 12, baseMove: 4, basicId: 'lu_basic',   skillId: 'lu_skill',   ultId: 'lu_ult',   spriteSheetKey: 'assets/sprites/lu.png' },
+  p_hui:  { id: 'p_hui',  char: '回', name: '顏回', role: '純陰補師・再動領域', team: 'player', color: '#16a34a', yinYang: '陰',   trigram: 'kan',  maxHp: 100, baseAtk: 28, baseDef: 9,  baseMove: 3, basicId: 'hui_basic',  skillId: 'hui_skill',  ultId: 'hui_ult',  spriteSheetKey: 'assets/sprites/hui.png' },
+  p_gong: { id: 'p_gong', char: '貢', name: '子貢', role: '經濟召喚・收買倒戈', team: 'player', color: '#ca8a04', yinYang: '陰',   trigram: 'kun',  maxHp: 120, baseAtk: 29, baseDef: 14, baseMove: 3, basicId: 'gong_basic', skillId: 'gong_skill', ultId: 'gong_ult', spriteSheetKey: 'assets/sprites/gong.png' },
+  p_wo:   { id: 'p_wo',   char: '我', name: '宰我', role: '控場法師・睡眠內訌', team: 'player', color: '#0891b2', yinYang: '陰',   trigram: 'xun',  maxHp: 105, baseAtk: 30, baseDef: 10, baseMove: 3, basicId: 'wo_basic',   skillId: 'wo_skill',   ultId: 'wo_ult',   spriteSheetKey: 'assets/sprites/wo.png' },
+  chariot:{ char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
+  soldier:{ char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier', color: '#dc2626', yinYang: '無', trigram: 'gen', maxHp: 95,  baseAtk: 26, baseDef: 14, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
+  archer: { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',  color: '#c026d3', yinYang: '無', trigram: 'xun', maxHp: 68,  baseAtk: 28, baseDef: 6,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
+  boss:   { char: '魔', name: '首領·心魔', role: '首領・半血二階段狂暴', team: 'enemy', enemyType: 'boss',   color: '#4c1d95', yinYang: '魔', trigram: 'kan', maxHp: 280, baseAtk: 38, baseDef: 16, baseMove: 3, range: 2, spriteSheetKey: 'assets/sprites/boss.png' }
+};
+
+const TALENTS_INNER = [
+  { id: 'li',  name: '禮・護體', maxLv: 3, desc: '最大HP +18/級' },
+  { id: 'yue', name: '樂・和氣', maxLv: 3, desc: '開局氣 +15/級' },
+  { id: 'she', name: '射・破軍', maxLv: 3, desc: '攻擊 +5/級' },
+  { id: 'yu',  name: '御・疾行', maxLv: 2, desc: '移動 +1/級' },
+  { id: 'shu', name: '書・固守', maxLv: 3, desc: '防禦 +3/級' },
+  { id: 'num', name: '數・神算', maxLv: 2, desc: '暴擊 +8%/級' }
+];
+const TALENTS_OUTER = [
+  { id: 'taiji_amp', name: '太極歸元', maxLv: 2, desc: '太極合擊 +20傷/級' },
+  { id: 'hex_adapt', name: '順天應人', maxLv: 2, desc: '天時攻擊 +10%/級' },
+  { id: 'qi_flow',   name: '浩氣長存', maxLv: 2, desc: '普攻受擊 +8氣/級' }
+];
+const BOND_PAIRS = [
+  { id: 'kong_hui', name: '孔子 × 顏回', comboName: '吾與點也', unlockLv: 2, desc: '全軍滿血滿氣＋全場聖光審判85真傷' },
+  { id: 'kong_lu',  name: '孔子 × 子路', comboName: '死生有命', unlockLv: 2, desc: '子路全圖衝撞115傷暈眩＋孔子瞬移' },
+  { id: 'trio',     name: '孔門三傑(孔/路/回)', comboName: '君子固窮', unlockLv: 2, desc: '均血<25%：全軍血量反轉＋無敵2回合' }
+];
+
+const DATA_STAGES = [
+  {
+    id: 'lu_kuang', cityLabel: '魯・匡城', x: 285, y: 158, req: null,
+    region: '第一站・魯衛之交', name: '匡地突圍',
+    victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null,
+    obstacles: [[2,1],[2,6],[5,1],[5,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[3,3],[3,4],[4,3],[2,3],[4,4],[3,2]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '匡地盾兵甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '匡地盾兵乙', r: 1, c: 5 },
+      { tpl: 'archer',  name: '匡地弓手甲', r: 0, c: 3 },
+      { tpl: 'soldier', name: '匡地盾兵丙', r: 6, c: 2 },
+      { tpl: 'archer',  name: '匡地弓手乙', r: 7, c: 4 }
+    ]
+  },
+  {
+    id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 200, y: 142, req: 'lu_kuang',
+    region: '第二站・衛國', name: '子見南子・宮門截擊',
+    victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu',
+    obstacles: [[1,3],[1,4],[6,3],[6,4]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[4,3],[4,4],[5,3],[5,4],[4,2],[5,2]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '衛國禁軍甲', r: 1, c: 1 },
+      { tpl: 'soldier', name: '衛國禁軍乙', r: 1, c: 6 },
+      { tpl: 'archer',  name: '衛國箭手甲', r: 0, c: 2 },
+      { tpl: 'archer',  name: '衛國箭手乙', r: 0, c: 5 },
+      { tpl: 'soldier', name: '衛國重盾',   r: 2, c: 3 }
+    ]
+  },
+  {
+    id: 'song_huan', cityLabel: '宋・商丘', x: 258, y: 222, req: 'wei_nanzi',
+    region: '第三站・宋國', name: '桓魋伐樹・微服突襲',
+    victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan',
+    obstacles: [[2,2],[3,5],[5,2],[5,5]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[3,3],[3,4],[4,3],[4,4],[2,4],[4,2]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '桓魋私兵甲', r: 0, c: 1 },
+      { tpl: 'soldier', name: '桓魋私兵乙', r: 0, c: 6 },
+      { tpl: 'soldier', name: '桓魋私兵丙', r: 6, c: 1 },
+      { tpl: 'soldier', name: '桓魋私兵丁', r: 6, c: 6 },
+      { tpl: 'archer',  name: '伏林弓手甲', r: 1, c: 4 },
+      { tpl: 'archer',  name: '伏林弓手乙', r: 7, c: 3 }
+    ]
+  },
+  {
+    id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 292, req: 'song_huan',
+    region: '第四站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
+    victoryType: 'survive', surviveTurns: 6, rewardGold: 800, rewardExp: 200, firstClearEquip: null,
+    obstacles: [[2,2],[2,5],[5,2],[5,5]],
+    modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
+    playerSlots: [[3,3],[3,4],[4,3],[4,4],[3,2],[4,2]],
+    enemySpawns: [
+      { tpl: 'soldier', name: '陳蔡圍兵甲', r: 0, c: 2 },
+      { tpl: 'soldier', name: '陳蔡圍兵乙', r: 0, c: 5 },
+      { tpl: 'archer',  name: '陳蔡弓手甲', r: 1, c: 4 },
+      { tpl: 'soldier', name: '陳蔡圍兵丙', r: 7, c: 2 },
+      { tpl: 'soldier', name: '陳蔡圍兵丁', r: 7, c: 5 },
+      { tpl: 'archer',  name: '陳蔡弓手乙', r: 6, c: 3 }
+    ]
+  },
+  {
+    id: 'chu_boss', cityLabel: '楚・葉邑', x: 140, y: 365, req: 'chencai',
+    region: '第五站・楚國', name: '問津心魔（首領戰）',
+    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 260, firstClearEquip: null,
+    obstacles: [[2,1],[2,6],[5,1],[5,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[4,3],[4,4],[5,3],[3,3],[5,4],[4,2]],
+    enemySpawns: [
+      { tpl: 'boss',    name: '首領·心魔', r: 0, c: 3 },
+      { tpl: 'soldier', name: '心魔護衛甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '心魔護衛乙', r: 1, c: 5 },
+      { tpl: 'archer',  name: '妄念弓手',   r: 1, c: 4 }
+    ]
+  },
+  {
+    id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 332, y: 124, req: 'lu_kuang', isSecret: true,
+    region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
+    victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null,
+    obstacles: [[3,1],[3,6],[4,1],[4,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,3],[7,4]],
+    enemySpawns: [
+      { tpl: 'boss',    name: '幻影·心魔', r: 1, c: 3 },
+      { tpl: 'archer',  name: '幻影弓手甲', r: 0, c: 1 },
+      { tpl: 'archer',  name: '幻影弓手乙', r: 0, c: 6 },
+      { tpl: 'soldier', name: '幻影盾衛',   r: 2, c: 4 }
+    ]
+  }
+];
+
+// ============================================================================
+// 二、 資料夾自動載入精靈圖引擎（找不到圖自動維持白盒，絕不當機）
+// ============================================================================
+let autoLoadedSprites = {}; // 從 assets/sprites/*.png 自動載入的圖集
+let customSprites = {};     // 透過右上角 🎨 手動選檔覆蓋的圖集
+let spriteLoadStatus = {};  // 'loading' | 'loaded' | 'missing'
+
+function processChromaKeyToCanvas(img) {
+  const cvs = document.createElement('canvas');
+  cvs.width = 768;
+  cvs.height = 640;
+  const ctx = cvs.getContext('2d');
+  ctx.drawImage(img, 0, 0, 768, 640);
+  try {
+    // 若處於 HTTP/HTTPS (例如 GitHub Pages 或本地伺服器)，自動檢查左上角是否為純綠幕(#00FF00)或洋紅(#FF00FF)並去背
+    const imgData = ctx.getImageData(0, 0, 768, 640);
+    const d = imgData.data;
+    const kr = d[0], kg = d[1], kb = d[2], ka = d[3];
+    const isGreenScreen = (ka > 200 && kg > 200 && kr < 60 && kb < 60);
+    const isMagentaScreen = (ka > 200 && kr > 200 && kb > 200 && kg < 60);
+    if (isGreenScreen || isMagentaScreen) {
+      for (let i = 0; i < d.length; i += 4) {
+        if (Math.abs(d[i] - kr) < 42 && Math.abs(d[i + 1] - kg) < 42 && Math.abs(d[i + 2] - kb) < 42) {
+          d[i + 3] = 0;
+        }
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+    return cvs;
+  } catch (corsErr) {
+    // 若玩家直接雙擊 index.html (file:// 協定)，瀏覽器會阻擋 getImageData；
+    // 此時直接回傳原始 img 物件（只要是透明背景 PNG 依然能正常繪製，完全不當機！）
+    return img;
+  }
+}
+
+function preloadFolderSprites() {
+  Object.entries(DATA_UNITS).forEach(([tplKey, tpl]) => {
+    if (!tpl.spriteSheetKey) return;
+    spriteLoadStatus[tplKey] = 'loading';
+    const img = new Image();
+    // 加上時間戳避免手動按下「重新掃描資料夾」時讀到舊快取
+    const cacheBust = `?v=${Date.now()}`;
+    img.onload = () => {
+      autoLoadedSprites[tplKey] = processChromaKeyToCanvas(img);
+      spriteLoadStatus[tplKey] = 'loaded';
+      renderSpriteStatusList();
+      if (currentScene === 'battle') renderUnits();
+    };
+    img.onerror = () => {
+      // 找不到檔案時安靜退回白盒模式，不拋出錯誤也不影響遊戲運作
+      delete autoLoadedSprites[tplKey];
+      spriteLoadStatus[tplKey] = 'missing';
+      renderSpriteStatusList();
+      if (currentScene === 'battle') renderUnits();
+    };
+    img.src = tpl.spriteSheetKey + cacheBust;
+  });
+  renderSpriteStatusList();
+}
+
+function renderSpriteStatusList() {
+  const list = document.getElementById('spriteStatusList');
+  if (!list) return;
+  list.innerHTML = '';
+  Object.entries(DATA_UNITS).forEach(([tplKey, tpl]) => {
+    const hasCustom = Boolean(customSprites[tplKey]);
+    const st = spriteLoadStatus[tplKey] || 'missing';
+    let badgeHtml = '';
+    if (hasCustom) {
+      badgeHtml = '<span class="pill gold">🎨 手動覆蓋中</span>';
+    } else if (st === 'loaded') {
+      badgeHtml = '<span class="pill green">✅ 已自動載入</span>';
+    } else if (st === 'loading') {
+      badgeHtml = '<span class="pill player">⏳ 掃描中...</span>';
+    } else {
+      badgeHtml = '<span class="pill">⬜ 未放圖（白盒運作中）</span>';
+    }
+    const row = document.createElement('div');
+    row.className = 'sprite-status-row';
+    row.innerHTML = `
+      <div>
+        <strong>[${tpl.char}] ${tpl.name}</strong>
+        <div class="sprite-path">${tpl.spriteSheetKey}</div>
+      </div>
+      ${badgeHtml}
+    `;
+    list.appendChild(row);
+  });
+}
+
+// ============================================================================
+// 三、 存檔與裝備庫存管理
+// ============================================================================
+function createDefaultSave() {
+  const roster = {};
+  ['p_kong', 'p_lu', 'p_hui', 'p_gong', 'p_wo'].forEach(id => {
+    roster[id] = {
+      lv: 1, exp: 0, liuyiPts: 2, wudaoPts: 1,
+      equip: { weapon: 'none', ritual: 'none', book: 'none' },
+      inner: { li: 0, yue: 0, she: 0, yu: 0, shu: 0, num: 0 },
+      outer: { taiji_amp: 0, hex_adapt: 0, qi_flow: 0 }
+    };
+  });
+  return {
+    version: '0.3.3-folder-sprites',
+    gold: 1000,
+    items: { yarrow: 3, potion: 3, bento: 2, suxiu: 2 },
+    equipInventory: { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 },
+    clearedStages: [],
+    selectedStageId: 'lu_kuang',
+    deployedIds: ['p_kong', 'p_lu', 'p_hui', 'p_gong', 'p_wo'],
+    roster,
+    bonds: { kong_hui: 1, kong_lu: 1, trio: 1 }
+  };
+}
+
+let saveData = loadSaveData();
+let campTalentCharId = 'p_kong';
+let soundEnabled = true;
+let audioCtx = null;
+
+function loadSaveData() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && p.roster && p.items) {
+        if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
+        return p;
+      }
+    }
+  } catch (e) {}
+  return createDefaultSave();
+}
+function persistSave() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(saveData)); } catch (e) {}
+  updateGlobalNav();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function getEquipWearers(eqId) {
+  const wearers = [];
+  Object.keys(saveData.roster).forEach(uid => {
+    const eq = saveData.roster[uid].equip;
+    if (eq.weapon === eqId || eq.ritual === eqId || eq.book === eqId) wearers.push(uid);
+  });
+  return wearers;
+}
+
+const AudioManager = {
+  play(type) {
+    if (!soundEnabled) return;
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      const now = audioCtx.currentTime;
+      const p = {
+        move:  { t: 'sine',     f1: 310, f2: 450, d: 0.07, g: 0.06 },
+        undo:  { t: 'sine',     f1: 420, f2: 260, d: 0.09, g: 0.07 },
+        slash: { t: 'sawtooth', f1: 210, f2: 52,  d: 0.14, g: 0.15 },
+        guqin: { t: 'triangle', f1: 440, f2: 660, d: 0.26, g: 0.12 },
+        bell:  { t: 'sine',     f1: 262, f2: 524, d: 0.34, g: 0.12 },
+        taiji: { t: 'triangle', f1: 392, f2: 784, d: 0.42, g: 0.16 },
+        ult:   { t: 'sawtooth', f1: 130, f2: 720, d: 0.48, g: 0.16 }
+      }[type] || { t: 'sine', f1: 300, f2: 400, d: 0.08, g: 0.06 };
+      osc.type = p.t; osc.frequency.setValueAtTime(p.f1, now);
+      osc.frequency.exponentialRampToValueAtTime(p.f2, now + p.d * 0.8);
+      gain.gain.setValueAtTime(p.g, now); gain.gain.exponentialRampToValueAtTime(0.001, now + p.d);
+      osc.start(now); osc.stop(now + p.d);
+    } catch (e) {}
+  }
+};
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('btnSound').textContent = soundEnabled ? '🔊' : '🔇';
+}
+
+// ============================================================================
+// 四、 場景切換、春秋 SVG 輿圖、武將履歷抽屜、裝備庫抽屜
+// ============================================================================
+let currentScene = 'map';
+function switchScene(scene) {
+  currentScene = scene;
+  ['map', 'camp', 'battle'].forEach(s => {
+    document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1)).classList.toggle('active', s === scene);
+  });
+  document.getElementById('bottomNav').style.display = (scene === 'battle') ? 'none' : 'grid';
+  document.getElementById('navMap').classList.toggle('active', scene === 'map');
+  document.getElementById('navCamp').classList.toggle('active', scene === 'camp');
+  if (scene === 'map') renderMapScene();
+  if (scene === 'camp') renderCampScene();
+  if (scene === 'battle') resizeBoard();
+  updateGlobalNav();
+}
+function updateGlobalNav() {
+  document.getElementById('navGold').textContent = `${saveData.gold}兩`;
+  document.getElementById('navSuxiu').textContent = `束脩:${saveData.items.suxiu}`;
+}
+function isStageUnlocked(st) { return !st.req || saveData.clearedStages.includes(st.req); }
+
+function renderMapScene() {
+  const routesG = document.getElementById('mapRoutesLayer');
+  const citiesG = document.getElementById('mapCitiesLayer');
+  routesG.innerHTML = ''; citiesG.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+
+  DATA_STAGES.forEach(st => {
+    if (!st.req) return;
+    const prev = DATA_STAGES.find(s => s.id === st.req); if (!prev) return;
+    const unlocked = isStageUnlocked(st);
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', prev.x); line.setAttribute('y1', prev.y);
+    line.setAttribute('x2', st.x);   line.setAttribute('y2', st.y);
+    line.setAttribute('stroke', unlocked ? '#facc15' : '#64748b');
+    line.setAttribute('stroke-width', unlocked ? '3' : '2');
+    line.setAttribute('stroke-dasharray', unlocked ? (st.isSecret ? '5,4' : 'none') : '5,5');
+    line.setAttribute('opacity', unlocked ? '0.88' : '0.45');
+    routesG.appendChild(line);
+  });
+
+  DATA_STAGES.forEach(st => {
+    const unlocked = isStageUnlocked(st), cleared = saveData.clearedStages.includes(st.id), selected = saveData.selectedStageId === st.id;
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('class', 'city-node' + (unlocked ? '' : ' locked'));
+    g.setAttribute('transform', `translate(${st.x}, ${st.y})`);
+
+    if (selected) {
+      const ring = document.createElementNS(ns, 'circle');
+      ring.setAttribute('r', '26'); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#facc15');
+      ring.setAttribute('stroke-width', '3'); ring.setAttribute('class', 'city-ring-pulse');
+      g.appendChild(ring);
+    }
+    const base = document.createElementNS(ns, 'circle');
+    base.setAttribute('r', '19');
+    base.setAttribute('fill', cleared ? '#14532d' : (unlocked ? '#1e293b' : '#111827'));
+    base.setAttribute('stroke', selected ? '#facc15' : (cleared ? '#4ade80' : (unlocked ? '#38bdf8' : '#475569')));
+    base.setAttribute('stroke-width', selected ? '3' : '2');
+    g.appendChild(base);
+
+    const castle = document.createElementNS(ns, 'path');
+    castle.setAttribute('d', 'M -12,9 L -12,-2 L -15,-2 L -9,-10 L 9,-10 L 15,-2 L 12,-2 L 12,9 Z');
+    castle.setAttribute('fill', cleared ? '#86efac' : (st.isSecret ? '#e879f9' : '#f8fafc'));
+    g.appendChild(castle);
+    const gate = document.createElementNS(ns, 'path');
+    gate.setAttribute('d', 'M -4,9 L -4,2 A 4,4 0 0,1 4,2 L 4,9 Z'); gate.setAttribute('fill', '#0f172a');
+    g.appendChild(gate);
+
+    if (cleared) {
+      const pole = document.createElementNS(ns, 'line');
+      pole.setAttribute('x1', '10'); pole.setAttribute('y1', '-6'); pole.setAttribute('x2', '10'); pole.setAttribute('y2', '-24');
+      pole.setAttribute('stroke', '#fde047'); pole.setAttribute('stroke-width', '2'); g.appendChild(pole);
+      const flag = document.createElementNS(ns, 'polygon');
+      flag.setAttribute('points', '10,-24 25,-19 10,-14'); flag.setAttribute('fill', '#dc2626'); flag.setAttribute('stroke', '#facc15'); flag.setAttribute('stroke-width', '1'); g.appendChild(flag);
+    }
+
+    const lblBg = document.createElementNS(ns, 'rect');
+    lblBg.setAttribute('x', '-34'); lblBg.setAttribute('y', '21'); lblBg.setAttribute('width', '68'); lblBg.setAttribute('height', '17'); lblBg.setAttribute('rx', '4');
+    lblBg.setAttribute('fill', selected ? '#713f12' : 'rgba(15, 23, 42, 0.9)'); lblBg.setAttribute('stroke', selected ? '#facc15' : '#475569'); lblBg.setAttribute('stroke-width', '1');
+    g.appendChild(lblBg);
+    const lbl = document.createElementNS(ns, 'text');
+    lbl.setAttribute('x', '0'); lbl.setAttribute('y', '33'); lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('fill', selected ? '#fef08a' : '#f1f5f9'); lbl.setAttribute('font-size', '10.5'); lbl.setAttribute('font-weight', '900');
+    lbl.textContent = st.cityLabel; g.appendChild(lbl);
+
+    if (unlocked) g.onclick = () => { saveData.selectedStageId = st.id; persistSave(); renderMapScene(); };
+    citiesG.appendChild(g);
+  });
+
+  const sel = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  const isCleared = saveData.clearedStages.includes(sel.id);
+  document.getElementById('briefRegion').textContent = `${sel.region}・${sel.cityLabel}${sel.isSecret ? ' ★隱藏外傳' : ''}`;
+  document.getElementById('briefName').textContent = sel.name;
+  const stEl = document.getElementById('briefStatus');
+  stEl.textContent = isCleared ? '🚩 已插旗通關' : '⚔ 尚未攻克';
+  stEl.className = 'pill ' + (isCleared ? 'gold' : 'player');
+
+  let dropLine = '';
+  if (sel.firstClearEquip) {
+    const eq = DATA_EQUIPS[sel.firstClearEquip];
+    const owned = (saveData.equipInventory[sel.firstClearEquip] || 0) > 0;
+    dropLine = `<br><span style="color:#fde047;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
+  }
+  document.getElementById('briefMeta').innerHTML =
+    `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>｜出戰：${saveData.deployedIds.length}/6 人<br>` +
+    `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
+    (sel.modifiers.starvationPct ? '<br><span style="color:#f87171;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
+}
+
+function devUnlockAll() {
+  DATA_STAGES.forEach(s => { if (!saveData.clearedStages.includes(s.id)) saveData.clearedStages.push(s.id); });
+  saveData.gold += 2000; saveData.items.suxiu += 6;
+  Object.keys(DATA_EQUIPS).forEach(eid => { saveData.equipInventory[eid] = Math.max(1, saveData.equipInventory[eid] || 0); });
+  Object.values(saveData.roster).forEach(r => { r.liuyiPts += 4; r.wudaoPts += 3; });
+  persistSave(); renderMapScene();
+}
+
+function openCharDetail(uid) {
+  const tpl = DATA_UNITS[uid];
+  const prog = saveData.roster[uid];
+  if (!tpl || !prog) return;
+
+  const lvB = prog.lv - 1;
+  const inner = prog.inner || {};
+  const hpBonus = lvB * 10 + (inner.li || 0) * 18;
+  const atkBonus = lvB * 3 + (inner.she || 0) * 5;
+  const defBonus = lvB * 2 + (inner.shu || 0) * 3;
+  const moveBonus = (inner.yu || 0);
+  const startQi = Math.min(100, 50 + (inner.yue || 0) * 15);
+  const critBonus = Math.round((inner.num || 0) * 8);
+
+  const basicSk = DATA_SKILLS[tpl.basicId];
+  const skillSk = tpl.skillId ? DATA_SKILLS[tpl.skillId] : null;
+  const ultSk = tpl.ultId ? DATA_SKILLS[tpl.ultId] : null;
+  const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
+  const effYY = prog.equip.book === 'lianshan' ? '陽/陰（連山易）' : tpl.yinYang;
+
+  const chip = document.getElementById('cdChip');
+  chip.style.backgroundColor = tpl.color; chip.textContent = tpl.char;
+  document.getElementById('cdName').textContent = `${tpl.name} Lv.${prog.lv}（${tpl.role}）`;
+  document.getElementById('cdTags').textContent = `陰陽：${effYY}｜本命卦：${trigramName}｜開局氣：${startQi}`;
+
+  document.getElementById('cdStatsGrid').innerHTML = `
+    <div class="stat-box">生命 HP<div class="val">${tpl.maxHp + hpBonus} <span class="bonus">${hpBonus ? `(+${hpBonus})` : ''}</span></div></div>
+    <div class="stat-box">攻擊 ATK<div class="val">${tpl.baseAtk + atkBonus} <span class="bonus">${atkBonus ? `(+${atkBonus})` : ''}</span></div></div>
+    <div class="stat-box">防禦 DEF<div class="val">${tpl.baseDef + defBonus} <span class="bonus">${defBonus ? `(+${defBonus})` : ''}</span></div></div>
+    <div class="stat-box">移動力<div class="val">${tpl.baseMove + moveBonus} 格 <span class="bonus">${moveBonus ? `(+${moveBonus})` : ''}</span></div></div>
+    <div class="stat-box">普攻射程<div class="val">${basicSk ? basicSk.rangeText : '1 格'}</div></div>
+    <div class="stat-box">天賦暴擊<div class="val">+${critBonus}%</div></div>
+  `;
+
+  const eqLines = ['weapon', 'ritual', 'book'].map(slot => {
+    const eid = prog.equip[slot];
+    if (!eid || eid === 'none') return `${SLOT_LABELS[slot]}：未裝備`;
+    const eq = DATA_EQUIPS[eid];
+    return `${SLOT_LABELS[slot]}：<strong>${eq.name}</strong>（${eq.shortDesc}）`;
+  });
+  document.getElementById('cdEquipSummary').innerHTML = eqLines.join('<br>');
+
+  const skillsHtml = [];
+  if (basicSk) {
+    skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【普攻】${basicSk.name}</span><span class="pill player">${basicSk.rangeText}</span></div><div class="skill-detail-desc">${basicSk.desc}</div></div>`);
+  }
+  if (skillSk) {
+    const extraCost = skillSk.goldCost ? `＋${skillSk.goldCost}兩` : '';
+    skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【絕招】${skillSk.name}</span><span class="pill gold">${skillSk.qiCost}氣${extraCost}・${skillSk.rangeText}</span></div><div class="skill-detail-desc">${skillSk.desc}</div></div>`);
+  }
+  if (ultSk) {
+    const extraCost = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
+    skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#fed7aa;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extraCost}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
+  }
+  if (uid === 'p_kong') {
+    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#a855f7;"><div class="skill-detail-head"><span style="color:#e9d5ff;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」（如乾↔坤、坎↔離），可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+  }
+  document.getElementById('cdSkillsList').innerHTML = skillsHtml.join('');
+  document.getElementById('charDetailModal').classList.add('show');
+}
+
+function openSelectedBattleUnitDetail() {
+  const u = getUnitById(selectedUnitId);
+  if (u && saveData.roster[u.id]) openCharDetail(u.id);
+}
+
+function openEquipDrawer(uid, slot) {
+  const tpl = DATA_UNITS[uid];
+  const prog = saveData.roster[uid];
+  const currentEqId = prog.equip[slot];
+
+  document.getElementById('eqDrawerTitle').textContent = `[${tpl.char}] ${tpl.name} — 選擇${SLOT_LABELS[slot]}`;
+  document.getElementById('eqDrawerSub').textContent = '顯示完整規則詞條、目前持有庫存與取得管道；已被他人穿戴時可一鍵轉移。';
+
+  const list = document.getElementById('eqDrawerList');
+  list.innerHTML = '';
+
+  if (currentEqId && currentEqId !== 'none') {
+    const unBtn = document.createElement('button');
+    unBtn.className = 'btn danger sm';
+    unBtn.textContent = `卸下目前裝備（${DATA_EQUIPS[currentEqId].name}）`;
+    unBtn.onclick = () => { prog.equip[slot] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); };
+    list.appendChild(unBtn);
+  }
+
+  Object.values(DATA_EQUIPS).filter(eq => eq.slot === slot).forEach(eq => {
+    const ownedCount = saveData.equipInventory[eq.id] || 0;
+    const wearers = getEquipWearers(eq.id);
+    const isWearing = (currentEqId === eq.id);
+    const freeCount = ownedCount - wearers.length;
+    const otherWearerId = wearers.find(w => w !== uid);
+
+    const card = document.createElement('div');
+    card.className = 'equip-item-card ' + (isWearing ? 'active-eq' : (ownedCount > 0 ? 'owned' : 'locked'));
+
+    let statusBadge = '';
+    if (isWearing) statusBadge = '<span class="pill gold">穿戴中</span>';
+    else if (ownedCount > 0) statusBadge = `<span class="pill green">持有 ${ownedCount} 件（閒置 ${Math.max(0, freeCount)}）</span>`;
+    else statusBadge = '<span class="pill">🔒 尚未取得</span>';
+
+    let actionBtnHtml = '';
+    if (isWearing) {
+      actionBtnHtml = `<button class="btn sm" disabled>目前已裝備</button>`;
+    } else if (freeCount > 0) {
+      actionBtnHtml = `<button class="btn sm primary" onclick="equipItemTo('${uid}','${slot}','${eq.id}',null)">穿戴此裝備</button>`;
+    } else if (ownedCount > 0 && otherWearerId) {
+      const otherName = DATA_UNITS[otherWearerId].name;
+      actionBtnHtml = `<button class="btn sm gold" onclick="equipItemTo('${uid}','${slot}','${eq.id}','${otherWearerId}')">從【${otherName}】轉移穿戴</button>`;
+    } else if (eq.sourceType === 'shop') {
+      actionBtnHtml = `<button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipAndWear('${uid}','${slot}','${eq.id}')">直接購買並穿戴 (${eq.price}兩)</button>`;
+    } else {
+      actionBtnHtml = `<button class="btn sm" disabled>需首通關卡取得</button>`;
+    }
+
+    const wearerTxt = wearers.length ? `穿戴者：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '無人穿戴';
+    card.innerHTML = `
+      <div class="row-between"><strong>${eq.name}</strong>${statusBadge}</div>
+      <div style="font-size:0.74rem; color:#e2e8f0; line-height:1.4;">${eq.fullDesc}</div>
+      <div class="row-between" style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">
+        <span>取得方式：<strong style="color:#fde68a;">${eq.sourceLabel}</strong>${ownedCount > 0 ? `｜${wearerTxt}` : ''}</span>
+      </div>
+      <div style="display:flex; justify-content:flex-end; margin-top:2px;">${actionBtnHtml}</div>
+    `;
+    list.appendChild(card);
+  });
+
+  document.getElementById('equipDrawerModal').classList.add('show');
+}
+
+function equipItemTo(uid, slot, eqId, transferFromUid) {
+  if (transferFromUid && saveData.roster[transferFromUid]) saveData.roster[transferFromUid].equip[slot] = 'none';
+  saveData.roster[uid].equip[slot] = eqId;
+  AudioManager.play('guqin'); persistSave(); closeModal('equipDrawerModal'); renderCampScene();
+}
+function buyEquipAndWear(uid, slot, eqId) {
+  const eq = DATA_EQUIPS[eqId]; if (!eq || saveData.gold < eq.price) return;
+  saveData.gold -= eq.price; saveData.equipInventory[eqId] = (saveData.equipInventory[eqId] || 0) + 1;
+  saveData.roster[uid].equip[slot] = eqId;
+  AudioManager.play('guqin'); persistSave(); closeModal('equipDrawerModal'); renderCampScene();
+}
+function buyEquipToBag(eqId) {
+  const eq = DATA_EQUIPS[eqId]; if (!eq || saveData.gold < eq.price) return;
+  saveData.gold -= eq.price; saveData.equipInventory[eqId] = (saveData.equipInventory[eqId] || 0) + 1;
+  AudioManager.play('guqin'); persistSave(); renderCampScene();
+}
+
+function switchCampTab(tab) {
+  ['roster', 'equip', 'talent', 'bond'].forEach(t => {
+    document.getElementById('tabBtn_' + t).classList.toggle('active', t === tab);
+    document.getElementById('campPane_' + t).classList.toggle('active', t === tab);
+  });
+  renderCampScene();
+}
+
+function renderCampScene() {
+  const rGrid = document.getElementById('campRosterGrid'); rGrid.innerHTML = '';
+  const allIds = Object.keys(saveData.roster);
+  const orderedIds = [
+    ...saveData.deployedIds.filter(id => saveData.roster[id]),
+    ...allIds.filter(id => !saveData.deployedIds.includes(id))
+  ];
+
+  orderedIds.forEach(id => {
+    const tpl = DATA_UNITS[id], prog = saveData.roster[id];
+    const depIdx = saveData.deployedIds.indexOf(id), deployed = depIdx >= 0;
+    const basicSk = DATA_SKILLS[tpl.basicId];
+    const div = document.createElement('div');
+    div.className = 'mobile-card' + (deployed ? ' deployed' : '');
+    div.innerHTML = `
+      <div class="row-between">
+        <div style="display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;" onclick="openCharDetail('${id}')">
+          <span class="char-chip" style="background:${tpl.color};">${tpl.char}</span>
+          <div>
+            <div><strong>${tpl.name}</strong> <span style="font-size:0.74rem; color:#fde047;">Lv.${prog.lv}</span> <span class="pill" style="font-size:0.65rem;">${tpl.yinYang}</span></div>
+            <div style="font-size:0.71rem; color:#93c5fd;">${tpl.role}｜${basicSk ? basicSk.rangeText : ''}</div>
+            <div style="font-size:0.7rem; color:#94a3b8;">HP ${tpl.maxHp + (prog.lv-1)*10 + (prog.inner.li||0)*18}｜攻 ${tpl.baseAtk + (prog.lv-1)*3 + (prog.inner.she||0)*5}｜移 ${tpl.baseMove + (prog.inner.yu||0)}｜六藝${prog.liuyiPts}/悟道${prog.wudaoPts}</div>
+          </div>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px; align-items:flex-end;">
+          <div style="display:flex; gap:4px;">
+            <button class="btn sm" onclick="openCharDetail('${id}')">詳情</button>
+            ${deployed && depIdx > 0 ? `<button class="btn sm" onclick="moveDeployOrder('${id}',-1)">↑</button>` : ''}
+          </div>
+          <button class="btn sm ${deployed ? 'danger' : 'primary'}" onclick="toggleDeploy('${id}')">${deployed ? `#${depIdx+1} 撤下` : '加入出戰'}</button>
+        </div>
+      </div>`;
+    rGrid.appendChild(div);
+  });
+
+  const eqList = document.getElementById('campEquipList'); eqList.innerHTML = '';
+  orderedIds.forEach(id => {
+    const tpl = DATA_UNITS[id], eq = saveData.roster[id].equip;
+    const slotsHtml = ['weapon', 'ritual', 'book'].map(slot => {
+      const eid = eq[slot];
+      const item = (eid && eid !== 'none') ? DATA_EQUIPS[eid] : null;
+      return `
+        <button class="equip-slot-btn ${item ? 'equipped' : ''}" onclick="openEquipDrawer('${id}','${slot}')">
+          <div class="slot-top">
+            <span>${SLOT_LABELS[slot]}：${item ? item.name : '未裝備'}</span>
+            <span style="color:#38bdf8; font-size:0.72rem;">${item ? '更換 ▸' : '裝備 / 來源 ▸'}</span>
+          </div>
+          <div class="slot-sub">${item ? item.shortDesc : '點擊開啟裝備庫檢視詞條與取得方式'}</div>
+        </button>`;
+    }).join('');
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `
+      <div class="row-between">
+        <div style="display:flex; align-items:center; gap:6px;"><span class="char-chip" style="width:26px;height:26px;font-size:0.85rem;background:${tpl.color};">${tpl.char}</span><strong>${tpl.name}</strong></div>
+        <button class="btn sm" onclick="openCharDetail('${id}')">看履歷</button>
+      </div>
+      <div class="equip-slot-list">${slotsHtml}</div>`;
+    eqList.appendChild(div);
+  });
+
+  const eqShop = document.getElementById('campEquipShopList'); eqShop.innerHTML = '';
+  Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'shop').forEach(eq => {
+    const owned = saveData.equipInventory[eq.id] || 0;
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `
+      <div class="row-between">
+        <div><strong>[${SLOT_LABELS[eq.slot]}] ${eq.name}</strong> <span class="pill ${owned>0?'green':''}">持有:${owned}</span></div>
+        <button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipToBag('${eq.id}')">${eq.price}兩 購買</button>
+      </div>
+      <div style="font-size:0.73rem; color:#cbd5e1;">${eq.shortDesc}</div>`;
+    eqShop.appendChild(div);
+  });
+
+  const itShop = document.getElementById('campItemShopList'); itShop.innerHTML = '';
+  [
+    { key: 'yarrow', name: '蓍草（預告4回合 / 重骰天時）', price: 150 },
+    { key: 'potion', name: '一般傷藥（回血 +40）', price: 100 },
+    { key: 'bento',  name: '簞食瓢飲（回血 +50 / 禁補豁免）', price: 220 },
+    { key: 'suxiu',  name: '束脩（羈絆室送禮解鎖合體奧義）', price: 250 }
+  ].forEach(it => {
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#94a3b8;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
+    itShop.appendChild(div);
+  });
+
+  const tBtns = document.getElementById('talentCharBtns'); tBtns.innerHTML = '';
+  Object.keys(saveData.roster).forEach(id => {
+    const b = document.createElement('button');
+    b.className = 'btn sm' + (campTalentCharId === id ? ' active' : '');
+    b.textContent = DATA_UNITS[id].name;
+    b.onclick = () => { campTalentCharId = id; renderCampScene(); };
+    tBtns.appendChild(b);
+  });
+  const prog = saveData.roster[campTalentCharId];
+  document.getElementById('talentLiuyiPts').textContent = `六藝點：${prog.liuyiPts}`;
+  document.getElementById('talentWudaoPts').textContent = `悟道點：${prog.wudaoPts}`;
+
+  const inG = document.getElementById('innerTalentGrid'); inG.innerHTML = '';
+  TALENTS_INNER.forEach(t => {
+    const lv = prog.inner[t.id] || 0;
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#38bdf8;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
+    inG.appendChild(div);
+  });
+  const outG = document.getElementById('outerTalentGrid'); outG.innerHTML = '';
+  TALENTS_OUTER.forEach(t => {
+    const lv = prog.outer[t.id] || 0;
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#facc15;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
+    outG.appendChild(div);
+  });
+
+  const bList = document.getElementById('campBondList'); bList.innerHTML = '';
+  BOND_PAIRS.forEach(bp => {
+    const lv = saveData.bonds[bp.id] || 1, unlocked = lv >= bp.unlockLv;
+    const div = document.createElement('div'); div.className = 'mobile-card';
+    div.innerHTML = `
+      <div class="row-between"><strong>${bp.name}</strong><span class="pill ${unlocked?'gold':''}">Lv.${lv} ${unlocked?'★已解鎖':'需Lv.2'}</span></div>
+      <div style="font-size:0.74rem; color:#cbd5e1;">【${bp.comboName}】${bp.desc}</div>
+      <button class="btn sm gold" ${saveData.items.suxiu<=0||lv>=3?'disabled':''} onclick="giftSuxiu('${bp.id}')">贈送束脩 (+1級)</button>`;
+    bList.appendChild(div);
+  });
+}
+
+function toggleDeploy(id) {
+  const idx = saveData.deployedIds.indexOf(id);
+  if (idx >= 0) { if (saveData.deployedIds.length <= 1) return; saveData.deployedIds.splice(idx, 1); }
+  else if (saveData.deployedIds.length < 6) saveData.deployedIds.push(id);
+  persistSave(); renderCampScene();
+}
+function moveDeployOrder(id, d) {
+  const i = saveData.deployedIds.indexOf(id), ni = i + d;
+  if (i < 0 || ni < 0 || ni >= saveData.deployedIds.length) return;
+  [saveData.deployedIds[i], saveData.deployedIds[ni]] = [saveData.deployedIds[ni], saveData.deployedIds[i]];
+  persistSave(); renderCampScene();
+}
+function buyShopItem(key, price) { if (saveData.gold < price) return; saveData.gold -= price; saveData.items[key]++; persistSave(); renderCampScene(); }
+function upgradeTalent(ring, tid) {
+  const p = saveData.roster[campTalentCharId];
+  if (ring === 'inner' && p.liuyiPts > 0) { p.liuyiPts--; p.inner[tid] = (p.inner[tid]||0) + 1; }
+  if (ring === 'outer' && p.wudaoPts > 0) { p.wudaoPts--; p.outer[tid] = (p.outer[tid]||0) + 1; }
+  persistSave(); renderCampScene();
+}
+function giftSuxiu(bid) { if (saveData.items.suxiu <= 0) return; saveData.items.suxiu--; saveData.bonds[bid] = (saveData.bonds[bid]||1) + 1; AudioManager.play('guqin'); persistSave(); renderCampScene(); }
+
+// 手動選檔熱替換 & 存檔彈窗
+function openArtModal() { renderSpriteStatusList(); document.getElementById('artModal').classList.add('show'); }
+document.getElementById('artFileInput').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const targetKey = document.getElementById('artTargetKey').value;
+  const chromaMode = document.getElementById('artChromaMode').value;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const img = new Image();
+    img.onload = () => {
+      if (chromaMode === 'auto') {
+        customSprites[targetKey] = processChromaKeyToCanvas(img);
+      } else {
+        const cvs = document.createElement('canvas'); cvs.width = 768; cvs.height = 640;
+        cvs.getContext('2d').drawImage(img, 0, 0, 768, 640);
+        customSprites[targetKey] = cvs;
+      }
+      renderSpriteStatusList();
+      if (currentScene === 'battle') renderUnits();
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+function clearCustomSprites() {
+  customSprites = {};
+  renderSpriteStatusList();
+  if (currentScene === 'battle') renderUnits();
+}
+function openSaveModal() { document.getElementById('saveCodeArea').value = JSON.stringify(saveData); document.getElementById('saveModal').classList.add('show'); }
+function copySaveCode() { const el = document.getElementById('saveCodeArea'); el.select(); document.execCommand('copy'); alert('已複製存檔碼！'); }
+function importSaveCode() {
+  try {
+    const p = JSON.parse(document.getElementById('saveCodeArea').value.trim());
+    if (!p.roster || !p.items) throw new Error();
+    if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
+    saveData = p; persistSave(); closeModal('saveModal'); switchScene('map'); alert('存檔還原成功！');
+  } catch (e) { alert('存檔碼格式錯誤'); }
+}
+function resetSaveData() {
+  if (!confirm('確定重置存檔？')) return;
+  saveData = createDefaultSave(); persistSave(); closeModal('saveModal'); switchScene('map');
+}
+
+// ============================================================================
+// 五、 響應式棋盤與戰鬥引擎（含悔步、幀機、Hitstop、震屏）
+// ============================================================================
+function resizeBoard() {
+  const vp = document.getElementById('boardViewport'), root = document.getElementById('boardScaleRoot');
+  if (vp && root && vp.clientWidth > 0) root.style.transform = `scale(${vp.clientWidth / 512})`;
+}
+window.addEventListener('resize', resizeBoard);
+
+const STATE = { PLAYER_TURN: 'PLAYER_TURN', ANIMATION_BUSY: 'ANIMATION_BUSY', ENEMY_TURN: 'ENEMY_TURN', TURN_END_CHECK: 'TURN_END_CHECK', GAME_OVER: 'GAME_OVER' };
+let activeStage = null, gameState = STATE.PLAYER_TURN, turnNumber = 1;
+let hexIndex = 0, hexCountdown = 2, hexLockedByStage = false, hexFlipRemaining = 2;
+let forecastVisible = false, xinzhaiDomainTurns = 0, summonCounter = 1, showGuides = false;
+let grid = [], units = [], selectedUnitId = null, actionMode = 'move', activeComboDef = null;
+let reachableTiles = new Map(), targetableTiles = new Set(), lastPlayerAction = null, pendingMove = null;
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const keyOf = (r, c) => `${r},${c}`;
+const manhattan = (r1, c1, r2, c2) => Math.abs(r1 - r2) + Math.abs(c1 - c2);
+const getHex = () => DATA_HEXAGRAMS[hexIndex];
+const getUnitAt = (r, c) => units.find(u => u.hp > 0 && u.r === r && u.c === c) || null;
+const getUnitById = id => units.find(u => u.id === id && u.hp > 0) || null;
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && currentScene === 'battle' && gameState === STATE.PLAYER_TURN) {
+    if (actionMode !== 'move') { actionMode = 'move'; targetableTiles.clear(); renderAll(); }
+    else if (pendingMove) undoPendingMove();
+  }
+});
+function onBoardRightClick(e) {
+  e.preventDefault();
+  if (currentScene !== 'battle' || gameState !== STATE.PLAYER_TURN) return;
+  if (actionMode !== 'move') {
+    actionMode = 'move'; targetableTiles.clear();
+    const u = getUnitById(selectedUnitId);
+    reachableTiles = (u && u.team==='player' && !u.moved && u.ap>0) ? computeReachable(u) : new Map();
+    renderAll();
+  } else if (pendingMove) undoPendingMove();
+}
+function undoPendingMove() {
+  if (gameState !== STATE.PLAYER_TURN || !pendingMove) return;
+  const u = getUnitById(pendingMove.unitId);
+  if (!u) { pendingMove = null; renderAll(); return; }
+  u.r = pendingMove.origR; u.c = pendingMove.origC; u.facingLeft = pendingMove.origFacingLeft;
+  u.moved = false; u.ap = pendingMove.prevAp; pendingMove = null;
+  selectedUnitId = u.id; actionMode = 'move'; targetableTiles.clear(); reachableTiles = computeReachable(u);
+  AudioManager.play('undo'); spawnFloatText(u.r, u.c, '↩ 悔步歸位', 'info');
+  addLog(`${u.name} 取消移動，退回原位。`, 'player'); renderAll();
+}
+
+let animLoopRunning = false, lastFrameTs = 0, hitstopUntil = 0;
+function startAnimLoop() { if (!animLoopRunning) { animLoopRunning = true; requestAnimationFrame(tickAnimations); } }
+function tickAnimations(ts) {
+  if (!lastFrameTs) lastFrameTs = ts;
+  const dt = (ts - lastFrameTs) / 1000; lastFrameTs = ts;
+  if (currentScene === 'battle' && ts >= hitstopUntil) {
+    units.forEach(u => {
+      if (u.hp <= 0 && u.animState !== 'die') return;
+      const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
+      u.animTimer = (u.animTimer || 0) + dt;
+      if (u.animTimer >= 1 / def.fps) {
+        u.animTimer -= 1 / def.fps; u.animFrame = (u.animFrame || 0) + 1;
+        if (u.animFrame >= def.count) {
+          if (def.loop) u.animFrame = 0;
+          else { u.animState = (u.hp <= 0) ? 'die' : 'idle'; u.animFrame = (u.hp <= 0) ? def.count - 1 : 0; }
+        }
+        updateUnitVisualFrame(u);
+      }
+    });
+  }
+  requestAnimationFrame(tickAnimations);
+}
+function playAnimWithHitSync(unit, stateName, onHitCallback) {
+  return new Promise(resolve => {
+    const def = ANIM_DEFS[stateName] || ANIM_DEFS.attack;
+    unit.animState = stateName; unit.animFrame = 0; unit.animTimer = 0; updateUnitVisualFrame(unit);
+    const hitIdx = def.hitOffset !== undefined ? def.hitOffset : 2, frameMs = 1000 / def.fps;
+    setTimeout(async () => {
+      if (onHitCallback) await onHitCallback();
+      setTimeout(() => { if (unit.hp > 0) { unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit); } resolve(); }, Math.max(80, (def.count - hitIdx) * frameMs));
+    }, hitIdx * frameMs);
+  });
+}
+function triggerHitstop(ms = 60) { hitstopUntil = performance.now() + ms; }
+function triggerCameraShake(px = 4, ms = 200) {
+  const wrap = document.getElementById('boardWrapper'), start = performance.now();
+  function step(now) {
+    if (now - start < ms) { wrap.style.transform = `translate(${(Math.random()*2-1)*px}px,${(Math.random()*2-1)*px}px)`; requestAnimationFrame(step); }
+    else wrap.style.transform = '';
+  }
+  requestAnimationFrame(step);
+}
+function spawnVfx(r, c, isUlt = false, stampText = '') {
+  const layer = document.getElementById('vfxLayer');
+  const slash = document.createElement('div');
+  slash.className = 'vfx-slash' + (isUlt ? ' ult' : '');
+  slash.style.left = `${c * TILE_PX + 32}px`; slash.style.top = `${r * TILE_PX + 32}px`;
+  layer.appendChild(slash); setTimeout(() => slash.remove(), 360);
+  if (stampText) {
+    const st = document.createElement('div'); st.className = 'vfx-stamp'; st.textContent = stampText;
+    layer.appendChild(st); setTimeout(() => st.remove(), 920);
+  }
+}
+
+function toggleArtGuides() { showGuides = !showGuides; document.getElementById('boardViewport').classList.toggle('show-guides', showGuides); document.getElementById('btnToggleGuides').textContent = `128x128 基準框：${showGuides ? '開' : '關'}`; }
+function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
+function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
+
+function startSelectedStage() {
+  activeStage = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  document.getElementById('endOverlay').classList.remove('show');
+  switchScene('battle');
+  turnNumber = 1; hexFlipRemaining = 2; forecastVisible = false; xinzhaiDomainTurns = 0;
+  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null;
+  reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
+
+  if (activeStage.modifiers.lockHexagram) { hexIndex = DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.modifiers.lockHexagram); hexLockedByStage = true; hexCountdown = 99; }
+  else { hexIndex = 0; hexLockedByStage = false; hexCountdown = 2; }
+
+  grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
+  activeStage.obstacles.forEach(([r, c]) => { grid[r][c] = 1; });
+  applyHexagramTerrain();
+
+  units = [];
+  saveData.deployedIds.forEach((id, idx) => {
+    const slot = activeStage.playerSlots[idx] || [3, 3];
+    units.push(instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]));
+  });
+  activeStage.enemySpawns.forEach((sp, idx) => {
+    const u = instantiateUnit(DATA_UNITS[sp.tpl], sp.r, sp.c, `e_${sp.tpl}_${idx}`, null);
+    if (sp.name) u.name = sp.name; units.push(u);
+  });
+
+  document.getElementById('logBox').innerHTML = ''; document.getElementById('unitLayer').innerHTML = '';
+  document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = '';
+  document.getElementById('forecastBar').style.display = 'none';
+  addLog(`=== 出征：${activeStage.cityLabel}・${activeStage.name} ===`, 'hex');
+  setState(STATE.PLAYER_TURN); resizeBoard(); renderAll(); startAnimLoop();
+}
+
+function instantiateUnit(tpl, r, c, customId, prog) {
+  const inner = prog ? prog.inner : { li:0, yue:0, she:0, yu:0, shu:0, num:0 };
+  const outer = prog ? prog.outer : { taiji_amp:0, hex_adapt:0, qi_flow:0 };
+  const lvB = prog ? (prog.lv - 1) : 0;
+  const maxHp = tpl.maxHp + lvB * 10 + (inner.li || 0) * 18;
+  return {
+    id: customId || tpl.id, tplKey: tpl.id || tpl.enemyType || 'chariot',
+    char: tpl.char, name: tpl.name, team: tpl.team, enemyType: tpl.enemyType || null,
+    color: tpl.color, yinYang: tpl.yinYang, trigram: tpl.trigram || 'qian',
+    r, c, facingLeft: false, maxHp, hp: maxHp,
+    qi: tpl.team === 'player' ? Math.min(100, 50 + (inner.yue || 0) * 15) : 0, maxQi: 100,
+    baseAtk: tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5,
+    baseDef: tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3,
+    baseMove: tpl.baseMove + (inner.yu || 0),
+    bonusCrit: (inner.num || 0) * 0.08, outerTalents: { ...outer },
+    range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
+    basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
+    ap: 2, maxAp: 2, moved: false, acted: false,
+    stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
+    buffTurns: 0, invincibleTurns: 0, lockHpTurns: 0, fatalShield: false, phase: 1,
+    equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
+    spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
+    animState: 'idle', animFrame: 0, animTimer: 0
+  };
+}
+function retreatToMap() { switchScene('map'); }
+
+function getEffectiveYinYang(u) { return (u.equip && u.equip.book === 'lianshan') ? '陽/陰' : u.yinYang; }
+function getActiveSynergies() {
+  const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), hui = getUnitById('p_hui'), gong = getUnitById('p_gong');
+  const waterFire = Boolean(lu && hui && manhattan(lu.r, lu.c, hui.r, hui.c) === 1);
+  let earthSky = false;
+  if (kong && gong && manhattan(kong.r, kong.c, gong.r, gong.c) === 1) {
+    const enemies = units.filter(e => e.team === 'enemy' && e.hp > 0);
+    if (enemies.length) { const minD = u => Math.min(...enemies.map(e => manhattan(u.r, u.c, e.r, e.c))); if (minD(gong) <= minD(kong)) earthSky = true; }
+    else if (gong.r <= kong.r) earthSky = true;
+  }
+  return { waterFire, earthSky };
+}
+function hasZhouJadeBonus(u) {
+  if (u.team !== 'player' || !u.equip || u.equip.ritual !== 'zhou_jade') return false;
+  const kong = getUnitById('p_kong');
+  return Boolean(kong && kong.id !== u.id && manhattan(u.r, u.c, kong.r, kong.c) === 1);
+}
+function getSkillQiCost(u, baseCost) { return (getActiveSynergies().waterFire && (u.id==='p_lu'||u.id==='p_hui')) ? Math.floor(baseCost*0.5) : baseCost; }
+function getEffectiveStats(u) {
+  const hex = getHex();
+  const buffM = u.buffTurns > 0 ? 1.2 : 1, jadeM = hasZhouJadeBonus(u) ? 1.15 : 1;
+  const bossM = (u.enemyType==='boss' && u.phase===2) ? 1.25 : 1, lockM = u.lockHpTurns > 0 ? 2 : 1, defB = u.defBreakTurns > 0 ? 0.7 : 1;
+  const hexT = 1 + ((u.outerTalents && u.outerTalents.hex_adapt) ? u.outerTalents.hex_adapt * 0.1 : 0);
+  let mMod = hex.moveMod; if (mMod < 0 && u.equip && u.equip.book === 'qian_zaodu') mMod = 0;
+  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM);
+  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB);
+  const move = Math.max(1, u.baseMove + mMod + (u.buffTurns > 0 ? 1 : 0));
+  return { atk, def, move, range: u.range + hex.rangeMod, atkBuffed: atk>u.baseAtk, defBuffed: def>u.baseDef, defDebuffed: def<u.baseDef, moveBuffed: move>u.baseMove, moveDebuffed: move<u.baseMove };
+}
+function getAvailableCombo(u) {
+  if (!u || u.team !== 'player' || u.acted || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return null;
+  const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), hui = getUnitById('p_hui');
+  const aliveP = units.filter(p => p.team === 'player' && p.hp > 0);
+  const avgHp = aliveP.reduce((s, p) => s + p.hp/p.maxHp, 0) / Math.max(1, aliveP.length);
+  if ((saveData.bonds.trio||1)>=2 && kong && lu && hui && avgHp < 0.25 && ['p_kong','p_lu','p_hui'].includes(u.id))
+    return { id: 'combo_trio', name: '君子固窮', partners: [kong,lu,hui], needTarget: false, desc: '全軍血量反轉＋無敵2回合！' };
+  if ((saveData.bonds.kong_hui||1)>=2 && kong && hui && manhattan(kong.r,kong.c,hui.r,hui.c)===1 && kong.qi>=100 && hui.qi>=100 && (u.id==='p_kong'||u.id==='p_hui'))
+    return { id: 'combo_kong_hui', name: '吾與點也', partners: [kong,hui], needTarget: false, desc: '全軍滿血滿氣＋全場聖光85真傷！' };
+  if ((saveData.bonds.kong_lu||1)>=2 && kong && lu && manhattan(kong.r,kong.c,lu.r,lu.c)===1 && kong.qi>=100 && lu.qi>=100 && (u.id==='p_kong'||u.id==='p_lu'))
+    return { id: 'combo_kong_lu', name: '死生有命', partners: [kong,lu], needTarget: true, desc: '子路全圖衝撞115傷暈眩＋孔子瞬移！' };
+  return null;
+}
+
+function computeReachable(unit) {
+  const maxMove = getEffectiveStats(unit).move, dist = new Map(), parent = new Map(), pq = [{ r: unit.r, c: unit.c, cost: 0 }];
+  dist.set(keyOf(unit.r, unit.c), 0);
+  const ignoreWater = unit.equip && unit.equip.book === 'qian_zaodu';
+  while (pq.length) {
+    pq.sort((a, b) => a.cost - b.cost); const cur = pq.shift();
+    if (cur.cost > dist.get(keyOf(cur.r, cur.c))) continue;
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr = cur.r+dr, nc = cur.c+dc;
+      if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1) continue;
+      const occ = getUnitAt(nr, nc); if (occ && occ.team !== unit.team) continue;
+      const ncst = cur.cost + ((grid[nr][nc]===2 && !ignoreWater) ? 2 : 1);
+      if (ncst <= maxMove) {
+        const k = keyOf(nr, nc);
+        if (!dist.has(k) || ncst < dist.get(k)) { dist.set(k, ncst); parent.set(k, keyOf(cur.r, cur.c)); pq.push({ r: nr, c: nc, cost: ncst }); }
+      }
+    }
+  }
+  const res = new Map();
+  for (const [k, cost] of dist.entries()) {
+    if (cost === 0) continue;
+    const [r, c] = k.split(',').map(Number); if (getUnitAt(r, c)) continue;
+    const path = []; let cur = k;
+    while (cur && cur !== keyOf(unit.r, unit.c)) { const [pr, pc] = cur.split(',').map(Number); path.unshift({ r: pr, c: pc }); cur = parent.get(cur); }
+    res.set(k, { cost, path });
+  }
+  return res;
+}
+
+function computeTargetable(unit, mode) {
+  const targets = new Set(), s = getEffectiveStats(unit);
+  if (mode === 'basic') {
+    for (let r=0; r<GRID_SIZE; r++) for (let c=0; c<GRID_SIZE; c++)
+      if (manhattan(unit.r,unit.c,r,c)>=1 && manhattan(unit.r,unit.c,r,c)<=s.range) { const occ = getUnitAt(r,c); if (occ && occ.team !== unit.team) targets.add(keyOf(r,c)); }
+    return targets;
+  }
+  if (mode === 'combo') {
+    const cb = getAvailableCombo(unit); if (!cb) return targets;
+    if (!cb.needTarget) targets.add(keyOf(unit.r, unit.c));
+    else units.filter(e => e.team==='enemy' && e.hp>0).forEach(e => targets.add(keyOf(e.r, e.c)));
+    return targets;
+  }
+  const sk = DATA_SKILLS[mode==='skill' ? unit.skillId : unit.ultId]; if (!sk) return targets;
+  if (sk.type==='aoe_buff') { for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (manhattan(unit.r,unit.c,r,c)<=sk.range) targets.add(keyOf(r,c)); }
+  else if (sk.type==='charge_stun') {
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) for (let st=1; st<=sk.range; st++) {
+      const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1) break;
+      const occ = getUnitAt(nr,nc); if (occ) { if (occ.team==='enemy') targets.add(keyOf(nr,nc)); break; }
+    }
+  } else if (sk.type==='heal_ap') { units.filter(a=>a.team==='player'&&a.hp>0&&manhattan(unit.r,unit.c,a.r,a.c)<=sk.range+getHex().rangeMod).forEach(a=>targets.add(keyOf(a.r,a.c))); }
+  else if (sk.type==='bribe') { units.filter(e=>e.team==='enemy'&&e.hp>0&&e.enemyType!=='boss'&&(e.hp/e.maxHp)<=0.4&&manhattan(unit.r,unit.c,e.r,e.c)<=sk.range+getHex().rangeMod).forEach(e=>targets.add(keyOf(e.r,e.c))); }
+  else if (sk.type==='sleep'||sk.type==='infight') { units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(unit.r,unit.c,e.r,e.c)<=sk.range+getHex().rangeMod).forEach(e=>targets.add(keyOf(e.r,e.c))); }
+  else if (sk.type==='line_true') { for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) for (let st=1;st<=sk.range;st++) { const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE) break; targets.add(keyOf(nr,nc)); } }
+  else if (sk.type==='summon') { for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (manhattan(unit.r,unit.c,r,c)>=1&&manhattan(unit.r,unit.c,r,c)<=sk.range&&grid[r][c]!==1&&!getUnitAt(r,c)) targets.add(keyOf(r,c)); }
+  return targets;
+}
+
+function setState(st) {
+  gameState = st;
+  const b = document.getElementById('stateBadge');
+  b.textContent = st === STATE.PLAYER_TURN ? '我方' : (st === STATE.ENEMY_TURN ? '敵方' : '演出');
+  b.className = 'pill ' + (st === STATE.PLAYER_TURN ? 'player' : st === STATE.ENEMY_TURN ? 'enemy' : 'busy');
+  document.getElementById('btnEndTurn').disabled = (st !== STATE.PLAYER_TURN);
+}
+
+function onTileClick(r, c) {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  const clicked = getUnitAt(r, c), sel = getUnitById(selectedUnitId), k = keyOf(r, c);
+  if (sel && ['basic','skill','ult','combo'].includes(actionMode) && targetableTiles.has(k)) { executePlayerAction(sel, actionMode, r, c); return; }
+  if (sel && actionMode === 'move' && reachableTiles.has(k)) { moveUnitSmooth(sel, reachableTiles.get(k).path, true); return; }
+  if (clicked) {
+    selectedUnitId = clicked.id; actionMode = 'move'; targetableTiles.clear();
+    reachableTiles = (clicked.team==='player' && !clicked.moved && clicked.ap>0 && !clicked.stunned && clicked.sleepTurns<=0) ? computeReachable(clicked) : new Map();
+  } else { selectedUnitId = null; actionMode = 'move'; reachableTiles.clear(); targetableTiles.clear(); }
+  renderAll();
+}
+
+function selectMode(mode) {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player' || u.acted || u.ap <= 0) return;
+  if (actionMode === mode) { actionMode = 'move'; targetableTiles.clear(); reachableTiles = (!u.moved && u.ap>0) ? computeReachable(u) : new Map(); renderAll(); return; }
+  if (mode === 'combo') { const cb = getAvailableCombo(u); if (!cb) return; activeComboDef = cb; if (!cb.needTarget) { executePlayerAction(u, 'combo', u.r, u.c); return; } }
+  else if (mode === 'ult') {
+    const sk = DATA_SKILLS[u.ultId];
+    if (u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    if (sk.type==='self_berserk' || sk.type==='domain') { executePlayerAction(u, 'ult', u.r, u.c); return; }
+  } else if (mode === 'skill') {
+    const sk = DATA_SKILLS[u.skillId]; if (u.qi < getSkillQiCost(u, sk.qiCost) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+  }
+  actionMode = mode; reachableTiles.clear(); targetableTiles = computeTargetable(u, mode);
+  if (targetableTiles.size === 0) spawnFloatText(u.r, u.c, '範圍內無目標', 'info');
+  renderAll();
+}
+
+function doWait() {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player' || u.ap <= 0) return;
+  pendingMove = null;
+  const gain = 20 + (getHex().bonusQi || 0);
+  u.ap = 0; u.moved = true; u.acted = true; u.qi = Math.min(100, u.qi + gain);
+  spawnFloatText(u.r, u.c, `待機 +${gain}氣`, 'info');
+  reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+}
+
+async function moveUnitSmooth(unit, path, isPlayer) {
+  setState(STATE.ANIMATION_BUSY);
+  if (isPlayer) pendingMove = { unitId: unit.id, origR: unit.r, origC: unit.c, origFacingLeft: unit.facingLeft, prevAp: unit.ap };
+  unit.animState = 'walk'; unit.animFrame = 0; reachableTiles.clear(); targetableTiles.clear(); renderGrid();
+  for (const step of path) {
+    if (step.c < unit.c) unit.facingLeft = true; else if (step.c > unit.c) unit.facingLeft = false;
+    unit.r = step.r; unit.c = step.c; AudioManager.play('move'); renderUnits(); await sleep(145);
+  }
+  unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit);
+  if (isPlayer) { unit.moved = true; unit.ap = Math.max(0, unit.ap - 1); setState(STATE.PLAYER_TURN); renderAll(); }
+}
+
+async function executePlayerAction(unit, mode, tr, tc) {
+  pendingMove = null; setState(STATE.ANIMATION_BUSY);
+  reachableTiles.clear(); targetableTiles.clear(); renderGrid(); renderGhost();
+  if (tc < unit.c) unit.facingLeft = true; else if (tc > unit.c) unit.facingLeft = false;
+
+  const hex = getHex(), syn = getActiveSynergies(), stats = getEffectiveStats(unit);
+  let primaryEnemy = null;
+
+  if (mode === 'basic') {
+    const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+    const sk = DATA_SKILLS[unit.basicId];
+    unit.qi = Math.min(100, unit.qi + 25 + (hex.bonusQi || 0) + ((unit.outerTalents.qi_flow || 0) * 8));
+    await playAnimWithHitSync(unit, 'attack', async () => {
+      await playLunge(unit, enemy.r, enemy.c);
+      const effYY = getEffectiveYinYang(unit);
+      const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
+      const pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
+      const isCrit = Math.random() < (hex.critRate + (unit.bonusCrit || 0));
+      const dmg = calcDamage(stats.atk * sk.mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
+      spawnVfx(enemy.r, enemy.c, false); if (isCrit) triggerHitstop(60);
+      await applyDamage(enemy, dmg, isCrit, false, unit);
+      if (hex.burnOnHit && enemy.hp > 0) enemy.burnTurns = 2;
+      addLog(`${unit.name}【${sk.name}】攻擊 ${enemy.name} 造成 ${dmg} 傷。`, 'player');
+    });
+    if (sk.type === 'damage_gold') { saveData.gold += 100; persistSave(); spawnFloatText(unit.r, unit.c, '+100兩', 'taiji'); }
+    if (unit.equip.weapon === 'bamboo_slip') {
+      units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,enemy.r,enemy.c)<=1).forEach(v=>{ v.defBreakTurns=2; spawnFloatText(v.r,v.c,'破防!','info'); });
+    }
+    if (sk.type === 'pierce') {
+      const br = enemy.r + Math.sign(enemy.r - unit.r), bc = enemy.c + Math.sign(enemy.c - unit.c);
+      if (br>=0&&br<GRID_SIZE&&bc>=0&&bc<GRID_SIZE&&grid[br][bc]!==1&&!getUnitAt(br,bc)) {
+        unit.r = br; unit.c = bc; AudioManager.play('move'); renderUnits(); spawnFloatText(unit.r, unit.c, '貫穿！', 'info'); await sleep(150);
+        if (unit.equip.weapon === 'rooster_halberd') {
+          for (const st of units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,unit.r,unit.c)===1))
+            await applyDamage(st, calcDamage(stats.atk*0.55, getEffectiveStats(st).def, false, st), false, false, unit);
+        }
+      }
+    }
+  } else if (mode === 'skill') {
+    const sk = DATA_SKILLS[unit.skillId];
+    unit.qi = Math.max(0, unit.qi - getSkillQiCost(unit, sk.qiCost));
+    if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
+    await playAnimWithHitSync(unit, 'cast', async () => {
+      spawnVfx(tr, tc, false, sk.name + '！');
+      if (sk.type === 'aoe_buff') {
+        AudioManager.play('guqin');
+        units.filter(a=>a.team==='player'&&a.hp>0&&manhattan(unit.r,unit.c,a.r,a.c)<=sk.range).forEach(a=>{ a.buffTurns=2; const h=Math.min(a.maxHp-a.hp, Math.round(20*hex.healMult)); a.hp+=h; spawnFloatText(a.r,a.c,`+20% +${h}`,'heal'); });
+      } else if (sk.type === 'charge_stun') {
+        const e = getUnitAt(tr, tc); primaryEnemy = e;
+        unit.r = e.r - Math.sign(e.r - unit.r); unit.c = e.c - Math.sign(e.c - unit.c); renderUnits();
+        triggerCameraShake(4, 180);
+        await applyDamage(e, calcDamage(stats.atk*sk.mult*hex.yangBoost, getEffectiveStats(e).def, Math.random()<(hex.critRate+0.1), e), false, false, unit);
+        if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); }
+      } else if (sk.type === 'heal_ap') {
+        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
+        const h = Math.min(a.maxHp - a.hp, Math.round(50 * hex.yinBoost * hex.healMult));
+        a.hp += h; a.ap = Math.min(a.maxAp, a.ap + 1); a.acted = false; spawnFloatText(a.r, a.c, `+${h}HP/+1AP`, 'heal');
+      } else if (sk.type === 'bribe') {
+        const e = getUnitAt(tr, tc); AudioManager.play('taiji');
+        e.team='player'; e.color='#0d9488'; e.ap=2; e.moved=false; e.acted=false; e.qi=0; e.basicId='kong_basic'; e.name='倒戈·'+e.name;
+        spawnFloatText(e.r, e.c, '千金倒戈！', 'taiji'); renderUnits();
+      } else if (sk.type === 'sleep') {
+        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('bell');
+        e.sleepTurns = 2; spawnFloatText(e.r, e.c, '睡眠2回合', 'info'); renderUnits();
+      }
+      addLog(`${unit.name} 施展【${sk.name}】！`, 'player');
+    });
+  } else if (mode === 'ult') {
+    const sk = DATA_SKILLS[unit.ultId];
+    unit.qi = Math.max(0, unit.qi - getSkillQiCost(unit, sk.qiCost));
+    if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
+    await playAnimWithHitSync(unit, 'cast', async () => {
+      AudioManager.play('ult'); triggerHitstop(65); triggerCameraShake(5, 220); spawnVfx(tr, tc, true, sk.name);
+      if (sk.type === 'line_true') {
+        const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn);
+        const dr = Math.sign(tr-unit.r), dc = Math.sign(tc-unit.c); let killed = false;
+        for (let st=1; st<=5; st++) {
+          const nr=unit.r+dr*st, nc=unit.c+dc*st; if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE) break;
+          const occ = getUnitAt(nr,nc);
+          if (occ && occ.team==='enemy') { primaryEnemy=occ; await applyDamage(occ, 105+Math.round(burn*0.6), false, true, unit); if (occ.hp<=0) killed=true; }
+        }
+        if (killed) { unit.hp=Math.max(1,unit.hp); unit.invincibleTurns=1; spawnFloatText(unit.r,unit.c,'無敵1回合','taiji'); }
+      } else if (sk.type === 'self_berserk') { unit.lockHpTurns = 2; spawnFloatText(unit.r,unit.c,'鎖血+雙倍攻','taiji'); }
+      else if (sk.type === 'domain') { xinzhaiDomainTurns=3; units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.fatalShield=true; p.stunned=false; p.sleepTurns=0; }); }
+      else if (sk.type === 'summon') { units.push(instantiateUnit(DATA_UNITS.chariot, tr, tc, `p_chariot_${summonCounter++}`, null)); renderUnits(); }
+      else if (sk.type === 'infight') {
+        for (const v of units.filter(e=>e.team==='enemy'&&e.hp>0&&manhattan(e.r,e.c,tr,tc)<=1)) {
+          const others = units.filter(o=>o.team==='enemy'&&o.hp>0&&o.id!==v.id); if (!others.length) continue;
+          others.sort((a,b)=>manhattan(v.r,v.c,a.r,a.c)-manhattan(v.r,v.c,b.r,b.c));
+          await playLunge(v, others[0].r, others[0].c);
+          await applyDamage(others[0], calcDamage(getEffectiveStats(v).atk*1.15, getEffectiveStats(others[0]).def, false, others[0]), false, false, null);
+        }
+      }
+      addLog(`★ ${unit.name} 爆發大絕【${sk.name}】！`, 'ult');
+    });
+  } else if (mode === 'combo' && activeComboDef) {
+    const cdef = activeComboDef; cdef.partners.forEach(p => { p.qi = 0; });
+    await playAnimWithHitSync(unit, 'cast', async () => {
+      AudioManager.play('ult'); triggerHitstop(70); triggerCameraShake(5, 240); spawnVfx(tr, tc, true, cdef.name);
+      if (cdef.id === 'combo_trio') { units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.hp=Math.max(1,Math.round(p.maxHp*Math.max(0.1,1-p.hp/p.maxHp))); p.invincibleTurns=2; }); }
+      else if (cdef.id === 'combo_kong_hui') { units.filter(p=>p.team==='player'&&p.hp>0).forEach(p=>{ p.hp=p.maxHp; p.qi=100; }); for (const e of units.filter(x=>x.team==='enemy'&&x.hp>0)) await applyDamage(e, 85, false, true, unit); }
+      else if (cdef.id === 'combo_kong_lu') {
+        const kong=getUnitById('p_kong'), lu=getUnitById('p_lu'), enemy=getUnitAt(tr,tc); primaryEnemy=enemy;
+        const a1=findEmptyAdjacent(enemy.r,enemy.c); if (a1) { lu.r=a1.r; lu.c=a1.c; }
+        const a2=findEmptyAdjacent(lu.r,lu.c); if (a2&&kong) { kong.r=a2.r; kong.c=a2.c; }
+        renderUnits(); await applyDamage(enemy, 115, true, false, lu); if (enemy.hp>0) enemy.stunned=true;
+      }
+      addLog(`★★★ 合體奧義【${cdef.name}】發動！`, 'ult');
+    });
+    activeComboDef = null;
+  }
+
+  await checkTaijiCombo(unit, primaryEnemy);
+  unit.acted = true; unit.ap = Math.max(0, unit.ap - 1); actionMode = 'move';
+  lastPlayerAction = { unitId: unit.id, name: unit.name, yinYang: getEffectiveYinYang(unit) };
+  renderAll();
+  if (checkVictoryOrDefeat()) return;
+  setState(STATE.PLAYER_TURN); renderAll();
+}
+
+function findEmptyAdjacent(r, c) {
+  for (const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]) {
+    const nr=r+dr, nc=c+dc; if (nr>=0&&nr<GRID_SIZE&&nc>=0&&nc<GRID_SIZE&&grid[nr][nc]!==1&&!getUnitAt(nr,nc)) return { r:nr, c:nc };
+  }
+  return null;
+}
+
+async function checkTaijiCombo(currUnit, targetEnemy) {
+  if (!lastPlayerAction || lastPlayerAction.unitId === currUnit.id) return;
+  const prev = getUnitById(lastPlayerAction.unitId); if (!prev) return;
+  if (manhattan(prev.r,prev.c,currUnit.r,currUnit.c)===1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
+    AudioManager.play('taiji'); triggerHitstop(60);
+    const dmg = 50 + (getHex().taijiBonus||0) + ((prev.outerTalents.taiji_amp||0)+(currUnit.outerTalents.taiji_amp||0))*20;
+    const victim = (targetEnemy&&targetEnemy.hp>0) ? targetEnemy : units.filter(e=>e.team==='enemy'&&e.hp>0)[0];
+    if (victim) { spawnVfx(victim.r,victim.c,true,'太極合擊！'); spawnFloatText(victim.r,victim.c,`太極 +${dmg}`,'taiji'); await applyDamage(victim,dmg,false,true,null); }
+    [prev,currUnit].forEach(u=>{ u.hp=Math.min(u.maxHp,u.hp+20); u.qi=Math.min(100,u.qi+30); });
+    addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血 +30 氣！`, 'taiji');
+  }
+}
+
+function calcDamage(atk, def, isCrit, target) {
+  let raw = Math.max(8, Math.round(atk - def * 0.55));
+  if (isCrit) raw = Math.round(raw * 1.5);
+  if (getHex().stillDmgRed && target && !target.moved) raw = Math.round(raw * (1 - getHex().stillDmgRed));
+  if (target && target.id==='p_gong' && getActiveSynergies().earthSky) raw = Math.round(raw * 0.6);
+  return Math.max(1, raw);
+}
+
+async function playLunge(attacker, tr, tc) {
+  const box = document.querySelector(`[data-uid="${attacker.id}"] .unit-box`); if (!box) return;
+  box.style.transform = `translate(${Math.sign(tc-attacker.c)*18}px,${Math.sign(tr-attacker.r)*18}px) scale(1.08)`;
+  await sleep(90); box.style.transform = '';
+}
+
+async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null) {
+  if (target.invincibleTurns > 0) { spawnFloatText(target.r, target.c, '無敵！', 'taiji'); return; }
+  let finalDmg = dmg, woke = false;
+  if (target.sleepTurns > 0) { target.sleepTurns = 0; finalDmg = Math.round(dmg * 1.5); woke = true; }
+  AudioManager.play('slash'); target.animState = 'hurt'; target.animFrame = 0;
+  if (target.team === 'player') target.qi = Math.min(100, target.qi + 15 + ((target.outerTalents.qi_flow||0)*8));
+
+  const nextHp = target.hp - finalDmg;
+  if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
+  else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '心齋抵死！', 'heal'); }
+  else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit||woke)?'crit':'dmg'); }
+  const anc = document.querySelector(`[data-uid="${target.id}"]`);
+  if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
+  renderUnits(); await sleep(180);
+
+  if (target.enemyType==='boss' && target.hp>0 && target.phase===1 && target.hp<=target.maxHp*0.5) { target.phase=2; target.color='#7e22ce'; spawnVfx(target.r,target.c,true,'心魔二階段！'); renderUnits(); }
+  if (target.hp <= 0) { target.animState = 'die'; spawnFloatText(target.r, target.c, '擊破！', 'info'); renderUnits(); return; }
+  if (target.lockHpTurns > 0 && attacker && attacker.hp > 0 && attacker.team !== target.team) {
+    const cd = calcDamage(getEffectiveStats(target).atk * 1.5, getEffectiveStats(attacker).def, false, attacker);
+    spawnFloatText(target.r, target.c, '150%反擊！', 'taiji'); await playLunge(target, attacker.r, attacker.c); await applyDamage(attacker, cd, false, false, null);
+  }
+}
+
+async function endPlayerTurn() {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  pendingMove = null; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+  setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await sleep(240);
+
+  for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
+    if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
+    if (enemy.stunned) { enemy.stunned = false; spawnFloatText(enemy.r, enemy.c, '暈眩', 'info'); continue; }
+    if (enemy.sleepTurns > 0) { enemy.sleepTurns--; spawnFloatText(enemy.r, enemy.c, 'Zzz', 'info'); continue; }
+
+    const players = units.filter(u => u.team === 'player' && u.hp > 0); if (!players.length) break;
+    const target = (enemy.enemyType==='archer' && players.find(p=>p.id==='p_hui')) || players.sort((a,b)=>manhattan(enemy.r,enemy.c,a.r,a.c)-manhattan(enemy.r,enemy.c,b.r,b.c))[0];
+    const eRange = getEffectiveStats(enemy).range;
+
+    if (manhattan(enemy.r,enemy.c,target.r,target.c) > eRange) {
+      const reach = computeReachable(enemy); let bestMove = null, bestSc = manhattan(enemy.r,enemy.c,target.r,target.c);
+      for (const [k, info] of reach.entries()) {
+        const [rr, cc] = k.split(',').map(Number), d = manhattan(rr,cc,target.r,target.c);
+        const sc = (enemy.enemyType==='archer' && d>=2 && d<=eRange) ? d - 5 : d;
+        if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
+      }
+      if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
+    }
+
+    const inRange = units.filter(u=>u.team==='player'&&u.hp>0&&manhattan(enemy.r,enemy.c,u.r,u.c)<=eRange);
+    if (inRange.length) {
+      const atkT = (enemy.enemyType==='archer' && inRange.find(p=>p.id==='p_hui')) || inRange.sort((a,b)=>a.hp-b.hp)[0];
+      await playAnimWithHitSync(enemy, 'attack', async () => {
+        await playLunge(enemy, atkT.r, atkT.c);
+        const dmg = calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(atkT).def, false, atkT);
+        await applyDamage(atkT, dmg, false, false, enemy);
+        addLog(`${enemy.name} 攻擊 ${atkT.name} 造成 ${dmg} 傷。`, 'enemy');
+      });
+    }
+    await sleep(130);
+  }
+
+  setState(STATE.TURN_END_CHECK);
+  for (const u of units.filter(x=>x.hp>0&&x.burnTurns>0)) { u.burnTurns--; await applyDamage(u, 12, false, true, null); }
+  if (checkVictoryOrDefeat()) return;
+
+  turnNumber++; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
+  if (activeStage.victoryType === 'survive' && turnNumber > activeStage.surviveTurns) { triggerBattleVictory(); return; }
+
+  if (!hexLockedByStage) {
+    hexCountdown--;
+    if (hexCountdown <= 0) { hexIndex = (hexIndex + 1) % DATA_HEXAGRAMS.length; hexCountdown = 2; applyHexagramTerrain(); AudioManager.play('bell'); addLog(`⚡ 天時變卦為【${getHex().name}】`, 'hex'); }
+  }
+  lastPlayerAction = null;
+  units.forEach(u => {
+    if (u.hp <= 0) return; u.ap = u.maxAp; u.moved = false; u.acted = false;
+    if (u.buffTurns>0) u.buffTurns--; if (u.defBreakTurns>0) u.defBreakTurns--; if (u.invincibleTurns>0) u.invincibleTurns--; if (u.lockHpTurns>0) u.lockHpTurns--;
+  });
+  if (activeStage.modifiers.starvationPct > 0) {
+    units.filter(u=>u.team==='player'&&u.hp>0).forEach(u => { const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct); u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg'); });
+  }
+  setState(STATE.PLAYER_TURN); renderAll();
+}
+
+function checkVictoryOrDefeat() {
+  const pAlive = units.filter(u=>u.team==='player'&&u.hp>0).length, eAlive = units.filter(u=>u.team==='enemy'&&u.hp>0).length;
+  if (eAlive === 0) { triggerBattleVictory(); return true; }
+  if (pAlive === 0) {
+    setState(STATE.GAME_OVER);
+    document.getElementById('endTitle').textContent = '全軍覆沒';
+    document.getElementById('endSubtitle').textContent = '可回營地點亮天賦、購買裝備後再戰！';
+    document.getElementById('endOverlay').classList.add('show');
+    return true;
+  }
+  return false;
+}
+
+function triggerBattleVictory() {
+  setState(STATE.GAME_OVER);
+  const isFirstClear = !saveData.clearedStages.includes(activeStage.id);
+  if (isFirstClear) saveData.clearedStages.push(activeStage.id);
+  saveData.gold += activeStage.rewardGold;
+
+  let dropMsg = '';
+  if (isFirstClear && activeStage.firstClearEquip) {
+    const eid = activeStage.firstClearEquip;
+    saveData.equipInventory[eid] = (saveData.equipInventory[eid] || 0) + 1;
+    dropMsg = ` 🎁 首通獲得典籍【${DATA_EQUIPS[eid].name}】！`;
+  }
+
+  const lvUps = [];
+  saveData.deployedIds.forEach(id => {
+    const p = saveData.roster[id]; p.exp += activeStage.rewardExp;
+    while (p.exp >= p.lv * 100) { p.exp -= p.lv * 100; p.lv++; p.liuyiPts++; p.wudaoPts++; lvUps.push(`${DATA_UNITS[id].name}→Lv.${p.lv}`); }
+  });
+  persistSave();
+  document.getElementById('endTitle').textContent = '🚩 攻克城池！';
+  document.getElementById('endSubtitle').textContent = `獲得 ${activeStage.rewardGold} 兩與 ${activeStage.rewardExp} EXP。${dropMsg}` + (lvUps.length ? ` 升級：${lvUps.join('、')}` : '');
+  document.getElementById('endOverlay').classList.add('show');
+}
+function finishBattleAndReturn() { switchScene('map'); }
+
+function applyHexagramTerrain() {
+  for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (grid[r][c]===2) grid[r][c]=0;
+  if (getHex().waterMap) [[2,3],[2,4],[3,2],[3,5],[4,2],[4,5],[5,3],[5,4]].forEach(([r,c])=>{ if (grid[r][c]===0) grid[r][c]=2; });
+}
+
+function renderItemModal() {
+  document.getElementById('cntYarrow').textContent = saveData.items.yarrow;
+  document.getElementById('cntPotion').textContent = saveData.items.potion;
+  document.getElementById('cntBento').textContent = saveData.items.bento;
+  document.getElementById('btnItemYarrow').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.yarrow<=0);
+  document.getElementById('btnItemPotion').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.potion<=0 || activeStage.modifiers.banNormalHeal);
+  document.getElementById('btnItemBento').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.bento<=0);
+  const bar = document.getElementById('forecastBar');
+  if (forecastVisible) {
+    if (hexLockedByStage) bar.textContent = `蓍草預告：本關鎖定【${getHex().name}】`;
+    else {
+      const seq = []; let idx = hexIndex, cd = hexCountdown;
+      for (let t=1;t<=4;t++) { cd--; if (cd<=0) { idx=(idx+1)%DATA_HEXAGRAMS.length; cd=2; } seq.push(`T+${t}:${DATA_HEXAGRAMS[idx].name}`); }
+      bar.textContent = `未來4回合預告：${seq.join(' → ')}`;
+    }
+    bar.style.display = 'block';
+  }
+}
+
+function useItem(type) {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  if (type === 'yarrow') {
+    if (saveData.items.yarrow <= 0) return;
+    if (!forecastVisible) { forecastVisible = true; renderItemModal(); return; }
+    saveData.items.yarrow--;
+    hexIndex = (hexIndex + 1 + Math.floor(Math.random()*(DATA_HEXAGRAMS.length-1))) % DATA_HEXAGRAMS.length;
+    applyHexagramTerrain(); AudioManager.play('bell'); persistSave(); renderItemModal(); renderAll(); return;
+  }
+  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player') { alert('請先點選棋盤上一名我方角色！'); return; }
+  if (type === 'potion' && !activeStage.modifiers.banNormalHeal && saveData.items.potion > 0) {
+    saveData.items.potion--; u.hp = Math.min(u.maxHp, u.hp + 40); AudioManager.play('guqin'); spawnFloatText(u.r,u.c,'+40 HP','heal');
+  } else if (type === 'bento' && saveData.items.bento > 0) {
+    saveData.items.bento--; u.hp = Math.min(u.maxHp, u.hp + 50); u.qi = Math.min(100, u.qi + 20); AudioManager.play('guqin'); spawnFloatText(u.r,u.c,'+50HP/+20氣','heal');
+  }
+  persistSave(); closeModal('itemModal'); renderAll();
+}
+
+function openHexModal() {
+  const kong = getUnitById('p_kong');
+  if (gameState!==STATE.PLAYER_TURN || !kong || kong.ap<=0 || hexFlipRemaining<=0) return;
+  const cur = getHex(), g = document.getElementById('hexChoiceGrid'); g.innerHTML = '';
+  DATA_HEXAGRAMS.forEach((h, idx) => {
+    const isOpp = h.id === cur.opposite;
+    const btn = document.createElement('button');
+    btn.className = 'hex-choice' + (isOpp ? ' opposite' : ''); btn.disabled = !isOpp;
+    btn.innerHTML = `<strong>${h.name}${isOpp?' ★對立':''}</strong><br>${h.desc}`;
+    if (isOpp) btn.onclick = () => {
+      closeModal('hexModal'); pendingMove = null;
+      kong.ap = Math.max(0, kong.ap - 1); hexFlipRemaining--;
+      hexIndex = idx; applyHexagramTerrain(); AudioManager.play('bell');
+      spawnVfx(kong.r, kong.c, true, `韋編三絕・${getHex().name}`); renderAll();
+    };
+    g.appendChild(btn);
+  });
+  document.getElementById('hexModal').classList.add('show');
+}
+
+function devBattleCheat(type) {
+  if (gameState !== STATE.PLAYER_TURN) return;
+  if (type === 'fullQi') units.filter(u=>u.team==='player'&&u.hp>0).forEach(u=>{ u.qi=100; });
+  if (type === 'lowHp') units.filter(u=>u.team==='player'&&u.hp>0).forEach(u=>{ u.hp=Math.max(1,Math.round(u.maxHp*0.2)); });
+  renderAll();
+}
+
+// 戰鬥畫面渲染
+function renderAll() { renderBattleTop(); renderGrid(); renderGhost(); renderUnits(); renderThumbPanel(); }
+function renderBattleTop() {
+  const hex = getHex();
+  document.getElementById('hexTitle').textContent = `【${hex.name}・${hexLockedByStage ? '鎖卦' : `剩${hexCountdown}回合`}】`;
+  document.getElementById('hexDesc').textContent = hex.desc;
+  document.getElementById('turnBadge').textContent = activeStage.victoryType==='survive' ? `T${turnNumber}/${activeStage.surviveTurns}` : `T${turnNumber}`;
+  const syn = getActiveSynergies();
+  const swf = document.getElementById('synWaterFire'); swf.textContent = syn.waterFire ? '水火既濟(氣耗半)' : '水火既濟'; swf.className = 'syn-tag' + (syn.waterFire?' on':'');
+  const ses = document.getElementById('synEarthSky'); ses.textContent = syn.earthSky ? '地天泰(減傷/穿甲)' : '地天泰'; ses.className = 'syn-tag' + (syn.earthSky?' on':'');
+  const sxz = document.getElementById('synXinzhai'); sxz.textContent = xinzhaiDomainTurns>0 ? `心齋(${xinzhaiDomainTurns})` : '心齋'; sxz.className = 'syn-tag' + (xinzhaiDomainTurns>0?' domain':'');
+  document.getElementById('comboHintTag').textContent = (!lastPlayerAction) ? '太極:待前手[陽]' : (lastPlayerAction.yinYang.includes('陽') ? `太極就緒(${lastPlayerAction.name})` : `前手:${lastPlayerAction.name}`);
+}
+function renderGrid() {
+  const gl = document.getElementById('gridLayer'); gl.innerHTML = '';
+  const sel = getUnitById(selectedUnitId);
+  for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) {
+    const t = document.createElement('div'), k = keyOf(r, c);
+    let cls = 'tile ' + (grid[r][c]===1 ? 'wall' : grid[r][c]===2 ? 'water' : ((r+c)%2===0?'plain':'plain alt'));
+    if (sel && sel.r===r && sel.c===c) cls += ' selected-tile';
+    if (actionMode==='move' && reachableTiles.has(k)) cls += ' move-range';
+    if (actionMode==='basic' && targetableTiles.has(k)) cls += ' attack-range';
+    if (['skill','ult','combo'].includes(actionMode) && targetableTiles.has(k)) {
+      cls += (sel && ((actionMode==='skill'&&['p_kong','p_hui'].includes(sel.id))||(actionMode==='ult'&&sel.id==='p_gong'))) ? ' heal-range' : ' special-range';
+    }
+    t.className = cls; t.onclick = () => onTileClick(r, c); gl.appendChild(t);
+  }
+}
+function renderGhost() {
+  const layer = document.getElementById('ghostLayer'); layer.innerHTML = '';
+  if (!pendingMove) return;
+  const u = getUnitById(pendingMove.unitId); if (!u) return;
+  const g = document.createElement('div'); g.className = 'move-ghost';
+  g.style.left = `${pendingMove.origC * TILE_PX}px`; g.style.top = `${pendingMove.origR * TILE_PX}px`;
+  g.innerHTML = `${u.char}<span>原位</span>`; layer.appendChild(g);
+}
+function renderUnits() {
+  const uLayer = document.getElementById('unitLayer'), hLayer = document.getElementById('hudLayer');
+  const aliveIds = new Set(units.filter(u=>u.hp>0).map(u=>u.id));
+  Array.from(uLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.uid)) ch.remove(); });
+  Array.from(hLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.hudid)) ch.remove(); });
+
+  units.filter(u=>u.hp>0).forEach(u => {
+    let anc = uLayer.querySelector(`[data-uid="${u.id}"]`);
+    if (!anc) {
+      anc = document.createElement('div'); anc.className = 'unit-anchor'; anc.dataset.uid = u.id;
+      anc.innerHTML = `<div class="art-guide"></div><div class="unit-box"></div><canvas class="sprite-canvas" width="128" height="128"></canvas><span class="anim-pill"></span>`;
+      uLayer.appendChild(anc);
+    }
+    anc.style.left = `${u.c * TILE_PX}px`; anc.style.top = `${u.r * TILE_PX}px`;
+    anc.style.zIndex = 10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0);
+    anc.classList.toggle('selected', u.id === selectedUnitId);
+    anc.classList.toggle('exhausted', u.team==='player' && u.ap<=0);
+    anc.classList.toggle('invincible', u.invincibleTurns>0);
+    anc.classList.toggle('lockhp', u.lockHpTurns>0);
+    anc.classList.toggle('sleeping', u.sleepTurns>0);
+    anc.classList.toggle('flip-left', u.facingLeft);
+    updateUnitVisualFrame(u, anc);
+
+    let hud = hLayer.querySelector(`[data-hudid="${u.id}"]`);
+    if (!hud) { hud = document.createElement('div'); hud.className = 'unit-hud'; hud.dataset.hudid = u.id; hLayer.appendChild(hud); }
+    hud.style.left = `${u.c * TILE_PX}px`; hud.style.top = `${u.r * TILE_PX}px`;
+    const hpPct = Math.max(0, Math.round((u.hp/u.maxHp)*100)), qiPct = Math.max(0, Math.round((u.qi/u.maxQi)*100));
+    const flags = [];
+    if (u.invincibleTurns>0) flags.push('無敵'); if (u.lockHpTurns>0) flags.push('鎖血');
+    if (u.fatalShield) flags.push('齋'); if (u.stunned) flags.push('暈'); if (u.sleepTurns>0) flags.push('眠');
+    if (u.defBreakTurns>0) flags.push('破'); if (u.buffTurns>0) flags.push('教↑');
+    hud.innerHTML = `
+      <div class="hud-top-row"><span class="hud-yy">${getEffectiveYinYang(u)}</span>${u.team==='player'?`<span class="hud-ap">AP:${u.ap}</span>`:''}</div>
+      ${flags.length ? `<span class="hud-status">${flags.slice(0,2).join('')}</span>` : ''}
+      <div class="hud-bars">
+        <div class="hp-bar-bg"><div class="hp-bar-fill ${u.team==='enemy'?'enemy':''}" style="width:${hpPct}%"></div></div>
+        ${u.team==='player' ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
+      </div>`;
+  });
+}
+
+function updateUnitVisualFrame(u, ancEl = null) {
+  const anc = ancEl || document.querySelector(`[data-uid="${u.id}"]`); if (!anc) return;
+  const box = anc.querySelector('.unit-box'), cvs = anc.querySelector('.sprite-canvas'), pill = anc.querySelector('.anim-pill');
+  const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
+  const frameIdx = def.start + (u.animFrame % def.count);
+  const isHit = (u.animState === 'attack' && u.animFrame === def.hitOffset);
+  pill.textContent = `${u.animState}:${u.animFrame+1}${isHit?'*HIT':''}`;
+  pill.classList.toggle('hit', isHit);
+
+  // 優先順序：手動熱替換圖集 > 資料夾自動載入圖集 > 找不到圖則自動維持白盒方塊
+  const sheet = customSprites[u.tplKey] || customSprites[u.id] || autoLoadedSprites[u.tplKey] || autoLoadedSprites[u.id];
+  if (sheet) {
+    box.style.display = 'none';
+    cvs.style.display = 'block';
+    const ctx = cvs.getContext('2d');
+    ctx.clearRect(0, 0, 128, 128);
+    ctx.drawImage(sheet, (frameIdx % 6) * 128, Math.floor(frameIdx / 6) * 128, 128, 128, 0, 0, 128, 128);
+  } else {
+    cvs.style.display = 'none';
+    box.style.display = 'flex';
+    box.style.backgroundColor = u.color;
+    box.textContent = u.char;
+  }
+}
+
+function renderThumbPanel() {
+  const u = getUnitById(selectedUnitId);
+  const strip = document.getElementById('unitMiniStrip'), desc = document.getElementById('skillDesc');
+  const [btnB, btnS, btnU, btnC, btnH, btnW, btnUndo] = ['btnBasic','btnSkill','btnUlt','btnCombo','btnHexFlip','btnWait','btnUndo'].map(id => document.getElementById(id));
+
+  const canUndo = (gameState === STATE.PLAYER_TURN && Boolean(pendingMove));
+  btnUndo.disabled = !canUndo; btnUndo.classList.toggle('ready', canUndo);
+  btnUndo.textContent = canUndo ? '↩ 悔步 (退回原位)' : '↩ 悔步';
+
+  const kong = getUnitById('p_kong');
+  btnH.textContent = `韋編三絕(${hexFlipRemaining})`;
+  btnH.disabled = !(gameState===STATE.PLAYER_TURN && u && u.id==='p_kong' && kong.ap>0 && hexFlipRemaining>0);
+
+  if (!u) {
+    strip.innerHTML = '<span style="color:#94a3b8;">點選棋盤方塊檢視數值（點擊此列可看詳細招式）</span>';
+    [btnB, btnS, btnU, btnC, btnW].forEach(b => { b.disabled = true; b.classList.remove('active'); });
+    desc.textContent = canUndo ? '已移動至暫定位置！可直接出招，或點【↩ 悔步】退回原位。' : '點選我方角色移動，確定攻擊前隨時可悔步。';
+    return;
+  }
+
+  const s = getEffectiveStats(u);
+  strip.innerHTML = `
+    <strong>[${u.char}]${u.name}</strong>
+    <span>HP:${u.hp}/${u.maxHp}</span>
+    <span style="color:#fde047;">氣:${u.qi}</span>
+    <span>攻:<span class="stat-val ${s.atkBuffed?'buffed':''}">${s.atk}</span></span>
+    <span>防:<span class="stat-val ${s.defBuffed?'buffed':(s.defDebuffed?'debuffed':'')}">${s.def}</span></span>
+    <span>移:<span class="stat-val ${s.moveBuffed?'buffed':(s.moveDebuffed?'debuffed':'')}">${s.move}</span></span>
+    ${saveData.roster[u.id] ? '<span style="color:#38bdf8;font-weight:800;">詳情▸</span>' : ''}
+  `;
+
+  const canAct = (gameState===STATE.PLAYER_TURN && u.team==='player' && !u.acted && u.ap>0 && !u.stunned && u.sleepTurns<=0);
+  const sk = u.skillId ? DATA_SKILLS[u.skillId] : null, ult = u.ultId ? DATA_SKILLS[u.ultId] : null;
+  const skC = sk ? getSkillQiCost(u, sk.qiCost) : 999, ulC = ult ? getSkillQiCost(u, ult.qiCost) : 999;
+
+  btnB.disabled = !canAct; btnW.disabled = !(gameState===STATE.PLAYER_TURN && u.team==='player' && u.ap>0);
+  btnS.disabled = !(canAct && sk && u.qi>=skC && (!sk.goldCost || saveData.gold>=sk.goldCost));
+  btnU.disabled = !(canAct && ult && u.qi>=ulC && (!ult.hpBelowPct || (u.hp/u.maxHp)<ult.hpBelowPct) && (!ult.goldCost || saveData.gold>=ult.goldCost));
+
+  const cb = getAvailableCombo(u);
+  btnC.disabled = !cb; btnC.textContent = cb ? `★${cb.name}` : '合體(羈絆Lv2)';
+  btnB.textContent = u.basicId ? DATA_SKILLS[u.basicId].name : '普攻';
+  btnS.textContent = sk ? `${sk.name}(${skC})` : '無絕招';
+  btnU.textContent = ult ? `${ult.name.slice(0,4)}(${ulC})` : '無大絕';
+
+  btnB.classList.toggle('active', actionMode==='basic'); btnS.classList.toggle('active', actionMode==='skill');
+  btnU.classList.toggle('active', actionMode==='ult'); btnC.classList.toggle('active', actionMode==='combo');
+
+  if (actionMode==='basic' && u.basicId) desc.textContent = DATA_SKILLS[u.basicId].desc;
+  else if (actionMode==='skill' && sk) desc.textContent = sk.desc;
+  else if (actionMode==='ult' && ult) desc.textContent = ult.desc;
+  else if (actionMode==='combo' && cb) desc.textContent = cb.desc;
+  else desc.textContent = canUndo ? '暫定移動中：可先點招式量射程，或按【↩ 悔步】退回原位。' : (u.team==='player' ? `絕招：${sk?sk.name:'無'}｜大絕：${ult?ult.name:'無'}` : '敵方單位');
+}
+
+function spawnFloatText(r, c, text, type = 'dmg') {
+  const fx = document.getElementById('fxLayer'), el = document.createElement('div');
+  el.className = `float-text ${type}`; el.textContent = text;
+  el.style.left = `${c * TILE_PX + 32}px`; el.style.top = `${r * TILE_PX + 8}px`;
+  fx.appendChild(el); setTimeout(() => el.remove(), type === 'taiji' ? 1350 : 950);
+}
+function addLog(msg, cls = '') {
+  const box = document.getElementById('logBox'), div = document.createElement('div');
+  div.className = `log-entry ${cls}`; div.textContent = msg;
+  box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+
+// 啟動時自動掃描 assets/sprites/ 資料夾，並渲染地圖
+preloadFolderSprites();
+updateGlobalNav();
+renderMapScene();
+</script>
+</body>
+</html>
