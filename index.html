@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.7 — 9×9暗黑水墨・硬核戰棋正式版</title>
+<title>《論語戰棋》v0.8 — 9×9暗黑水墨・雙向反擊硬核版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -958,6 +958,43 @@
     padding: 5px 7px; font-size: 0.7rem; line-height: 1.38;
   }
 
+
+  /* 反擊應對彈窗樣式 */
+  .counter-matchup {
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px;
+    background: var(--panel-dark); border: 1px solid #4a4031; border-radius: 6px; padding: 9px;
+  }
+  .counter-side { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .counter-side.right { text-align: right; align-items: flex-end; }
+  .counter-vs {
+    font-family: var(--font-serif); font-size: 0.95rem; font-weight: 900;
+    color: var(--danger); padding: 2px 6px; border: 1px solid #7a2621;
+    border-radius: 4px; background: #260f0e;
+  }
+  .counter-warn-box {
+    background: #261211; border: 1px solid #8f2b26; border-radius: 5px;
+    padding: 6px 9px; font-size: 0.74rem; color: #f2c4c0; line-height: 1.45;
+  }
+  .counter-passive-note {
+    background: #2b2110; border: 1px solid var(--gold); border-radius: 5px;
+    padding: 5px 8px; font-size: 0.72rem; color: var(--gold-bright); font-weight: 800;
+  }
+  .counter-choice-list { display: flex; flex-direction: column; gap: 6px; }
+  .counter-choice-btn {
+    width: 100%; text-align: left;
+    background: linear-gradient(180deg, #22211e 0%, #161615 100%);
+    border: 1.5px solid #594c38; border-radius: 6px; padding: 9px 10px;
+    color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 2px;
+    transition: transform 0.08s;
+  }
+  .counter-choice-btn:active:not(:disabled) { transform: scale(0.98); }
+  .counter-choice-btn:disabled { opacity: 0.36; cursor: not-allowed; }
+  .counter-choice-btn.basic { border-color: #6ea8a1; background: linear-gradient(180deg, #172b29 0%, #101d1c 100%); }
+  .counter-choice-btn.skill { border-color: var(--gold); background: linear-gradient(180deg, #2e2312 0%, #1c150a 100%); }
+  .counter-choice-btn.defend { border-color: #5c564a; background: linear-gradient(180deg, #1d1d1c 0%, #131312 100%); }
+  .counter-choice-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-serif); font-size: 0.86rem; font-weight: 900; }
+  .counter-choice-sub { font-size: 0.71rem; color: #c7bfb0; line-height: 1.35; }
+
 </style>
 </head>
 <body>
@@ -1305,7 +1342,8 @@
         <div class="g-head">一、9×9 戰場操作節奏</div>
         1. <strong>拖曳與縮放</strong>：單指拖曳可巡視 9×9 全場，右上角【🔍全盤 / 🔎特寫】可一鍵切換視角；畫面邊緣的硃砂標籤代表視野外敵軍，點擊可直接鎖定過去。<br>
         2. <strong>移動與悔步</strong>：點選我方武將顯示石青色可移動格；走位後只要尚未出手，隨時可點【↩ 悔步】退回原位重新思考。<br>
-        3. <strong>原地出招與預覽</strong>：不移動時可點腳邊【⚔ 原地出招 / 待機】；選招後點擊目標會先顯示<strong>傷害與太極合擊預覽</strong>，確認無誤再點一次即正式出手。
+        3. <strong>原地出招與預覽</strong>：不移動時可點腳邊【⚔ 原地出招 / 待機】；選招後點擊目標會先顯示<strong>傷害、敵軍反擊與太極合擊預覽</strong>，確認無誤再點一次即正式出手。<br>
+        4. <strong>雙向反擊（100% 傷害）</strong>：攻擊敵軍若未將其擊殺／控場且處於對方射程內，敵軍會立即反擊；我方受擊時則會彈出<strong>【反擊應對】選單</strong>，自由選擇【⚔ 普攻反擊】、【✦ 絕招反擊】或【🛡 僅防禦減傷 30%】。子路鎖血與阿谷閃避的專屬反擊被動會額外<strong>多打 1 次</strong>！
       </div>
       <div class="guide-block">
         <div class="g-head">二、行動點 (AP) 與浩然氣</div>
@@ -1360,6 +1398,15 @@
     </div>
   </div>
 </div>
+
+<!-- 彈窗：受擊反擊應對選單 -->
+<div class="modal-backdrop center" id="counterModal">
+  <div class="modal-sheet">
+    <h3>⚔ 敵軍來襲！請選擇應對招式</h3>
+    <div id="counterModalBody" style="display:flex; flex-direction:column; gap:8px;"></div>
+  </div>
+</div>
+
 
 
 <script>
@@ -3274,6 +3321,244 @@ function clearUnitDebuffs(u) {
   u.silenceTurns = 0; u.shakenTurns = 0; u.doubtTurns = 0;
 }
 
+
+const COUNTER_OFFENSIVE_SKILL_TYPES = ['charge_stun', 'bribe', 'sleep', 'mark_vuln', 'stealth_charm', 'harsh_tax_curse'];
+
+function getCounterSkillEligibility(defender, attacker) {
+  if (!defender.skillId) return { available: false, reason: '無攻擊型絕招' };
+  const sk = DATA_SKILLS[defender.skillId];
+  if (!sk || !COUNTER_OFFENSIVE_SKILL_TYPES.includes(sk.type)) return { available: false, reason: '非攻擊型絕招' };
+  if (defender.silenceTurns > 0 || defender.doubtTurns > 0) return { available: false, reason: '沉默/懷疑中無法施放' };
+  const qiCost = getSkillQiCost(defender, sk.qiCost);
+  if (defender.qi < qiCost) return { available: false, reason: `浩然氣不足（需 ${qiCost}）` };
+  if (sk.goldCost && saveData.gold < sk.goldCost) return { available: false, reason: `軍資金不足（需 ${sk.goldCost}兩）` };
+  const dist = manhattan(defender.r, defender.c, attacker.r, attacker.c);
+  const rBonus = getHex().rangeMod || 0;
+  if (sk.type === 'charge_stun') {
+    const inLine = (defender.r === attacker.r || defender.c === attacker.c);
+    if (!inLine || dist > sk.range) return { available: false, reason: '需直線 4 格內' };
+  } else if (sk.type === 'bribe') {
+    if (attacker.enemyType === 'boss' || (attacker.hp / attacker.maxHp) > 0.4) return { available: false, reason: '限非首領且血量≤40%' };
+    if (dist > sk.range + rBonus) return { available: false, reason: '敵軍在射程外' };
+  } else if (sk.type !== 'harsh_tax_curse') {
+    if (dist > sk.range + rBonus) return { available: false, reason: '敵軍在射程外' };
+  }
+  return { available: true, sk, qiCost };
+}
+
+let counterResolveFn = null;
+function resolveCounterChoice(choice) {
+  closeModal('counterModal');
+  if (counterResolveFn) {
+    const fn = counterResolveFn;
+    counterResolveFn = null;
+    fn(choice);
+  }
+}
+
+function promptPlayerCounter(attacker, defender, isCrush = false) {
+  return new Promise(resolve => {
+    counterResolveFn = resolve;
+    const hex = getHex();
+    const syn = getActiveSynergies();
+    const eStats = getEffectiveStats(attacker);
+    const dStats = getEffectiveStats(defender);
+    const dist = manhattan(attacker.r, attacker.c, defender.r, defender.c);
+    const incomingMult = isCrush ? 1.35 : 1.0;
+    const estIncoming = calcDamage(eStats.atk * incomingMult, dStats.def, false, defender);
+    const estDefend = Math.max(1, Math.round(estIncoming * 0.7));
+
+    // 普攻反擊資格
+    const basicSk = defender.basicId ? DATA_SKILLS[defender.basicId] : null;
+    const canBasic = Boolean(basicSk && dist >= 1 && dist <= dStats.range);
+    let estBasicDmg = 0;
+    if (canBasic) {
+      const effYY = getEffectiveYinYang(defender);
+      const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
+      let pen = (syn.earthSky && defender.id === 'p_kong') ? 0.30 : 0;
+      if (basicSk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
+      let mult = basicSk.mult || 1.0;
+      if (basicSk.type === 'yan_purify' && attacker.enemyType === 'boss') mult *= 2.0;
+      estBasicDmg = calcDamage(dStats.atk * mult * elemM, eStats.def * (1 - pen), false, attacker);
+    }
+
+    // 絕招反擊資格
+    const skCheck = getCounterSkillEligibility(defender, attacker);
+    let skillBtnHtml = '';
+    if (defender.skillId && DATA_SKILLS[defender.skillId] && COUNTER_OFFENSIVE_SKILL_TYPES.includes(DATA_SKILLS[defender.skillId].type)) {
+      const skObj = DATA_SKILLS[defender.skillId];
+      const costStr = `${getSkillQiCost(defender, skObj.qiCost)}氣${skObj.goldCost ? `+${skObj.goldCost}兩` : ''}`;
+      let extraPreview = skObj.desc;
+      if (skObj.type === 'charge_stun') {
+        const estSkDmg = calcDamage(dStats.atk * skObj.mult * hex.yangBoost, eStats.def, false, attacker);
+        extraPreview = `100%反擊｜預計傷害 ${estSkDmg}＋暈眩 1 回合`;
+      }
+      skillBtnHtml = `
+        <button class="counter-choice-btn skill" ${skCheck.available ? '' : 'disabled'} onclick="resolveCounterChoice('skill')">
+          <div class="counter-choice-top">
+            <span>✦ 絕招反擊・${skObj.name}</span>
+            <span style="font-size:0.72rem; color:#ecd29b;">${costStr}</span>
+          </div>
+          <div class="counter-choice-sub">${skCheck.available ? extraPreview : `無法施放：${skCheck.reason}`}</div>
+        </button>`;
+    }
+
+    let passiveNoteHtml = '';
+    if (defender.lockHpTurns > 0) {
+      passiveNoteHtml = `<div class="counter-passive-note">★ 【結纓而死】生效中：受擊後將額外多觸發 1 次 150% 狂暴反擊！</div>`;
+    } else if (defender.dodgeCounterTurns > 0) {
+      passiveNoteHtml = `<div class="counter-passive-note">★ 【贈佩試心】生效中：閃避成功時將額外多觸發 1 次機鋒反擊！</div>`;
+    }
+
+    const body = document.getElementById('counterModalBody');
+    body.innerHTML = `
+      <div class="counter-matchup">
+        <div class="counter-side">
+          <div style="font-size:0.7rem; color:#e86b64; font-weight:800;">進攻敵軍</div>
+          <div style="font-family:var(--font-serif); font-size:0.9rem; font-weight:900;">[${attacker.char}] ${attacker.name}</div>
+          <div style="font-size:0.7rem; color:#cfc7b8;">HP ${attacker.hp}/${attacker.maxHp}｜攻 ${eStats.atk}</div>
+        </div>
+        <div class="counter-vs">VS</div>
+        <div class="counter-side right">
+          <div style="font-size:0.7rem; color:#8ec9c2; font-weight:800;">我方迎敵（距${dist}格）</div>
+          <div style="font-family:var(--font-serif); font-size:0.9rem; font-weight:900;">[${defender.char}] ${defender.name}</div>
+          <div style="font-size:0.7rem; color:#cfc7b8;">HP ${defender.hp}/${defender.maxHp}｜氣 ${defender.qi}</div>
+        </div>
+      </div>
+      <div class="counter-warn-box">
+        ${isCrush ? '⚠ 敵將施展<strong>【破陣重擊】</strong>（135%傷＋破防）！<br>' : ''}
+        預計承受傷害：<strong style="color:#ff7b75;">${estIncoming}</strong>（防禦可降至 <strong style="color:#79c997;">${estDefend}</strong>）
+        ${defender.hp <= estIncoming && defender.lockHpTurns <= 0 && !defender.fatalShield && defender.invincibleTurns <= 0 ? '｜<strong style="color:#ff4d4f;">⚠ 致命危險！</strong>' : ''}
+      </div>
+      ${passiveNoteHtml}
+      <div class="counter-choice-list">
+        <button class="counter-choice-btn basic" ${canBasic ? '' : 'disabled'} onclick="resolveCounterChoice('basic')">
+          <div class="counter-choice-top">
+            <span>⚔ 普攻反擊・${basicSk ? basicSk.name : '普攻'}</span>
+            <span style="font-size:0.72rem; color:#8ec9c2;">${canBasic ? `預計 ${estBasicDmg} 傷｜+25氣` : `射程外（需≤${dStats.range}格）`}</span>
+          </div>
+          <div class="counter-choice-sub">${canBasic ? '100% 完整傷害反擊（受擊存活後立刻反打）' : '敵軍超出我方普攻射程，無法普攻反擊'}</div>
+        </button>
+        ${skillBtnHtml}
+        <button class="counter-choice-btn defend" onclick="resolveCounterChoice('defend')">
+          <div class="counter-choice-top">
+            <span>🛡 僅防禦（不反擊）</span>
+            <span style="font-size:0.72rem; color:#79c997;">本次減傷 30%｜+10氣</span>
+          </div>
+          <div class="counter-choice-sub">放棄基礎反擊以穩固防線，保留浩然氣並降低受損。</div>
+        </button>
+      </div>`;
+    document.getElementById('counterModal').classList.add('show');
+  });
+}
+
+async function executePlayerCounter(defender, attacker, choice) {
+  if (!defender || !attacker || defender.hp <= 0 || attacker.hp <= 0) return;
+  if (defender.stunned || defender.sleepTurns > 0) return;
+  const hex = getHex(), syn = getActiveSynergies(), stats = getEffectiveStats(defender);
+  if (attacker.c < defender.c) defender.facingLeft = true; else if (attacker.c > defender.c) defender.facingLeft = false;
+
+  if (choice === 'basic') {
+    const sk = DATA_SKILLS[defender.basicId]; if (!sk) return;
+    defender.qi = Math.min(100, defender.qi + 25 + (hex.bonusQi || 0) + ((defender.outerTalents.qi_flow || 0) * 8));
+    spawnFloatText(defender.r, defender.c, '⚔ 迎擊反打！', 'taiji');
+    await playAnimWithHitSync(defender, 'attack', async () => {
+      await playLunge(defender, attacker.r, attacker.c);
+      const effYY = getEffectiveYinYang(defender);
+      const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
+      let pen = (syn.earthSky && defender.id === 'p_kong') ? 0.30 : 0;
+      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
+      let mult = sk.mult || 1.0;
+      if (sk.type === 'yan_purify' && attacker.enemyType === 'boss') mult *= 2.0;
+      if (sk.type === 'taishan_wail') {
+        const stacks = (attacker.buffTurns > 0 ? 1 : 0) + (attacker.shield > 0 ? 1 : 0) + countUnitDebuffs(attacker);
+        mult *= (1 + stacks * 0.25);
+      }
+      const critChance = hex.critRate + (defender.bonusCrit || 0) + (sk.extraCrit || 0) + (defender.hasteBuffTurns > 0 ? 0.2 : 0);
+      const isCrit = Math.random() < critChance;
+      const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(attacker).def * (1 - pen), isCrit, attacker);
+      spawnVfx(attacker.r, attacker.c, false); if (isCrit) triggerHitstop(60);
+      await applyDamage(attacker, dmg, isCrit, false, null);
+      if (hex.burnOnHit && attacker.hp > 0) attacker.burnTurns = 2;
+
+      if (sk.type === 'kong_adaptive' && attacker.hp > 0) {
+        if (attacker.enemyType === 'soldier') { attacker.defBreakTurns = 2; spawnFloatText(attacker.r, attacker.c, '數・破防', 'info'); }
+        else { attacker.silenceTurns = 1; spawnFloatText(attacker.r, attacker.c, '禮・沉默', 'info'); }
+      }
+      if (sk.type === 'hui_echo' && attacker.hp > 0 && countUnitDebuffs(attacker) > 0) {
+        spawnFloatText(attacker.r, attacker.c, '聞一知十！', 'taiji');
+        await applyDamage(attacker, dmg, false, false, null);
+      }
+      if (sk.type === 'damage_gold' && Math.random() < 0.5) { saveData.gold += 120; persistSave(); spawnFloatText(defender.r, defender.c, '+120兩', 'taiji'); }
+      if (sk.type === 'min_guard') { defender.defStanceTurns = 1; }
+      if (sk.type === 'boniu_bleed' && attacker.hp > 0) { attacker.internalBleedTurns = 3; spawnFloatText(attacker.r, attacker.c, '內傷！', 'info'); }
+      if (sk.type === 'wo_confuse' && attacker.hp > 0 && Math.random() < 0.4) { attacker.confusedTurns = 1; spawnFloatText(attacker.r, attacker.c, '混亂！', 'info'); }
+      if (sk.type === 'ziyou_song') {
+        const needy = units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(a.r, a.c, attacker.r, attacker.c) <= 2).sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp))[0];
+        if (needy) { const h = Math.min(needy.maxHp - needy.hp, Math.round(18 * hex.healMult)); needy.hp += h; spawnFloatText(needy.r, needy.c, `弦歌+${h}`, 'heal'); }
+      }
+      if (sk.type === 'nanzi_chime' && attacker.hp > 0) { attacker.defBreakTurns = 2; spawnFloatText(attacker.r, attacker.c, '心神失守', 'info'); }
+      if (sk.type === 'agu_dodge') { defender.dodgeTurns = 1; }
+
+      if (defender.equip && defender.equip.weapon === 'bamboo_slip') {
+        units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(e.r, e.c, attacker.r, attacker.c) <= 1).forEach(v => { v.defBreakTurns = 2; });
+      }
+      addLog(`⚔ ${defender.name} 以【${sk.name}】反擊 ${attacker.name}，造成 ${dmg} 傷！`, 'player');
+    });
+  } else if (choice === 'skill') {
+    const sk = DATA_SKILLS[defender.skillId]; if (!sk) return;
+    defender.qi = Math.max(0, defender.qi - getSkillQiCost(defender, sk.qiCost));
+    if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
+    await playAnimWithHitSync(defender, 'cast', async () => {
+      spawnVfx(attacker.r, attacker.c, true, '反擊・' + sk.name);
+      if (sk.type === 'charge_stun') {
+        defender.defBreakTurns = 2; triggerCameraShake(5, 180);
+        const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(attacker).def, Math.random() < (hex.critRate + 0.1), attacker);
+        await applyDamage(attacker, dmg, false, false, null);
+        if (attacker.hp > 0) { attacker.stunned = true; spawnFloatText(attacker.r, attacker.c, '暈眩！', 'info'); }
+      } else if (sk.type === 'bribe') {
+        AudioManager.play('taiji');
+        attacker.team = 'player'; attacker.color = '#0d9488'; attacker.ap = 2; attacker.moved = false; attacker.acted = false; attacker.qi = 0; attacker.basicId = 'kong_basic'; attacker.name = '倒戈·' + attacker.name;
+        spawnFloatText(attacker.r, attacker.c, '反手倒戈！', 'taiji'); renderUnits();
+      } else if (sk.type === 'sleep') {
+        AudioManager.play('bell'); attacker.sleepTurns = 2; spawnFloatText(attacker.r, attacker.c, '晝寢2回合', 'info');
+      } else if (sk.type === 'mark_vuln') {
+        AudioManager.play('bell'); attacker.vulnerableTurns = 2; spawnFloatText(attacker.r, attacker.c, '易傷+35%！', 'info');
+      } else if (sk.type === 'stealth_charm') {
+        AudioManager.play('guqin'); defender.stealthTurns = 1; attacker.confusedTurns = 1;
+        spawnFloatText(defender.r, defender.c, '隱身！', 'info'); spawnFloatText(attacker.r, attacker.c, '魅惑混亂！', 'taiji');
+      } else if (sk.type === 'harsh_tax_curse') {
+        AudioManager.play('bell');
+        units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => { e.harshTaxTurns = 2; spawnFloatText(e.r, e.c, '苛政詛咒', 'dmg'); });
+      }
+      addLog(`✦ ${defender.name} 以絕招【${sk.name}】反擊 ${attacker.name}！`, 'player');
+    });
+  }
+}
+
+async function executeEnemyCounter(enemy, playerUnit) {
+  if (!enemy || !playerUnit || enemy.hp <= 0 || playerUnit.hp <= 0) return;
+  if (enemy.team !== 'enemy' || enemy.stunned || enemy.sleepTurns > 0 || playerUnit.stealthTurns > 0) return;
+  const eStats = getEffectiveStats(enemy);
+  if (manhattan(enemy.r, enemy.c, playerUnit.r, playerUnit.c) > eStats.range) return;
+
+  await sleep(140);
+  const hex = getHex();
+  const enemyCritChance = Math.min(0.22, hex.critRate * 0.55 + (enemy.enemyType === 'cavalry' || enemy.enemyType === 'elite' ? 0.06 : 0));
+  const isCrit = Math.random() < enemyCritChance;
+  spawnFloatText(enemy.r, enemy.c, '敵軍反擊！', 'dmg');
+  await playAnimWithHitSync(enemy, 'attack', async () => {
+    await playLunge(enemy, playerUnit.r, playerUnit.c);
+    const dmg = calcDamage(eStats.atk, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
+    await applyDamage(playerUnit, dmg, isCrit, false, null);
+    if (playerUnit.hp > 0 && enemy.enemyType === 'strategist') {
+      playerUnit.defBreakTurns = Math.max(playerUnit.defBreakTurns, 2);
+      spawnFloatText(playerUnit.r, playerUnit.c, '破防！', 'info');
+    }
+    addLog(`⚠ ${enemy.name} 反擊 ${playerUnit.name}，造成 ${dmg} 傷${isCrit ? '（暴擊！）' : ''}！`, 'enemy');
+  });
+}
+
 async function executePlayerAction(unit, mode, tr, tc) {
   pendingMove = null; pendingAction = null; showCmdPopover = false;
   setState(STATE.ANIMATION_BUSY); renderFloatingUi(); renderPreviewBanner();
@@ -3623,6 +3908,9 @@ async function executePlayerAction(unit, mode, tr, tc) {
   }
 
   await checkTaijiCombo(unit, primaryEnemy);
+  if ((mode === 'basic' || mode === 'skill') && primaryEnemy && primaryEnemy.hp > 0 && primaryEnemy.team === 'enemy' && unit.hp > 0) {
+    await executeEnemyCounter(primaryEnemy, unit);
+  }
   unit.acted = true;
   if (grantPostMove && unit.hp > 0) {
     // 冉有【策馬奔襲】打帶跑：攻擊後保留 1 次移動機會
@@ -3927,20 +4215,39 @@ async function endPlayerTurn() {
       const isCrush = (enemy.enemyType === 'elite' && enemy.eliteSkill === 'crush' && enemy.skillCd <= 0 && enemy.silenceTurns <= 0 && enemy.doubtTurns <= 0);
       if (isCrush) enemy.skillCd = 2;
 
+      // 每次我方被打（未受控、非箭塔），皆彈出【反擊應對】選單選擇招式
+      let counterChoice = 'none';
+      if (atkT.team === 'player' && !atkT.isTower && !atkT.stunned && atkT.sleepTurns <= 0) {
+        focusCameraOn(atkT.r, atkT.c);
+        counterChoice = await promptPlayerCounter(enemy, atkT, isCrush);
+        if (counterChoice === 'defend') {
+          atkT.qi = Math.min(100, atkT.qi + 10);
+          spawnFloatText(atkT.r, atkT.c, '🛡 防禦架勢', 'info');
+        }
+      }
+
       const enemyCritChance = Math.min(0.22, hex.critRate * 0.55 + (enemy.enemyType === 'cavalry' || enemy.enemyType === 'elite' ? 0.06 : 0));
       const isCrit = Math.random() < enemyCritChance;
       await playAnimWithHitSync(enemy, isCrush ? 'cast' : 'attack', async () => {
         await playLunge(enemy, atkT.r, atkT.c);
         const mult = isCrush ? 1.35 : 1.0;
-        const dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(atkT).def, isCrit, atkT);
+        let dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(atkT).def, isCrit, atkT);
+        if (counterChoice === 'defend') dmg = Math.max(1, Math.round(dmg * 0.7));
         if (isCrush) { triggerCameraShake(4, 160); spawnVfx(atkT.r, atkT.c, true, '破陣重擊！'); }
         await applyDamage(atkT, dmg, isCrit, false, enemy);
         if (atkT.hp > 0 && (isCrush || enemy.enemyType === 'strategist')) {
           atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
           spawnFloatText(atkT.r, atkT.c, '破防！', 'info');
         }
-        addLog(`${enemy.name}${isCrush ? '【破陣重擊】' : ''} 攻擊 ${atkT.name} 造成 ${dmg} 傷${isCrit ? '（暴擊！）' : ''}。`, 'enemy');
+        addLog(`${enemy.name}${isCrush ? '【破陣重擊】' : ''} 攻擊 ${atkT.name} 造成 ${dmg} 傷${counterChoice === 'defend' ? '（防禦減傷）' : ''}${isCrit ? '（暴擊！）' : ''}。`, 'enemy');
       });
+
+      // 受擊存活後執行所選的 100% 完整傷害反擊（原本的鎖血/閃避被動已於上方額外觸發＝多打一次）
+      if ((counterChoice === 'basic' || counterChoice === 'skill') && atkT.hp > 0 && enemy.hp > 0 && enemy.team === 'enemy') {
+        await sleep(140);
+        await executePlayerCounter(atkT, enemy, counterChoice);
+        if (checkVictoryOrDefeat()) return;
+      }
     }
     await sleep(130);
   }
@@ -4431,9 +4738,20 @@ function computePreviewInfo(u, mode, tr, tc) {
     const pen = (syn.earthSky && u.id === 'p_kong') ? 0.30 : 0;
     const dmg = calcDamage(stats.atk * sk.mult * elemM, getEffectiveStats(target).def * (1 - pen), false, target);
     const critPct = Math.round((hex.critRate + (u.bonusCrit || 0)) * 100);
+    const tStats = getEffectiveStats(target);
+    const dist = manhattan(u.r, u.c, target.r, target.c);
+    let counterTxt = '敵軍反擊：<strong style="color:#8ec9c2;">無（射程外/受控）</strong>';
+    if (!target.stunned && target.sleepTurns <= 0 && dist <= tStats.range) {
+      if (target.hp <= dmg) {
+        counterTxt = '敵軍反擊：<strong style="color:#79c997;">可擊殺免反擊</strong>';
+      } else {
+        const cDmg = calcDamage(tStats.atk, stats.def, false, u);
+        counterTxt = `⚠ 敵軍反擊：<strong style="color:#e86b64;">預計 -${cDmg} HP</strong>`;
+      }
+    }
     return {
       title: `⚔ ${sk.name} → ${target.name}`,
-      metrics: `預計傷害 <strong style="color:#e86b64;">${dmg}</strong>｜暴擊率 <strong style="color:#e8a15d;">${critPct}%</strong>｜太極合擊：${willTaiji ? '<strong style="color:#ecd29b;">★ 觸發！</strong>' : '無'}`,
+      metrics: `預計傷害 <strong style="color:#e86b64;">${dmg}</strong>｜暴擊率 <strong style="color:#e8a15d;">${critPct}%</strong>｜${counterTxt}｜太極：${willTaiji ? '<strong style="color:#ecd29b;">★ 觸發！</strong>' : '無'}`,
       confirmTxt: '⚔ 確認出招（或再點目標）'
     };
   }
