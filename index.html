@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.8 — 9×9暗黑水墨・雙向反擊硬核版</title>
+<title>《論語戰棋》v0.9 — 9×9暗黑水墨・雙向反擊正式版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -994,6 +994,62 @@
   .counter-choice-btn.defend { border-color: #5c564a; background: linear-gradient(180deg, #1d1d1c 0%, #131312 100%); }
   .counter-choice-top { display: flex; justify-content: space-between; align-items: center; font-family: var(--font-serif); font-size: 0.86rem; font-weight: 900; }
   .counter-choice-sub { font-size: 0.71rem; color: #c7bfb0; line-height: 1.35; }
+
+
+  /* 回合切換水墨橫幅 (~1秒) */
+  .turn-banner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 44%;
+    transform: translateY(-50%);
+    padding: 13px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    pointer-events: none;
+    z-index: 98;
+    animation: turnBannerAnim 1.05s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .turn-banner.player {
+    background: linear-gradient(90deg, transparent 0%, rgba(16, 42, 40, 0.94) 18%, rgba(22, 56, 53, 0.96) 50%, rgba(16, 42, 40, 0.94) 82%, transparent 100%);
+    border-top: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    box-shadow: 0 0 28px rgba(110, 168, 161, 0.35);
+  }
+  .turn-banner.enemy {
+    background: linear-gradient(90deg, transparent 0%, rgba(84, 18, 15, 0.94) 18%, rgba(122, 26, 22, 0.96) 50%, rgba(84, 18, 15, 0.94) 82%, transparent 100%);
+    border-top: 2px solid #e07b74;
+    border-bottom: 2px solid #e07b74;
+    box-shadow: 0 0 28px rgba(200, 62, 55, 0.4);
+  }
+  .turn-banner-title {
+    font-family: var(--font-serif);
+    font-size: 1.55rem;
+    font-weight: 900;
+    letter-spacing: 8px;
+    padding-left: 8px;
+    color: #fdf6e8;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.9);
+  }
+  .turn-banner.player .turn-banner-title { color: var(--gold-bright); }
+  .turn-banner.enemy .turn-banner-title { color: #ffd9d6; }
+  .turn-banner-sub {
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #d6cebf;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.9);
+  }
+  @keyframes turnBannerAnim {
+    0%   { opacity: 0; transform: translateY(-50%) scaleX(0.86); }
+    16%  { opacity: 1; transform: translateY(-50%) scaleX(1); }
+    78%  { opacity: 1; transform: translateY(-50%) scaleX(1); }
+    100% { opacity: 0; transform: translateY(-50%) scaleX(1.04); }
+  }
 
 </style>
 </head>
@@ -2847,6 +2903,28 @@ function spawnVfx(r, c, isUlt = false, stampText = '') {
   }
 }
 
+
+function showTurnBanner(side, turn) {
+  return new Promise(resolve => {
+    const sLayer = document.getElementById('screenVfxLayer');
+    if (!sLayer) { resolve(); return; }
+    sLayer.querySelectorAll('.turn-banner').forEach(el => el.remove());
+    const hex = getHex();
+    const div = document.createElement('div');
+    div.className = `turn-banner ${side}`;
+    const title = side === 'player' ? '我方回合' : '敵軍回合';
+    const sub = side === 'player'
+      ? `第 ${turn} 回合・天時【${hex.name}】`
+      : `第 ${turn} 回合・敵陣進逼`;
+    div.innerHTML = `<div class="turn-banner-title">${title}</div><div class="turn-banner-sub">${sub}</div>`;
+    sLayer.appendChild(div);
+    setTimeout(() => {
+      div.remove();
+      resolve();
+    }, 1050);
+  });
+}
+
 function toggleArtGuides() { showGuides = !showGuides; document.getElementById('boardViewport').classList.toggle('show-guides', showGuides); document.getElementById('btnToggleGuides').textContent = `格子基準框：${showGuides ? '開' : '關'}`; }
 function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
 function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
@@ -2895,6 +2973,7 @@ function startSelectedStage() {
   const lead = units.find(u => u.team === 'player' && u.hp > 0);
   if (lead) focusCameraOn(lead.r, lead.c, true);
   renderAll(); startAnimLoop();
+  showTurnBanner('player', turnNumber);
 }
 
 function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null) {
@@ -4055,7 +4134,7 @@ async function endPlayerTurn() {
     }
   }
 
-  setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await sleep(240);
+  setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await showTurnBanner('enemy', turnNumber);
 
   for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
@@ -4286,6 +4365,7 @@ async function endPlayerTurn() {
   const firstP = units.find(u => u.team === 'player' && u.hp > 0 && !u.isTower);
   if (firstP) focusCameraOn(firstP.r, firstP.c);
   setState(STATE.PLAYER_TURN); renderAll();
+  showTurnBanner('player', turnNumber);
 }
 
 function checkVictoryOrDefeat() {
