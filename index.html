@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.6 — 9×9暗黑水墨・15名將列國收徒完整版</title>
+<title>《論語戰棋》v0.7 — 9×9暗黑水墨・硬核戰棋正式版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -924,6 +924,40 @@
   .overlay.show { display: flex; }
   .overlay h2 { margin: 0; font-family: var(--font-serif); font-size: 1.68rem; color: var(--gold-bright); letter-spacing: 3px; }
   .overlay p { margin: 0; color: #cfc7b8; font-size: 0.85rem; line-height: 1.55; }
+
+  /* 新手兵法手冊樣式 */
+  .guide-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: var(--panel-dark); padding: 4px; border-radius: 6px; border: 1px solid #3a352c;
+  }
+  .guide-tab-btn {
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    border-radius: 4px; padding: 6px 2px; font-family: var(--font-serif);
+    font-size: 0.72rem; font-weight: 900; cursor: pointer;
+  }
+  .guide-tab-btn.active {
+    background: linear-gradient(180deg, #8a241f 0%, #631714 100%);
+    border-color: #c95d56; color: #fdf5eb;
+  }
+  .guide-pane { display: none; flex-direction: column; gap: 7px; }
+  .guide-pane.active { display: flex; }
+  .guide-block {
+    background: var(--panel-dark); border: 1px solid #3a352c; border-radius: 6px;
+    padding: 9px 10px; font-size: 0.75rem; color: #d6cebf; line-height: 1.55;
+  }
+  .guide-block strong { color: var(--gold-bright); }
+  .guide-block .g-head {
+    font-family: var(--font-serif); font-size: 0.84rem; font-weight: 900;
+    color: var(--gold-bright); border-left: 3px solid var(--danger);
+    padding-left: 7px; margin-bottom: 5px;
+  }
+  .guide-tag-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .guide-hex-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-top: 4px; }
+  .guide-hex-item {
+    background: #161719; border: 1px solid #36322a; border-radius: 4px;
+    padding: 5px 7px; font-size: 0.7rem; line-height: 1.38;
+  }
+
 </style>
 </head>
 <body>
@@ -946,7 +980,7 @@
       <div class="map-frame">
         <div class="map-watermark">春秋列國輿圖</div>
         <div class="map-float-tools">
-          <button class="btn sm dev" onclick="devUnlockAll()">⚡全解鎖+神兵</button>
+          <button class="btn sm gold" onclick="openGuideModal()">📖 兵法手冊</button>
         </div>
         <svg class="china-svg" id="chinaMapSvg" viewBox="0 0 420 440" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -1213,16 +1247,14 @@
   </div>
 </div>
 
-<!-- 彈窗：戰鬥日誌與測試工具 -->
+<!-- 彈窗：軍情與戰場指令 -->
 <div class="modal-backdrop" id="battleToolsModal" onclick="if(event.target===this) closeModal('battleToolsModal')">
   <div class="modal-sheet">
-    <h3>☰ 戰鬥日誌與測試工具</h3>
+    <h3>☰ 軍情日誌與戰場補給</h3>
     <button class="btn gold" style="width:100%;" onclick="closeModal('battleToolsModal'); openItemModal()">🎒 戰場補給道具（蓍草 / 傷藥 / 簞食瓢飲）</button>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
-      <button class="btn sm dev" onclick="devBattleCheat('fullQi'); closeModal('battleToolsModal')">⚡全軍滿氣</button>
-      <button class="btn sm dev" onclick="devBattleCheat('lowHp'); closeModal('battleToolsModal')">🩸殘血20%</button>
-      <button class="btn sm" id="btnToggleGuides" onclick="toggleArtGuides()">格子基準框：關</button>
-      <button class="btn sm danger" onclick="closeModal('battleToolsModal'); retreatToMap()">撤退回輿圖</button>
+      <button class="btn sm" onclick="closeModal('battleToolsModal'); openGuideModal()">📖 兵法手冊</button>
+      <button class="btn sm danger" onclick="closeModal('battleToolsModal'); retreatToMap()">🏳 撤退回輿圖</button>
     </div>
     <div style="font-size:0.78rem; font-weight:800; color:var(--accent); margin-top:4px;">即時戰鬥日誌</div>
     <div class="log-box" id="logBox"></div>
@@ -1253,6 +1285,82 @@
     </div>
   </div>
 </div>
+
+<!-- 彈窗：新手兵法手冊 -->
+<div class="modal-backdrop" id="guideModal" onclick="if(event.target===this) closeModal('guideModal')">
+  <div class="modal-sheet">
+    <div class="row-between">
+      <h3>📖 孔門兵法・新手教學手冊</h3>
+      <button class="btn sm" onclick="closeModal('guideModal')">關閉</button>
+    </div>
+    <div class="guide-tabs">
+      <button class="guide-tab-btn active" id="guideTab_basic" onclick="switchGuideTab('basic')">基礎操作</button>
+      <button class="guide-tab-btn" id="guideTab_hex" onclick="switchGuideTab('hex')">八純卦</button>
+      <button class="guide-tab-btn" id="guideTab_combo" onclick="switchGuideTab('combo')">合擊奧義</button>
+      <button class="guide-tab-btn" id="guideTab_hardcore" onclick="switchGuideTab('hardcore')">破陣要訣</button>
+    </div>
+
+    <div class="guide-pane active" id="guidePane_basic">
+      <div class="guide-block">
+        <div class="g-head">一、9×9 戰場操作節奏</div>
+        1. <strong>拖曳與縮放</strong>：單指拖曳可巡視 9×9 全場，右上角【🔍全盤 / 🔎特寫】可一鍵切換視角；畫面邊緣的硃砂標籤代表視野外敵軍，點擊可直接鎖定過去。<br>
+        2. <strong>移動與悔步</strong>：點選我方武將顯示石青色可移動格；走位後只要尚未出手，隨時可點【↩ 悔步】退回原位重新思考。<br>
+        3. <strong>原地出招與預覽</strong>：不移動時可點腳邊【⚔ 原地出招 / 待機】；選招後點擊目標會先顯示<strong>傷害與太極合擊預覽</strong>，確認無誤再點一次即正式出手。
+      </div>
+      <div class="guide-block">
+        <div class="g-head">二、行動點 (AP) 與浩然氣</div>
+        • 每位武將每回合擁有 <strong>2 點 AP</strong>（移動耗 1、出招耗 1）；若【待機】調息則立即回復 +20 浩然氣。<br>
+        • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
+        • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
+      </div>
+    </div>
+
+    <div class="guide-pane" id="guidePane_hex">
+      <div class="guide-block">
+        <div class="g-head">天時變卦與【韋編三絕】</div>
+        每 2 回合天時會依序輪轉（部分關卡有特定開局卦或鎖卦）。<strong>孔子每場擁有 2 次【韋編三絕】</strong>，消耗 1 AP 即可將當前天時強制翻轉為「陰陽對立卦」，是逆轉戰局的王牌！
+        <div class="guide-hex-grid">
+          <div class="guide-hex-item"><strong>乾 ↔ 坤</strong><br>乾：攻+25% 暴+30%<br>坤：防+50% 移-1</div>
+          <div class="guide-hex-item"><strong>坎 ↔ 離</strong><br>坎：墨池積水 陰+25%<br>離：陽+25% 普攻灼燒</div>
+          <div class="guide-hex-item"><strong>震 ↔ 巽</strong><br>震：移+1 攻+15%<br>巽：射程+1 行動+10氣</div>
+          <div class="guide-hex-item"><strong>艮 ↔ 兌</strong><br>艮：未移減傷30% 防+20%<br>兌：治療+30% 太極+20傷</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="guide-pane" id="guidePane_combo">
+      <div class="guide-block">
+        <div class="g-head">一、太極合擊（陽 → 陰相鄰連攜）</div>
+        當一位<strong>【陽】</strong>屬性武將先出手，緊接著與他<strong>相鄰 1 格</strong>的<strong>【陰】</strong>屬性武將再出手時，將自動觸發<strong>【太極合擊】</strong>！<br>
+        • 效果：對敵追加無視防禦的真實傷害（隨攻擊力與天賦成長），並讓雙人小幅回血回氣。<br>
+        • 孔子天生為<strong>陽/陰雙全</strong>；取得典籍《連山易》亦可將任意純陰武將轉為雙全。
+      </div>
+      <div class="guide-block">
+        <div class="g-head">二、陣型連攜與合體奧義</div>
+        • <strong>水火既濟</strong>：子路與顏回相鄰時，兩人技能耗氣減半。<br>
+        • <strong>地天泰</strong>：子貢站在孔子前方相鄰時，孔子普攻穿甲 30%、子貢減傷 40%。<br>
+        • <strong>合體奧義</strong>：至【孔門營地 → 束脩羈絆】送禮達 Lv.2，戰鬥中雙人滿氣相鄰即可施放改寫戰局的毀滅奧義！
+      </div>
+    </div>
+
+    <div class="guide-pane" id="guidePane_hardcore">
+      <div class="guide-block">
+        <div class="g-head">硬核戰棋・敵軍兵種與威脅</div>
+        敵軍隨關卡進度大幅成長，且享有<strong>暴擊、集火殘血與專屬戰技</strong>，切忌無腦衝陣：<br>
+        • <strong>【兵】近戰盾兵</strong>：前排卡位，高防禦。<br>
+        • <strong>【弓】遠程弓手</strong>：會拉開 2～3 格距離風箏並優先狙擊顏回與脆皮。<br>
+        • <strong>【策】敵軍策士</strong>：會幫殘血敵軍<strong>回血＋加攻</strong>，或對我方施放<strong>破防</strong>，建議優先點殺！<br>
+        • <strong>【騎】敵軍輕騎</strong>：高達 5 格機動力，專切後排軟甲單位，需用前排或石碑卡住路線。<br>
+        • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技（破陣重擊、督戰號令或心魔範圍技），善用<strong>暈眩、睡眠、嘲諷與裝備詞條</strong>打斷其節奏！
+      </div>
+      <div class="guide-block">
+        <div class="g-head">卡關時的整備建議</div>
+        第 3 關起敵軍強度明顯躍升。若陷入苦戰，請回【列國市集】購買神兵禮器（如周公玉圭、陋巷竹簡），並至【孔門營地】分配六藝／悟道天賦點與調整出戰陣容！
+      </div>
+    </div>
+  </div>
+</div>
+
 
 <script>
 // ============================================================================
@@ -1418,9 +1526,12 @@ const DATA_UNITS = {
   // ---- 召喚單位與敵軍 ----
   chariot:     { char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
   arrow_tower: { char: '塔', name: '瞭望箭塔', role: '工兵建築・自動射擊', team: 'player', isTower: true, color: '#92400e', yinYang: '無', trigram: 'gen', maxHp: 90, baseAtk: 30, baseDef: 18, baseMove: 0, range: 3, basicId: null, skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/tower.png' },
-  soldier:     { char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier', color: '#dc2626', yinYang: '無', trigram: 'gen', maxHp: 95,  baseAtk: 26, baseDef: 14, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
-  archer:      { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',  color: '#c026d3', yinYang: '無', trigram: 'xun', maxHp: 68,  baseAtk: 28, baseDef: 6,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
-  boss:        { char: '魔', name: '首領·心魔', role: '首領・半血二階段狂暴', team: 'enemy', enemyType: 'boss',   color: '#4c1d95', yinYang: '魔', trigram: 'kan', maxHp: 280, baseAtk: 38, baseDef: 16, baseMove: 3, range: 2, spriteSheetKey: 'assets/sprites/boss.png' }
+  soldier:     { char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier',    color: '#9e2a24', yinYang: '無', trigram: 'gen', maxHp: 105, baseAtk: 29, baseDef: 15, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
+  archer:      { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',     color: '#8f3068', yinYang: '無', trigram: 'xun', maxHp: 74,  baseAtk: 31, baseDef: 7,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
+  strategist:  { char: '策', name: '敵軍策士', role: '敵方輔助・治癒破防', team: 'enemy', enemyType: 'strategist', color: '#3b6e6c', yinYang: '陰', trigram: 'kan', maxHp: 78,  baseAtk: 28, baseDef: 8,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/strategist.png' },
+  cavalry:     { char: '騎', name: '敵軍輕騎', role: '敵方突襲・5格切後排', team: 'enemy', enemyType: 'cavalry',    color: '#b85322', yinYang: '陽', trigram: 'zhen',maxHp: 88,  baseAtk: 35, baseDef: 10, baseMove: 5, range: 1, spriteSheetKey: 'assets/sprites/cavalry.png' },
+  elite:       { char: '將', name: '敵方校尉', role: '菁英將領・2回合戰技', team: 'enemy', enemyType: 'elite',      color: '#7a1c1c', yinYang: '陽', trigram: 'li',  maxHp: 168, baseAtk: 37, baseDef: 17, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/elite.png' },
+  boss:        { char: '魔', name: '首領·心魔', role: '首領・範圍噬魂二階段', team: 'enemy', enemyType: 'boss',       color: '#4c1d6b', yinYang: '魔', trigram: 'kan', maxHp: 310, baseAtk: 40, baseDef: 18, baseMove: 3, range: 2, spriteSheetKey: 'assets/sprites/boss.png' }
 };
 
 const ALL_PLAYER_IDS = [
@@ -1455,199 +1566,215 @@ const BOND_PAIRS = [
 
 // 12 關春秋列國輿圖（7 主線 + 5 隱藏支線，完整覆蓋 12 位新武將首通收徒）
 const DATA_STAGES = [
-  // ---- 主線 7 站 (9×9 戰術縱深配置) ----
+  // ---- 主線 7 站 (9×9 硬核戰棋：階級縮放 + 多樣開局卦 + 菁英將領 + 功能兵種) ----
   {
     id: 'lu_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
+    enemyScale: 1.0, startHex: 'qian',
     victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
     obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '匡地盾兵甲', r: 1, c: 3 },
-      { tpl: 'soldier', name: '匡地盾兵乙', r: 1, c: 5 },
-      { tpl: 'archer',  name: '匡地弓手甲', r: 0, c: 4 },
-      { tpl: 'soldier', name: '匡地盾兵丙', r: 7, c: 2 },
-      { tpl: 'soldier', name: '匡地盾兵丁', r: 7, c: 6 },
-      { tpl: 'archer',  name: '匡地弓手乙', r: 8, c: 4 }
+      { tpl: 'elite',   name: '匡地校尉',   r: 1, c: 4, eliteSkill: 'crush' },
+      { tpl: 'soldier', name: '匡地盾兵甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '匡地盾兵乙', r: 1, c: 6 },
+      { tpl: 'archer',  name: '匡地弓手甲', r: 0, c: 3 },
+      { tpl: 'soldier', name: '匡地盾兵丙', r: 7, c: 3 },
+      { tpl: 'archer',  name: '匡地弓手乙', r: 8, c: 5 }
     ]
   },
   {
     id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
+    enemyScale: 1.22, startHex: 'kun',
     victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
     obstacles: [[2,2],[2,6],[4,3],[4,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
     enemySpawns: [
-      { tpl: 'soldier', name: '衛國禁軍甲', r: 2, c: 3 },
-      { tpl: 'soldier', name: '衛國重盾',   r: 2, c: 4 },
-      { tpl: 'soldier', name: '衛國禁軍乙', r: 2, c: 5 },
-      { tpl: 'archer',  name: '衛國箭手甲', r: 0, c: 2 },
-      { tpl: 'archer',  name: '衛國箭手乙', r: 0, c: 4 },
-      { tpl: 'archer',  name: '衛國箭手丙', r: 0, c: 6 }
+      { tpl: 'elite',      name: '衛宮侍衛長', r: 2, c: 4, eliteSkill: 'rally' },
+      { tpl: 'soldier',    name: '衛國禁軍甲', r: 2, c: 3 },
+      { tpl: 'soldier',    name: '衛國禁軍乙', r: 2, c: 5 },
+      { tpl: 'strategist', name: '衛宮祝史',   r: 1, c: 4 },
+      { tpl: 'archer',     name: '衛國箭手甲', r: 0, c: 2 },
+      { tpl: 'archer',     name: '衛國箭手乙', r: 0, c: 6 }
     ]
   },
   {
     id: 'song_huan', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
+    enemyScale: 1.42, startHex: 'li',
     victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
     obstacles: [[2,1],[2,7],[4,2],[4,6],[6,1],[6,7]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,5]],
     enemySpawns: [
-      { tpl: 'soldier', name: '桓魋私兵甲', r: 0, c: 1 },
-      { tpl: 'soldier', name: '桓魋私兵乙', r: 0, c: 7 },
-      { tpl: 'soldier', name: '桓魋私兵丙', r: 8, c: 1 },
-      { tpl: 'soldier', name: '桓魋私兵丁', r: 8, c: 7 },
-      { tpl: 'soldier', name: '桓魋伏衛',   r: 1, c: 4 },
-      { tpl: 'archer',  name: '伏林弓手甲', r: 0, c: 5 },
-      { tpl: 'archer',  name: '伏林弓手乙', r: 8, c: 4 }
+      { tpl: 'elite',      name: '宋司馬・桓魋', r: 1, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: '桓魋輕騎甲',   r: 0, c: 1 },
+      { tpl: 'cavalry',    name: '桓魋輕騎乙',   r: 0, c: 7 },
+      { tpl: 'soldier',    name: '桓魋私兵甲',   r: 8, c: 2 },
+      { tpl: 'soldier',    name: '桓魋私兵乙',   r: 8, c: 6 },
+      { tpl: 'strategist', name: '宋軍巫祝',     r: 0, c: 4 },
+      { tpl: 'archer',     name: '伏林弓手',     r: 8, c: 4 }
     ]
   },
   {
     id: 'lu_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
+    enemyScale: 1.60, startHex: 'xun',
     victoryType: 'annihilate', rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
     obstacles: [[2,4],[3,4],[5,4],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,1],[4,2],[3,1],[3,2],[5,1],[5,2]],
     enemySpawns: [
-      { tpl: 'soldier', name: '齊國侵兵甲', r: 2, c: 6 },
-      { tpl: 'soldier', name: '齊國重甲',   r: 4, c: 6 },
-      { tpl: 'soldier', name: '齊國侵兵乙', r: 6, c: 6 },
-      { tpl: 'archer',  name: '齊國弩手甲', r: 1, c: 8 },
-      { tpl: 'archer',  name: '齊國弩手乙', r: 4, c: 8 },
-      { tpl: 'archer',  name: '齊國弩手丙', r: 7, c: 8 }
+      { tpl: 'elite',      name: '齊軍都尉',   r: 4, c: 6, eliteSkill: 'rally' },
+      { tpl: 'soldier',    name: '齊國重甲甲', r: 2, c: 6 },
+      { tpl: 'soldier',    name: '齊國重甲乙', r: 6, c: 6 },
+      { tpl: 'cavalry',    name: '齊軍游騎',   r: 1, c: 7 },
+      { tpl: 'strategist', name: '齊軍隨軍策士', r: 4, c: 8 },
+      { tpl: 'archer',     name: '齊國弩手甲', r: 2, c: 8 },
+      { tpl: 'archer',     name: '齊國弩手乙', r: 7, c: 8 }
     ]
   },
   {
     id: 'wei_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
+    enemyScale: 1.78, startHex: 'gen',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
     obstacles: [[2,3],[3,5],[4,4],[5,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,6],[6,7],[7,6],[7,7],[5,7],[7,8]],
     enemySpawns: [
-      { tpl: 'soldier', name: '晉軍鐵衛甲', r: 2, c: 2 },
-      { tpl: 'soldier', name: '晉軍鐵衛乙', r: 3, c: 4 },
-      { tpl: 'soldier', name: '晉軍鐵衛丙', r: 4, c: 1 },
-      { tpl: 'archer',  name: '西河神射甲', r: 0, c: 2 },
-      { tpl: 'archer',  name: '西河神射乙', r: 0, c: 5 },
-      { tpl: 'archer',  name: '西河神射丙', r: 1, c: 7 }
+      { tpl: 'elite',      name: '西河統領',   r: 2, c: 2, eliteSkill: 'crush' },
+      { tpl: 'soldier',    name: '晉軍鐵衛甲', r: 3, c: 4 },
+      { tpl: 'cavalry',    name: '晉軍突騎',   r: 4, c: 1 },
+      { tpl: 'strategist', name: '晉軍軍師',   r: 1, c: 3 },
+      { tpl: 'archer',     name: '西河神射甲', r: 0, c: 2 },
+      { tpl: 'archer',     name: '西河神射乙', r: 0, c: 5 },
+      { tpl: 'archer',     name: '西河神射丙', r: 1, c: 7 }
     ]
   },
   {
     id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
+    enemyScale: 1.95, startHex: 'kan',
     victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_boniu',
     obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[5,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '陳蔡圍兵甲', r: 0, c: 3 },
-      { tpl: 'soldier', name: '陳蔡圍兵乙', r: 0, c: 5 },
-      { tpl: 'archer',  name: '陳蔡弓手甲', r: 1, c: 4 },
-      { tpl: 'soldier', name: '陳蔡圍兵丙', r: 4, c: 0 },
-      { tpl: 'soldier', name: '陳蔡圍兵丁', r: 4, c: 8 },
-      { tpl: 'soldier', name: '陳蔡圍兵戊', r: 8, c: 3 },
-      { tpl: 'archer',  name: '陳蔡弓手乙', r: 8, c: 5 }
+      { tpl: 'elite',      name: '陳蔡督軍',   r: 0, c: 4, eliteSkill: 'rally' },
+      { tpl: 'soldier',    name: '陳蔡圍兵甲', r: 0, c: 2 },
+      { tpl: 'soldier',    name: '陳蔡圍兵乙', r: 0, c: 6 },
+      { tpl: 'cavalry',    name: '陳蔡游騎甲', r: 4, c: 0 },
+      { tpl: 'cavalry',    name: '陳蔡游騎乙', r: 4, c: 8 },
+      { tpl: 'strategist', name: '陳蔡巫祝',   r: 8, c: 3 },
+      { tpl: 'archer',     name: '陳蔡弓手',   r: 8, c: 5 }
     ]
   },
   {
     id: 'chu_boss', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
+    enemyScale: 2.15, startHex: 'li',
     victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
     obstacles: [[2,2],[2,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
     enemySpawns: [
-      { tpl: 'boss',    name: '首領·心魔', r: 0, c: 4 },
-      { tpl: 'soldier', name: '心魔護衛甲', r: 1, c: 3 },
-      { tpl: 'soldier', name: '心魔護衛乙', r: 1, c: 5 },
-      { tpl: 'soldier', name: '心魔先鋒',   r: 2, c: 4 },
-      { tpl: 'archer',  name: '妄念弓手甲', r: 1, c: 1 },
-      { tpl: 'archer',  name: '妄念弓手乙', r: 1, c: 7 }
+      { tpl: 'boss',       name: '首領·心魔', r: 0, c: 4 },
+      { tpl: 'soldier',    name: '心魔護衛甲', r: 1, c: 3 },
+      { tpl: 'soldier',    name: '心魔護衛乙', r: 1, c: 5 },
+      { tpl: 'cavalry',    name: '妄念魔騎',   r: 2, c: 4 },
+      { tpl: 'strategist', name: '心魔蠱師',   r: 0, c: 2 },
+      { tpl: 'archer',     name: '妄念弓手甲', r: 1, c: 1 },
+      { tpl: 'archer',     name: '妄念弓手乙', r: 1, c: 7 }
     ]
   },
 
-  // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 特化地形) ----
+  // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 硬核特化試煉) ----
   {
     id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
+    enemyScale: 1.50, startHex: 'zhen',
     victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
     obstacles: [[3,2],[3,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
     enemySpawns: [
-      { tpl: 'boss',    name: '幻影·心魔', r: 1, c: 4 },
-      { tpl: 'soldier', name: '幻影盾衛甲', r: 2, c: 3 },
-      { tpl: 'soldier', name: '幻影盾衛乙', r: 2, c: 5 },
-      { tpl: 'archer',  name: '幻影弓手甲', r: 0, c: 1 },
-      { tpl: 'archer',  name: '幻影弓手乙', r: 0, c: 7 }
+      { tpl: 'boss',       name: '幻影·心魔', r: 1, c: 4 },
+      { tpl: 'soldier',    name: '幻影盾衛甲', r: 2, c: 3 },
+      { tpl: 'soldier',    name: '幻影盾衛乙', r: 2, c: 5 },
+      { tpl: 'strategist', name: '幻影儒師',   r: 0, c: 4 },
+      { tpl: 'archer',     name: '幻影弓手甲', r: 0, c: 1 },
+      { tpl: 'archer',     name: '幻影弓手乙', r: 0, c: 7 }
     ]
   },
   {
     id: 'ex_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
+    enemyScale: 1.48, startHex: 'dui',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
     obstacles: [[2,2],[2,6],[4,3],[4,5],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
     enemySpawns: [
-      { tpl: 'soldier', name: '衛宮影衛甲', r: 1, c: 2 },
-      { tpl: 'soldier', name: '衛宮影衛乙', r: 1, c: 6 },
-      { tpl: 'soldier', name: '帷幕親衛',   r: 2, c: 4 },
-      { tpl: 'archer',  name: '宮廷樂師甲', r: 0, c: 3 },
-      { tpl: 'archer',  name: '宮廷樂師乙', r: 0, c: 5 }
+      { tpl: 'elite',      name: '帷幕統領',   r: 2, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: '衛宮影衛甲', r: 1, c: 2 },
+      { tpl: 'cavalry',    name: '衛宮影衛乙', r: 1, c: 6 },
+      { tpl: 'strategist', name: '宮廷樂師甲', r: 0, c: 3 },
+      { tpl: 'archer',     name: '宮廷弩手乙', r: 0, c: 5 }
     ]
   },
   {
     id: 'ex_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
+    enemyScale: 1.65, startHex: 'zhen',
     victoryType: 'annihilate', rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
     obstacles: [[1,3],[3,2],[4,4],[5,6],[7,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,1],[6,2],[7,1],[7,2],[6,3],[7,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '苛稅官兵甲', r: 1, c: 5 },
-      { tpl: 'soldier', name: '苛稅官兵乙', r: 2, c: 6 },
-      { tpl: 'soldier', name: '猛虎精銳甲', r: 1, c: 7 },
-      { tpl: 'soldier', name: '猛虎精銳乙', r: 3, c: 7 },
-      { tpl: 'archer',  name: '山林獵手甲', r: 0, c: 6 },
-      { tpl: 'archer',  name: '山林獵手乙', r: 4, c: 8 }
+      { tpl: 'elite',      name: '苛政稅官長', r: 1, c: 6, eliteSkill: 'rally' },
+      { tpl: 'soldier',    name: '苛稅官兵甲', r: 1, c: 5 },
+      { tpl: 'cavalry',    name: '猛虎精銳甲', r: 2, c: 6 },
+      { tpl: 'cavalry',    name: '猛虎精銳乙', r: 3, c: 7 },
+      { tpl: 'strategist', name: '山林巫醫',   r: 0, c: 7 },
+      { tpl: 'archer',     name: '山林獵手',   r: 4, c: 8 }
     ]
   },
   {
     id: 'ex_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
+    enemyScale: 1.85, startHex: 'gen',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
     obstacles: [[3,1],[3,2],[3,4],[3,6],[3,7],[6,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
     enemySpawns: [
-      { tpl: 'soldier', name: '季氏家臣甲', r: 2, c: 3 },
-      { tpl: 'soldier', name: '季氏家臣乙', r: 2, c: 5 },
-      { tpl: 'soldier', name: '攻城重盾甲', r: 4, c: 3 },
-      { tpl: 'soldier', name: '攻城重盾乙', r: 4, c: 5 },
-      { tpl: 'archer',  name: '費邑弩兵甲', r: 0, c: 2 },
-      { tpl: 'archer',  name: '費邑弩兵乙', r: 0, c: 6 }
+      { tpl: 'elite',      name: '季氏大總管', r: 2, c: 4, eliteSkill: 'rally' },
+      { tpl: 'soldier',    name: '攻城重盾甲', r: 4, c: 3 },
+      { tpl: 'soldier',    name: '攻城重盾乙', r: 4, c: 5 },
+      { tpl: 'strategist', name: '季氏謀士',   r: 1, c: 4 },
+      { tpl: 'archer',     name: '費邑弩兵甲', r: 0, c: 2 },
+      { tpl: 'archer',     name: '費邑弩兵乙', r: 0, c: 6 }
     ]
   },
   {
     id: 'ex_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
+    enemyScale: 1.90, startHex: 'kan',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
     obstacles: [[1,4],[4,1],[4,7],[7,4]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,2],[7,3],[7,5],[7,6],[8,3],[8,5]],
     enemySpawns: [
-      { tpl: 'soldier', name: '水澤武者甲', r: 1, c: 2 },
-      { tpl: 'soldier', name: '水澤武者乙', r: 1, c: 6 },
-      { tpl: 'soldier', name: '阿谷守衛甲', r: 2, c: 3 },
-      { tpl: 'soldier', name: '阿谷守衛乙', r: 2, c: 5 },
-      { tpl: 'archer',  name: '清流弓手甲', r: 0, c: 3 },
-      { tpl: 'archer',  name: '清流弓手乙', r: 0, c: 5 }
+      { tpl: 'elite',      name: '阿谷水師將', r: 2, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: '水澤武者甲', r: 1, c: 2 },
+      { tpl: 'cavalry',    name: '水澤武者乙', r: 1, c: 6 },
+      { tpl: 'strategist', name: '清流術士',   r: 0, c: 4 },
+      { tpl: 'archer',     name: '清流弓手甲', r: 0, c: 2 },
+      { tpl: 'archer',     name: '清流弓手乙', r: 0, c: 6 }
     ]
   }
 ];
@@ -1947,20 +2074,26 @@ function renderMapScene() {
     const owned = (saveData.equipInventory[sel.firstClearEquip] || 0) > 0;
     dropLine += `<br><span style="color:#ecd29b;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
   }
+  const startHexObj = DATA_HEXAGRAMS.find(h => h.id === (sel.modifiers.lockHexagram || sel.startHex || 'qian')) || DATA_HEXAGRAMS[0];
+  const scalePct = Math.round((sel.enemyScale || 1) * 100);
   document.getElementById('briefMeta').innerHTML =
     `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>｜出戰：${saveData.deployedIds.length}/6 人<br>` +
+    `敵軍強度：<strong style="color:#e86b64;">${scalePct}%</strong>｜開局天時：<strong style="color:#ecd29b;">${startHexObj.name}${sel.modifiers.lockHexagram ? '（鎖卦）' : ''}</strong><br>` +
     `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
     (sel.modifiers.starvationPct ? '<br><span style="color:#e86b64;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
 }
 
-function devUnlockAll() {
-  DATA_STAGES.forEach(s => { if (!saveData.clearedStages.includes(s.id)) saveData.clearedStages.push(s.id); });
-  ALL_PLAYER_IDS.forEach(uid => { if (!saveData.roster[uid]) saveData.roster[uid] = makeRosterEntry(2); });
-  BOND_PAIRS.forEach(b => { saveData.bonds[b.id] = Math.max(2, saveData.bonds[b.id] || 1); });
-  saveData.gold += 3000; saveData.items.suxiu += 8;
-  Object.keys(DATA_EQUIPS).forEach(eid => { saveData.equipInventory[eid] = Math.max(1, saveData.equipInventory[eid] || 0); });
-  Object.values(saveData.roster).forEach(r => { r.liuyiPts += 4; r.wudaoPts += 3; });
-  persistSave(); renderMapScene();
+function openGuideModal(tab = 'basic') {
+  switchGuideTab(tab);
+  document.getElementById('guideModal').classList.add('show');
+}
+function switchGuideTab(tab) {
+  ['basic', 'hex', 'combo', 'hardcore'].forEach(t => {
+    const btn = document.getElementById('guideTab_' + t);
+    const pane = document.getElementById('guidePane_' + t);
+    if (btn) btn.classList.toggle('active', t === tab);
+    if (pane) pane.classList.toggle('active', t === tab);
+  });
 }
 
 function openCharDetail(uid) {
@@ -2680,7 +2813,11 @@ function startSelectedStage() {
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
   if (activeStage.modifiers.lockHexagram) { hexIndex = DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.modifiers.lockHexagram); hexLockedByStage = true; hexCountdown = 99; }
-  else { hexIndex = 0; hexLockedByStage = false; hexCountdown = 2; }
+  else {
+    const startIdx = activeStage.startHex ? DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.startHex) : 0;
+    hexIndex = startIdx >= 0 ? startIdx : 0;
+    hexLockedByStage = false; hexCountdown = 2;
+  }
 
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
   activeStage.obstacles.forEach(([r, c]) => { grid[r][c] = 1; });
@@ -2691,8 +2828,9 @@ function startSelectedStage() {
     const slot = activeStage.playerSlots[idx] || [4, 4];
     units.push(instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]));
   });
+  const stageScale = activeStage.enemyScale || 1.0;
   activeStage.enemySpawns.forEach((sp, idx) => {
-    const u = instantiateUnit(DATA_UNITS[sp.tpl], sp.r, sp.c, `e_${sp.tpl}_${idx}`, null);
+    const u = instantiateUnit(DATA_UNITS[sp.tpl], sp.r, sp.c, `e_${sp.tpl}_${idx}`, null, stageScale, sp.eliteSkill || null);
     if (sp.name) u.name = sp.name; units.push(u);
   });
 
@@ -2712,19 +2850,24 @@ function startSelectedStage() {
   renderAll(); startAnimLoop();
 }
 
-function instantiateUnit(tpl, r, c, customId, prog) {
+function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null) {
   const inner = prog ? prog.inner : { li:0, yue:0, she:0, yu:0, shu:0, num:0 };
   const outer = prog ? prog.outer : { taiji_amp:0, hex_adapt:0, qi_flow:0 };
   const lvB = prog ? (prog.lv - 1) : 0;
-  const maxHp = tpl.maxHp + lvB * 10 + (inner.li || 0) * 18;
+  const isEnemy = tpl.team === 'enemy';
+  const sc = isEnemy ? enemyScale : 1.0;
+  const maxHp = isEnemy ? Math.round(tpl.maxHp * sc) : (tpl.maxHp + lvB * 10 + (inner.li || 0) * 18);
+  const scaledAtk = isEnemy ? Math.round(tpl.baseAtk * (1 + (sc - 1) * 0.72)) : (tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5);
+  const scaledDef = isEnemy ? Math.round(tpl.baseDef * (1 + (sc - 1) * 0.58)) : (tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3);
   return {
     id: customId || tpl.id, tplKey: tpl.id || tpl.enemyType || 'chariot',
     char: tpl.char, name: tpl.name, team: tpl.team, enemyType: tpl.enemyType || null,
+    eliteSkill: eliteSkill || null, skillCd: (tpl.enemyType === 'elite' || tpl.enemyType === 'boss') ? 1 : 0,
     color: tpl.color, yinYang: tpl.yinYang, trigram: tpl.trigram || 'qian',
     r, c, facingLeft: false, maxHp, hp: maxHp,
     qi: tpl.team === 'player' ? Math.min(100, 50 + (inner.yue || 0) * 15) : 0, maxQi: 100,
-    baseAtk: tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5,
-    baseDef: tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3,
+    baseAtk: scaledAtk,
+    baseDef: scaledDef,
     baseMove: tpl.baseMove + (inner.yu || 0),
     bonusCrit: (inner.num || 0) * 0.08, outerTalents: { ...outer },
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
@@ -3509,11 +3652,12 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
   const prev = getUnitById(lastPlayerAction.unitId); if (!prev) return;
   if (manhattan(prev.r, prev.c, currUnit.r, currUnit.c) === 1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
     AudioManager.play('taiji'); triggerHitstop(60);
-    const dmg = 50 + (getHex().taijiBonus || 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 20;
+    const curAtk = getEffectiveStats(currUnit).atk;
+    const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
     const victim = (targetEnemy && targetEnemy.hp > 0) ? targetEnemy : units.filter(e => e.team === 'enemy' && e.hp > 0)[0];
     if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！'); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
-    [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 20); u.qi = Math.min(100, u.qi + 30); });
-    addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血 +30 氣！`, 'taiji');
+    [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 12); u.qi = Math.min(100, u.qi + 15); });
+    addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血+12、回氣+15！`, 'taiji');
   }
 }
 
@@ -3660,27 +3804,142 @@ async function endPlayerTurn() {
     const players = units.filter(u => u.team === 'player' && u.hp > 0 && u.stealthTurns <= 0);
     if (!players.length) break;
     const taunter = players.find(p => p.tauntTurns > 0 && manhattan(enemy.r, enemy.c, p.r, p.c) <= 4);
-    const target = taunter || (enemy.enemyType === 'archer' && players.find(p => p.id === 'p_hui')) || players.sort((a, b) => manhattan(enemy.r, enemy.c, a.r, a.c) - manhattan(enemy.r, enemy.c, b.r, b.c))[0];
-    const eRange = getEffectiveStats(enemy).range;
+    const eStats = getEffectiveStats(enemy);
+    const eRange = eStats.range;
+    const hex = getHex();
 
-    if (manhattan(enemy.r, enemy.c, target.r, target.c) > eRange && getEffectiveStats(enemy).move > 0) {
-      const reach = computeReachable(enemy); let bestMove = null, bestSc = manhattan(enemy.r, enemy.c, target.r, target.c);
+    // A. 【敵軍策士】專屬 AI：優先治癒並強化殘血友軍，否則遠程破防打擊
+    if (enemy.enemyType === 'strategist' && !taunter) {
+      const hurtAllies = units.filter(a => a.team === 'enemy' && a.hp > 0 && a.hp < a.maxHp * 0.78)
+        .sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
+      const healTarget = hurtAllies[0];
+      if (healTarget) {
+        if (manhattan(enemy.r, enemy.c, healTarget.r, healTarget.c) > eRange && eStats.move > 0) {
+          const reach = computeReachable(enemy); let bestMove = null, bestSc = 999;
+          for (const [k, info] of reach.entries()) {
+            const [rr, cc] = k.split(',').map(Number);
+            const dAlly = manhattan(rr, cc, healTarget.r, healTarget.c);
+            const minP = Math.min(...players.map(p => manhattan(rr, cc, p.r, p.c)));
+            const sc = (dAlly <= eRange ? 0 : dAlly * 2) - Math.min(3, minP) * 0.4;
+            if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
+          }
+          if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
+        }
+        if (manhattan(enemy.r, enemy.c, healTarget.r, healTarget.c) <= eRange) {
+          await playAnimWithHitSync(enemy, 'cast', async () => {
+            AudioManager.play('bell');
+            const healAmt = Math.min(healTarget.maxHp - healTarget.hp, Math.round(healTarget.maxHp * 0.28 * hex.healMult));
+            healTarget.hp += healAmt;
+            healTarget.buffTurns = Math.max(healTarget.buffTurns, 1);
+            spawnFloatText(healTarget.r, healTarget.c, `策士治癒+${healAmt}`, 'heal');
+            addLog(`${enemy.name} 施展【軍醫調息】為 ${healTarget.name} 回復 ${healAmt} HP 並提升攻防！`, 'enemy');
+          });
+          await sleep(130);
+          continue;
+        }
+      }
+    }
+
+    // B. 目標鎖定策略：輕騎專切後排軟甲、弓手狙擊顏回/低防、其餘兼顧距離與殘血集火
+    const scoreTarget = p => {
+      const d = manhattan(enemy.r, enemy.c, p.r, p.c);
+      const hpPct = p.hp / p.maxHp;
+      if (enemy.enemyType === 'cavalry') return d * 1.1 + getEffectiveStats(p).def * 0.32 + hpPct * 2.5 - (p.id === 'p_hui' || p.id === 'p_zixia' ? 2.5 : 0);
+      if (enemy.enemyType === 'archer')  return d * 0.9 + hpPct * 3.0 + (p.id === 'p_hui' ? -3.0 : 0);
+      return d * 1.4 + hpPct * 2.2;
+    };
+    const target = taunter || [...players].sort((a, b) => scoreTarget(a) - scoreTarget(b))[0];
+
+    // C. 走位邏輯：弓手／策士保持風箏距離 (2~3格)，近戰／輕騎積極貼身
+    const curDist = manhattan(enemy.r, enemy.c, target.r, target.c);
+    const shouldReposition = (curDist > eRange) || ((enemy.enemyType === 'archer' || enemy.enemyType === 'strategist') && curDist === 1);
+    if (shouldReposition && eStats.move > 0) {
+      const reach = computeReachable(enemy);
+      let bestMove = null;
+      let bestSc = (enemy.enemyType === 'archer' || enemy.enemyType === 'strategist')
+        ? (curDist >= 2 && curDist <= eRange ? -8 : curDist * 2)
+        : curDist * 2;
       for (const [k, info] of reach.entries()) {
-        const [rr, cc] = k.split(',').map(Number), d = manhattan(rr, cc, target.r, target.c);
-        const sc = (enemy.enemyType === 'archer' && d >= 2 && d <= eRange) ? d - 5 : d;
+        const [rr, cc] = k.split(',').map(Number);
+        const d = manhattan(rr, cc, target.r, target.c);
+        let sc = d * 2;
+        if (enemy.enemyType === 'archer' || enemy.enemyType === 'strategist') {
+          const minAnyP = Math.min(...players.map(p => manhattan(rr, cc, p.r, p.c)));
+          sc = (d >= 2 && d <= eRange) ? (-10 - minAnyP) : (d * 2 - minAnyP * 0.3);
+        }
         if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
       }
       if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
     }
 
+    // D. 菁英將領與首領專屬冷卻戰技（每 2 回合發動，被沉默/懷疑人生時無法施放）
+    let usedSpecialSkill = false;
+    if ((enemy.enemyType === 'elite' || enemy.enemyType === 'boss') && enemy.silenceTurns <= 0 && enemy.doubtTurns <= 0) {
+      if (enemy.skillCd <= 0) {
+        if (enemy.enemyType === 'elite' && enemy.eliteSkill === 'rally') {
+          const alliesNear = units.filter(a => a.team === 'enemy' && a.hp > 0 && manhattan(enemy.r, enemy.c, a.r, a.c) <= 3);
+          if (alliesNear.length >= 2) {
+            usedSpecialSkill = true; enemy.skillCd = 2;
+            await playAnimWithHitSync(enemy, 'cast', async () => {
+              AudioManager.play('ult'); spawnVfx(enemy.r, enemy.c, true, '督戰號令！');
+              alliesNear.forEach(a => { a.buffTurns = Math.max(a.buffTurns, 2); spawnFloatText(a.r, a.c, '攻防+20%', 'taiji'); });
+              addLog(`⚠ ${enemy.name} 發動【督戰號令】！周圍敵軍全屬性提升 2 回合！`, 'enemy');
+            });
+          }
+        } else if (enemy.enemyType === 'boss') {
+          const aoeTargets = players.filter(p => manhattan(enemy.r, enemy.c, p.r, p.c) <= 2);
+          if (aoeTargets.length > 0) {
+            usedSpecialSkill = true; enemy.skillCd = 2;
+            await playAnimWithHitSync(enemy, 'cast', async () => {
+              AudioManager.play('ult'); triggerCameraShake(5, 200);
+              spawnVfx(enemy.r, enemy.c, true, enemy.phase === 2 ? '心魔噬魂・極' : '心魔噬魂！');
+              const mult = enemy.phase === 2 ? 1.35 : 1.15;
+              for (const vt of aoeTargets) {
+                const dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(vt).def, false, vt);
+                await applyDamage(vt, dmg, false, false, enemy);
+                if (vt.hp > 0) { vt.vulnerableTurns = Math.max(vt.vulnerableTurns, 1); spawnFloatText(vt.r, vt.c, '易傷！', 'info'); }
+              }
+              addLog(`⚠ ${enemy.name} 施展【心魔噬魂】震懾周圍 2 格我軍並附加易傷！`, 'enemy');
+            });
+          }
+        }
+      } else {
+        enemy.skillCd--;
+      }
+    }
+
+    // E. 常規攻擊 / 菁英破陣重擊 / 策士破防（開放敵軍暴擊與集火優先級）
     const inRange = players.filter(u => manhattan(enemy.r, enemy.c, u.r, u.c) <= eRange);
-    if (inRange.length) {
-      const atkT = (taunter && inRange.includes(taunter)) ? taunter : ((enemy.enemyType === 'archer' && inRange.find(p => p.id === 'p_hui')) || inRange.sort((a, b) => a.hp - b.hp)[0]);
-      await playAnimWithHitSync(enemy, 'attack', async () => {
+    if (!usedSpecialSkill && inRange.length) {
+      const pickAtkTarget = list => {
+        if (taunter && list.includes(taunter)) return taunter;
+        return [...list].sort((a, b) => {
+          const estA = calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(a).def, false, a);
+          const estB = calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(b).def, false, b);
+          const killA = a.hp <= estA * 1.15 ? -100 : 0;
+          const killB = b.hp <= estB * 1.15 ? -100 : 0;
+          const huiA = (enemy.enemyType === 'archer' || enemy.enemyType === 'cavalry') && a.id === 'p_hui' ? -30 : 0;
+          const huiB = (enemy.enemyType === 'archer' || enemy.enemyType === 'cavalry') && b.id === 'p_hui' ? -30 : 0;
+          return (killA + huiA + a.hp) - (killB + huiB + b.hp);
+        })[0];
+      };
+      const atkT = pickAtkTarget(inRange);
+      const isCrush = (enemy.enemyType === 'elite' && enemy.eliteSkill === 'crush' && enemy.skillCd <= 0 && enemy.silenceTurns <= 0 && enemy.doubtTurns <= 0);
+      if (isCrush) enemy.skillCd = 2;
+
+      const enemyCritChance = Math.min(0.22, hex.critRate * 0.55 + (enemy.enemyType === 'cavalry' || enemy.enemyType === 'elite' ? 0.06 : 0));
+      const isCrit = Math.random() < enemyCritChance;
+      await playAnimWithHitSync(enemy, isCrush ? 'cast' : 'attack', async () => {
         await playLunge(enemy, atkT.r, atkT.c);
-        const dmg = calcDamage(getEffectiveStats(enemy).atk, getEffectiveStats(atkT).def, false, atkT);
-        await applyDamage(atkT, dmg, false, false, enemy);
-        addLog(`${enemy.name} 攻擊 ${atkT.name} 造成 ${dmg} 傷。`, 'enemy');
+        const mult = isCrush ? 1.35 : 1.0;
+        const dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(atkT).def, isCrit, atkT);
+        if (isCrush) { triggerCameraShake(4, 160); spawnVfx(atkT.r, atkT.c, true, '破陣重擊！'); }
+        await applyDamage(atkT, dmg, isCrit, false, enemy);
+        if (atkT.hp > 0 && (isCrush || enemy.enemyType === 'strategist')) {
+          atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
+          spawnFloatText(atkT.r, atkT.c, '破防！', 'info');
+        }
+        addLog(`${enemy.name}${isCrush ? '【破陣重擊】' : ''} 攻擊 ${atkT.name} 造成 ${dmg} 傷${isCrit ? '（暴擊！）' : ''}。`, 'enemy');
       });
     }
     await sleep(130);
@@ -3834,12 +4093,7 @@ function openHexModal() {
   document.getElementById('hexModal').classList.add('show');
 }
 
-function devBattleCheat(type) {
-  if (gameState !== STATE.PLAYER_TURN) return;
-  if (type === 'fullQi') units.filter(u=>u.team==='player'&&u.hp>0).forEach(u=>{ u.qi=100; });
-  if (type === 'lowHp') units.filter(u=>u.team==='player'&&u.hp>0).forEach(u=>{ u.hp=Math.max(1,Math.round(u.maxHp*0.2)); });
-  renderAll();
-}
+
 
 // 戰鬥畫面渲染 (v0.4 現代古風介面引擎)
 function renderAll() {
