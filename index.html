@@ -3,33 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.5 — 15名將全陣容・12城列國收徒完整版</title>
+<title>《論語戰棋》v0.6 — 9×9暗黑水墨・15名將列國收徒完整版</title>
 <style>
   :root {
-    --bg: #090e1a;
-    --panel: #162033;
-    --panel-dark: #0c1322;
-    --panel-border: #2a3a54;
-    --text: #f1f5f9;
-    --muted: #94a3b8;
-    --accent: #38bdf8;
-    --gold: #facc15;
-    --amber: #f59e0b;
-    --danger: #ef4444;
-    --heal: #22c55e;
-    --tile-plain: #e2e8f0;
-    --tile-plain-alt: #cbd5e1;
-    --tile-wall: #111827;
-    --tile-water: #93c5fd;
+    --bg: #0c0d0e;
+    --panel: #161719;
+    --panel-dark: #0f1012;
+    --panel-elev: #1e1f22;
+    --panel-border: #3a352c;
+    --panel-border-hi: #6e5c3e;
+    --text: #eae3d5;
+    --muted: #9a9284;
+    --accent: #6ea8a1;
+    --accent-dark: #1d3c3a;
+    --gold: #d4af6a;
+    --gold-bright: #ecd29b;
+    --amber: #a87638;
+    --danger: #c83e37;
+    --danger-dark: #4a1513;
+    --heal: #5e9c76;
+    --heal-dark: #153121;
+    --tile-plain: #272521;
+    --tile-plain-alt: #1f1e1b;
+    --tile-wall: #111214;
+    --tile-water: #173038;
+    --font-serif: "Noto Serif TC", "Songti TC", "PMingLiU", "DFKai-SB", "KaiTi", Georgia, serif;
+    --font-sans: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
   html, body {
     margin: 0;
     padding: 0;
-    background: #04070f;
+    background: radial-gradient(circle at 50% 0%, #1a1917 0%, #070809 70%, #040405 100%);
     color: var(--text);
-    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    font-family: var(--font-sans);
     min-height: 100dvh;
     display: flex;
     justify-content: center;
@@ -40,654 +48,607 @@
     width: 100%;
     max-width: 480px;
     min-height: 100dvh;
-    background: var(--bg);
+    background:
+      radial-gradient(ellipse at 20% 10%, rgba(110, 168, 161, 0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 85% 90%, rgba(212, 175, 106, 0.05) 0%, transparent 50%),
+      var(--bg);
     display: flex;
     flex-direction: column;
     position: relative;
-    box-shadow: 0 0 36px rgba(0, 0, 0, 0.8);
+    border-left: 1px solid #24211c;
+    border-right: 1px solid #24211c;
+    box-shadow: 0 0 42px rgba(0, 0, 0, 0.92);
     padding-bottom: env(safe-area-inset-bottom);
   }
 
-  /* 頂部狀態列 */
+  /* 頂部狀態列（暗墨檀木捲軸） */
   .top-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
-    background: #0f172a;
-    border-bottom: 1px solid var(--panel-border);
+    background: linear-gradient(180deg, #171614 0%, #0e0f10 100%);
+    border-bottom: 1.5px solid #453c2e;
     gap: 6px;
     flex-shrink: 0;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.65);
   }
-  .brand-title { font-size: 0.92rem; font-weight: 900; color: var(--gold); white-space: nowrap; }
+  .brand-title {
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    letter-spacing: 2px;
+    white-space: nowrap;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  }
   .res-pills { display: flex; align-items: center; gap: 5px; }
   .pill {
-    padding: 2px 7px; border-radius: 999px; font-size: 0.72rem; font-weight: 800;
-    background: var(--panel-dark); border: 1px solid #334155; color: #e2e8f0; white-space: nowrap;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    background: #131416;
+    border: 1px solid #3f3a31;
+    color: #d9d2c3;
+    white-space: nowrap;
   }
-  .pill.gold { color: #fde047; border-color: #a16207; background: #3b1e06; }
-  .pill.player { color: #38bdf8; border-color: #0284c7; }
-  .pill.enemy { color: #f87171; border-color: #dc2626; }
-  .pill.busy { color: #facc15; border-color: #ca8a04; }
-  .pill.green { color: #86efac; border-color: #16a34a; background: #052e16; }
+  .pill.gold { color: var(--gold-bright); border-color: #8c6d3b; background: #241c10; }
+  .pill.player { color: #9dd4cc; border-color: #3f756e; background: #102422; }
+  .pill.enemy { color: #f09c97; border-color: #8f2b26; background: #2c100f; }
+  .pill.busy { color: var(--gold-bright); border-color: #8c6d3b; background: #261d0f; }
+  .pill.green { color: #9ed4b2; border-color: #3f7553; background: #102418; }
 
   .icon-btn {
-    background: #1e293b; color: #e2e8f0; border: 1px solid #334155;
-    border-radius: 7px; padding: 5px 8px; font-size: 0.75rem; font-weight: 700;
-    cursor: pointer; min-height: 32px;
+    background: #1b1c1f;
+    color: #e6dfd1;
+    border: 1px solid #443d33;
+    border-radius: 6px;
+    padding: 5px 8px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    min-height: 32px;
   }
-  .icon-btn:active { transform: scale(0.96); }
+  .icon-btn:active { transform: scale(0.95); }
 
   .btn {
-    background: #243249; color: #f8fafc; border: 1px solid #3b4f6e;
-    border-radius: 8px; padding: 8px 12px; font-size: 0.82rem; font-weight: 800;
-    cursor: pointer; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-    transition: transform 0.08s;
+    background: linear-gradient(180deg, #252422 0%, #181817 100%);
+    color: var(--text);
+    border: 1px solid #4b4439;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    cursor: pointer;
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 1px 0 rgba(255, 245, 225, 0.06), 0 2px 6px rgba(0, 0, 0, 0.45);
+    transition: transform 0.08s, border-color 0.15s;
   }
   .btn:active:not(:disabled) { transform: scale(0.97); }
-  .btn:disabled { opacity: 0.36; cursor: not-allowed; }
-  .btn.primary { background: #2563eb; border-color: #60a5fa; color: #fff; }
-  .btn.gold { background: #92400e; border-color: #facc15; color: #fef08a; }
-  .btn.danger { background: #7f1d1d; border-color: #ef4444; color: #fecaca; }
-  .btn.dev { background: #3b0764; border-color: #a855f7; color: #e9d5ff; }
-  .btn.active { background: #0284c7; border-color: #38bdf8; }
+  .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  /* 硃砂印主按鈕 */
+  .btn.primary {
+    background: linear-gradient(180deg, #9e2a24 0%, #701a16 100%);
+    border-color: #d4655d;
+    color: #fdf6ec;
+    font-family: var(--font-serif);
+    letter-spacing: 1px;
+  }
+  /* 泥金古銅按鈕 */
+  .btn.gold {
+    background: linear-gradient(180deg, #5c4321 0%, #3d2b13 100%);
+    border-color: var(--gold);
+    color: var(--gold-bright);
+  }
+  .btn.danger {
+    background: linear-gradient(180deg, #5c1917 0%, #3d0f0e 100%);
+    border-color: #a8322c;
+    color: #f5c6c4;
+  }
+  .btn.dev {
+    background: linear-gradient(180deg, #33203b 0%, #201326 100%);
+    border-color: #825d94;
+    color: #e4d2ed;
+  }
+  .btn.active {
+    background: linear-gradient(180deg, #214a46 0%, #14302d 100%);
+    border-color: var(--accent);
+    color: #d8f3ef;
+  }
   .btn.sm { min-height: 30px; padding: 4px 8px; font-size: 0.74rem; }
 
   .scene { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
   .scene.active { display: flex; }
 
-  /* ==================== 場景 1：春秋中國輿圖 ==================== */
+  /* ==================== 場景 1：春秋中國水墨輿圖 ==================== */
   .map-scene-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
   .map-frame {
-    position: relative; width: 100%; border-radius: 12px; overflow: hidden;
-    border: 2px solid #785a28; background: #1a1f29;
-    box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 8px 20px rgba(0,0,0,0.5);
+    position: relative;
+    width: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 2px solid #594a32;
+    background: #0c0e10;
+    box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.85), 0 8px 22px rgba(0, 0, 0, 0.65);
   }
   .china-svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
   .map-float-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; z-index: 5; }
   .map-watermark {
-    position: absolute; top: 10px; left: 10px;
-    background: rgba(15, 23, 42, 0.78); border: 1px solid #a16207; color: #fde68a;
-    font-size: 0.75rem; font-weight: 900; padding: 3px 8px; border-radius: 6px; letter-spacing: 2px; pointer-events: none;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(16, 15, 13, 0.86);
+    border: 1px solid #8c6d3b;
+    color: var(--gold-bright);
+    font-family: var(--font-serif);
+    font-size: 0.8rem;
+    font-weight: 900;
+    padding: 3px 10px;
+    border-radius: 4px;
+    letter-spacing: 3px;
+    pointer-events: none;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
   }
   .city-node { cursor: pointer; }
-  .city-node.locked { cursor: not-allowed; opacity: 0.48; }
+  .city-node.locked { cursor: not-allowed; opacity: 0.42; }
   .city-ring-pulse { animation: cityPulse 1.8s infinite ease-in-out; transform-box: fill-box; transform-origin: center; }
-  @keyframes cityPulse { 0%, 100% { transform: scale(1); opacity: 0.85; } 50% { transform: scale(1.22); opacity: 0.35; } }
+  @keyframes cityPulse { 0%, 100% { transform: scale(1); opacity: 0.88; } 50% { transform: scale(1.24); opacity: 0.3; } }
 
   .briefing-card {
-    background: linear-gradient(180deg, #172136, #0f172a);
-    border: 2px solid #475569; border-radius: 12px; padding: 12px;
-    display: flex; flex-direction: column; gap: 8px;
+    background: linear-gradient(180deg, #1b1a18 0%, #111110 100%);
+    border: 1.5px solid #4f4433;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.55);
   }
   .briefing-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
-  .briefing-title { font-size: 1rem; font-weight: 900; color: var(--gold); }
-  .briefing-meta { font-size: 0.78rem; color: #cbd5e1; line-height: 1.5; }
+  .briefing-title {
+    font-family: var(--font-serif);
+    font-size: 1.06rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    letter-spacing: 1px;
+  }
+  .briefing-meta { font-size: 0.78rem; color: #cfc7b8; line-height: 1.55; }
   .briefing-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 8px; }
 
-  /* ==================== 場景 2：孔門營地 (Master-Detail 聚焦重構) & 場景 2.5：列國市集 ==================== */
+  /* ==================== 場景 2：孔門營地 & 場景 2.5：列國市集 ==================== */
   .camp-wrap, .shop-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
   .camp-mode-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .camp-pane { display: none; flex-direction: column; gap: 8px; }
   .camp-pane.active { display: flex; }
 
-  /* 頂部橫向滑動弟子頭像列 */
   .roster-strip-head {
     display: flex; justify-content: space-between; align-items: center; gap: 6px;
-    font-size: 0.75rem; color: #94a3b8;
+    font-size: 0.75rem; color: var(--muted);
   }
   .filter-pills { display: flex; gap: 4px; }
   .filter-pill {
-    background: var(--panel-dark); border: 1px solid #334155; color: #94a3b8;
-    border-radius: 999px; padding: 3px 9px; font-size: 0.7rem; font-weight: 800; cursor: pointer;
+    background: var(--panel-dark);
+    border: 1px solid #3c372f;
+    color: var(--muted);
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    cursor: pointer;
   }
-  .filter-pill.active { background: #1e3a8a; border-color: #38bdf8; color: #e0f2fe; }
+  .filter-pill.active { background: #1e3b38; border-color: var(--accent); color: #dcf2ef; }
 
   .roster-carousel {
     display: flex; gap: 7px; overflow-x: auto; padding: 3px 2px 6px;
-    scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: #334155 transparent;
+    scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: #453f36 transparent;
   }
   .roster-carousel::-webkit-scrollbar { height: 4px; }
-  .roster-carousel::-webkit-scrollbar-thumb { background: #334155; border-radius: 99px; }
+  .roster-carousel::-webkit-scrollbar-thumb { background: #453f36; border-radius: 99px; }
 
   .roster-tile {
     flex: 0 0 72px;
     scroll-snap-align: start;
-    background: var(--panel);
-    border: 2px solid #2a3a54;
-    border-radius: 10px;
+    background: linear-gradient(180deg, #1b1b1c 0%, #121213 100%);
+    border: 1.5px solid #38332b;
+    border-radius: 7px;
     padding: 6px 4px 5px;
     display: flex; flex-direction: column; align-items: center; gap: 3px;
     cursor: pointer; position: relative; transition: transform 0.08s, border-color 0.15s;
   }
   .roster-tile:active { transform: scale(0.96); }
-  .roster-tile.deployed { border-color: #16a34a; background: #072017; }
+  .roster-tile.deployed { border-color: #4c8260; background: linear-gradient(180deg, #14221a 0%, #0d1611 100%); }
   .roster-tile.selected {
     border-color: var(--gold);
-    background: linear-gradient(180deg, #2b2110, #17140d);
-    box-shadow: 0 0 12px rgba(250, 204, 21, 0.45);
+    background: linear-gradient(180deg, #2b2214 0%, #17130c 100%);
+    box-shadow: 0 0 12px rgba(212, 175, 106, 0.35);
   }
   .roster-tile-order {
     position: absolute; top: 3px; left: 4px;
-    font-size: 0.6rem; font-weight: 900; color: #4ade80;
-    background: rgba(5, 46, 22, 0.9); padding: 0 4px; border-radius: 4px;
+    font-size: 0.58rem; font-weight: 900; color: #fdf2ee;
+    background: #962620; border: 1px solid #d4655d; padding: 0 4px; border-radius: 3px;
   }
   .roster-tile-lv {
     position: absolute; top: 3px; right: 4px;
-    font-size: 0.58rem; font-weight: 800; color: #fde047;
+    font-size: 0.58rem; font-weight: 800; color: var(--gold-bright);
   }
   .roster-tile-name {
-    font-size: 0.72rem; font-weight: 900; color: #f8fafc; white-space: nowrap;
+    font-family: var(--font-serif);
+    font-size: 0.74rem; font-weight: 900; color: var(--text); white-space: nowrap;
   }
-  /* 頭像下方 3 顆裝備狀態點（亮金＝已裝、暗灰＝空槽） */
   .eq-dots-row { display: flex; gap: 4px; margin-top: 1px; }
   .eq-dot {
     width: 6px; height: 6px; border-radius: 999px;
-    background: #334155; border: 1px solid #475569;
+    background: #2b2a28; border: 1px solid #4a453c;
   }
-  .eq-dot.on { background: #facc15; border-color: #fef08a; box-shadow: 0 0 4px rgba(250, 204, 21, 0.8); }
+  .eq-dot.on { background: var(--gold); border-color: var(--gold-bright); box-shadow: 0 0 4px rgba(212, 175, 106, 0.8); }
 
-  /* 單一弟子聚焦儀表板 */
+  /* 單一弟子聚焦儀表板（線裝書暗墨頁） */
   .focus-char-card {
-    background: linear-gradient(180deg, #162033 0%, #0f172a 100%);
-    border: 1.5px solid #475569;
-    border-radius: 12px;
+    background: linear-gradient(180deg, #1a1918 0%, #111112 100%);
+    border: 1.5px solid #4d4334;
+    border-radius: 8px;
     padding: 10px;
     display: flex; flex-direction: column; gap: 9px;
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.5);
   }
   .focus-subtab-bar {
     display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;
-    background: var(--panel-dark); padding: 4px; border-radius: 9px; border: 1px solid #2a3a54;
+    background: var(--panel-dark); padding: 4px; border-radius: 6px; border: 1px solid #332e26;
   }
   .focus-subtab-btn {
-    background: transparent; border: none; color: #94a3b8;
-    border-radius: 7px; padding: 7px 4px; font-size: 0.76rem; font-weight: 900; cursor: pointer;
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    border-radius: 5px; padding: 7px 4px; font-size: 0.76rem; font-weight: 900; cursor: pointer;
+    font-family: var(--font-serif);
   }
   .focus-subtab-btn.active {
-    background: #1d4ed8; color: #fff; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.45);
+    background: linear-gradient(180deg, #8a241f 0%, #631714 100%);
+    border-color: #c95d56;
+    color: #fdf5eb;
+    box-shadow: 0 2px 8px rgba(158, 42, 36, 0.4);
   }
   .focus-subpane { display: none; flex-direction: column; gap: 8px; }
   .focus-subpane.active { display: flex; }
 
   .mobile-card {
-    background: var(--panel); border: 1px solid var(--panel-border);
-    border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 7px;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
+    border-radius: 7px;
+    padding: 10px;
+    display: flex; flex-direction: column; gap: 7px;
   }
-  .mobile-card.deployed { border-color: #22c55e; background: #07261b; }
+  .mobile-card.deployed { border-color: #4c8260; background: #111e16; }
   .char-chip {
-    width: 34px; height: 34px; border-radius: 7px; display: inline-flex;
-    align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 1.05rem; flex-shrink: 0;
+    width: 34px; height: 34px; border-radius: 6px; display: inline-flex;
+    align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-weight: 900; color: #f9f4eb; font-size: 1.05rem;
+    flex-shrink: 0; border: 1.5px solid rgba(236, 210, 155, 0.45);
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.45);
   }
   .row-between { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .select-mobile {
-    width: 100%; background: var(--panel-dark); color: #f8fafc;
-    border: 1px solid #3b4f6e; border-radius: 6px; padding: 7px 6px; font-size: 0.76rem;
+    width: 100%; background: var(--panel-dark); color: var(--text);
+    border: 1px solid #474035; border-radius: 5px; padding: 7px 6px; font-size: 0.76rem;
   }
 
   .equip-slot-list { display: flex; flex-direction: column; gap: 6px; }
   .equip-slot-btn {
     width: 100%; text-align: left; background: var(--panel-dark);
-    border: 1.5px solid #334155; border-radius: 8px; padding: 9px 10px;
+    border: 1.5px solid #3a352c; border-radius: 6px; padding: 9px 10px;
     color: var(--text); cursor: pointer; display: flex; flex-direction: column; gap: 3px;
   }
-  .equip-slot-btn.equipped { border-color: #ca8a04; background: #1e180c; }
+  .equip-slot-btn.equipped { border-color: #9e7c42; background: #1e1910; }
   .equip-slot-btn:active { transform: scale(0.99); }
   .slot-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 900; }
-  .slot-sub { font-size: 0.72rem; color: #94a3b8; line-height: 1.38; }
-  .equip-slot-btn.equipped .slot-sub { color: #fde68a; }
+  .slot-sub { font-size: 0.72rem; color: var(--muted); line-height: 1.38; }
+  .equip-slot-btn.equipped .slot-sub { color: var(--gold-bright); }
 
   .equip-item-card {
-    background: var(--panel-dark); border: 1px solid #334155; border-radius: 9px;
+    background: var(--panel-dark); border: 1px solid #3a352c; border-radius: 7px;
     padding: 10px; display: flex; flex-direction: column; gap: 5px;
   }
-  .equip-item-card.owned { border-color: #38bdf8; }
-  .equip-item-card.active-eq { border-color: var(--gold); background: #261b08; }
-  .equip-item-card.locked { opacity: 0.72; border-style: dashed; }
+  .equip-item-card.owned { border-color: var(--accent); }
+  .equip-item-card.active-eq { border-color: var(--gold); background: #231c10; }
+  .equip-item-card.locked { opacity: 0.7; border-style: dashed; }
 
   .stat-pill-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .stat-box {
-    background: var(--panel-dark); border: 1px solid #334155; border-radius: 7px;
-    padding: 6px 8px; font-size: 0.74rem;
+    background: var(--panel-dark); border: 1px solid #36322a; border-radius: 6px;
+    padding: 6px 8px; font-size: 0.72rem; color: var(--muted);
   }
-  .stat-box .val { font-size: 0.9rem; font-weight: 900; color: #fff; margin-top: 2px; }
-  .stat-box .bonus { font-size: 0.7rem; color: #4ade80; font-weight: 700; }
+  .stat-box .val { font-size: 0.9rem; font-weight: 900; color: var(--text); margin-top: 2px; }
+  .stat-box .bonus { font-size: 0.7rem; color: #7ac495; font-weight: 700; }
   .skill-detail-card {
-    background: var(--panel-dark); border: 1px solid #334155; border-radius: 8px;
+    background: var(--panel-dark); border: 1px solid #3a352c; border-radius: 6px;
     padding: 8px 10px; display: flex; flex-direction: column; gap: 4px;
   }
-  .skill-detail-card.ult { border-color: #ea580c; background: #220d05; }
-  .skill-detail-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 900; }
-  .skill-detail-desc { font-size: 0.74rem; color: #cbd5e1; line-height: 1.4; }
+  .skill-detail-card.ult { border-color: #9e3828; background: #21100e; }
+  .skill-detail-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    font-family: var(--font-serif); font-size: 0.84rem; font-weight: 900; color: var(--text);
+  }
+  .skill-detail-desc { font-size: 0.74rem; color: #c7bfb0; line-height: 1.45; }
 
   .section-divider {
-    font-size: 0.78rem; font-weight: 900; color: var(--gold);
-    border-left: 3px solid var(--gold); padding-left: 7px; margin-top: 4px;
+    font-family: var(--font-serif);
+    font-size: 0.82rem; font-weight: 900; color: var(--gold-bright);
+    border-left: 3px solid var(--danger); padding-left: 8px; margin-top: 4px; letter-spacing: 1px;
   }
 
+  /* 底部導覽列（暗墨卷軸條） */
   .bottom-nav {
     display: grid; grid-template-columns: repeat(4, 1fr);
-    background: #0f172a; border-top: 1px solid var(--panel-border);
+    background: linear-gradient(180deg, #141413 0%, #0a0b0c 100%);
+    border-top: 1.5px solid #453c2e;
     padding: 6px 6px calc(6px + env(safe-area-inset-bottom)); gap: 4px; flex-shrink: 0;
   }
   .nav-tab {
-    background: transparent; color: var(--muted); border: none; border-radius: 8px;
+    background: transparent; color: var(--muted); border: 1px solid transparent; border-radius: 6px;
     padding: 6px 2px; font-size: 0.72rem; font-weight: 800; cursor: pointer;
     display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-family: var(--font-serif);
   }
-  .nav-tab.active { background: #1e293b; color: var(--gold); }
+  .nav-tab.active {
+    background: #211d16;
+    border-color: #6e5938;
+    color: var(--gold-bright);
+  }
 
-  /* ==================== 場景 3：手機戰棋戰鬥 (v0.4 全屏沉浸式重構) ==================== */
+  /* ==================== 場景 3：手機戰棋戰鬥 (9×9 暗黑水墨全屏沉浸版) ==================== */
   .mobile-shell.in-battle {
     height: 100dvh;
     max-height: 100dvh;
     overflow: hidden;
     padding-bottom: 0;
   }
-  .mobile-shell.in-battle .top-header {
-    display: none;
-  }
-  .mobile-shell.in-battle #sceneBattle {
-    overflow: hidden;
-    height: 100%;
-  }
+  .mobile-shell.in-battle .top-header { display: none; }
+  .mobile-shell.in-battle #sceneBattle { overflow: hidden; height: 100%; }
 
   .battle-wrap {
-    flex: 1;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    gap: 0;
-    overflow: hidden;
-    background: #0b0f17;
+    flex: 1; height: 100%;
+    display: flex; flex-direction: column; padding: 0; gap: 0;
+    overflow: hidden; background: #090a0b;
   }
 
-  /* 1. 頂部極簡天時條 (~10%) */
+  /* 1. 頂部極簡天時條 */
   .battle-top-bar {
-    flex: 0 0 auto;
-    min-height: 54px;
-    max-height: 11dvh;
-    background: linear-gradient(180deg, #171412 0%, #0e131e 100%);
-    border-bottom: 1.5px solid #6b532e;
+    flex: 0 0 auto; min-height: 54px; max-height: 11dvh;
+    background: linear-gradient(180deg, #181613 0%, #0e0f10 100%);
+    border-bottom: 1.5px solid #5c4b30;
     padding: 6px 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
+    display: flex; align-items: center; justify-content: space-between; gap: 6px;
     z-index: 30;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.55);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
   }
-  .hex-left-group {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 0;
-    flex: 1;
-  }
-  .hex-badge-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-wrap: nowrap;
-    overflow: hidden;
-  }
+  .hex-left-group { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+  .hex-badge-row { display: flex; align-items: center; gap: 5px; flex-wrap: nowrap; overflow: hidden; }
   .hex-badge-btn {
-    background: linear-gradient(135deg, #3b2810, #1f160a);
-    border: 1px solid #d4a446;
-    color: #fef08a;
-    font-size: 0.78rem;
-    font-weight: 900;
-    padding: 2px 8px;
-    border-radius: 999px;
-    white-space: nowrap;
-    cursor: pointer;
-    flex-shrink: 0;
+    background: linear-gradient(135deg, #2e2313, #17120a);
+    border: 1px solid var(--gold);
+    color: var(--gold-bright);
+    font-family: var(--font-serif);
+    font-size: 0.78rem; font-weight: 900; padding: 2px 8px;
+    border-radius: 4px; white-space: nowrap; cursor: pointer; flex-shrink: 0; letter-spacing: 0.5px;
   }
   .hex-desc-mini {
-    font-size: 0.67rem;
-    color: #cbd5e1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.67rem; color: #bdb5a6;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .syn-strip {
-    display: flex;
-    gap: 4px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    align-items: center;
-    scrollbar-width: none;
+    display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; align-items: center; scrollbar-width: none;
   }
   .syn-strip::-webkit-scrollbar { display: none; }
   .syn-tag {
-    font-size: 0.64rem;
-    font-weight: 800;
-    padding: 1px 6px;
-    border-radius: 999px;
-    background: #172033;
-    border: 1px solid #334155;
-    color: #94a3b8;
-    white-space: nowrap;
-    display: none;
+    font-size: 0.64rem; font-weight: 800; padding: 1px 6px; border-radius: 3px;
+    background: #17181a; border: 1px solid #3c372e; color: var(--muted); white-space: nowrap; display: none;
   }
-  .syn-tag.on { display: inline-flex; background: #713f12; border-color: #facc15; color: #fef08a; }
-  .syn-tag.domain { display: inline-flex; background: #064e3b; border-color: #34d399; color: #a7f3d0; }
-  .syn-tag.taiji-ready { display: inline-flex; background: #1e3a8a; border-color: #60a5fa; color: #dbeafe; }
+  .syn-tag.on { display: inline-flex; background: #3b2a12; border-color: var(--gold); color: var(--gold-bright); }
+  .syn-tag.domain { display: inline-flex; background: #143022; border-color: var(--heal); color: #b5e6c8; }
+  .syn-tag.taiji-ready { display: inline-flex; background: #163331; border-color: var(--accent); color: #cdeae6; }
 
-  .battle-top-right {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    flex-shrink: 0;
-  }
+  .battle-top-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
   .zoom-toggle-btn {
-    background: #1f2937;
-    color: #fde68a;
-    border: 1px solid #856229;
-    border-radius: 7px;
-    padding: 4px 7px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    cursor: pointer;
-    min-height: 32px;
-    white-space: nowrap;
+    background: #1b1a18; color: var(--gold-bright); border: 1px solid #6e5938;
+    border-radius: 5px; padding: 4px 7px; font-size: 0.72rem; font-weight: 800;
+    cursor: pointer; min-height: 32px; white-space: nowrap;
   }
-  .zoom-toggle-btn.overview {
-    background: #713f12;
-    border-color: #facc15;
-    color: #fef08a;
-  }
+  .zoom-toggle-btn.overview { background: #4a3518; border-color: var(--gold); color: #fff3d6; }
 
-  /* 2. 中央 4×4 (長螢幕 4×5~5.5) 主戰場 (~78%) */
+  /* 2. 中央 9×9 暗黑水墨主戰場 */
   .board-stage {
-    flex: 1 1 auto;
-    min-height: 0;
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    background: #10141c;
+    flex: 1 1 auto; min-height: 0; position: relative; width: 100%;
+    overflow: hidden; background: #0a0b0c;
   }
   .board-viewport {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: radial-gradient(circle at center, #1c222e 0%, #0b0f17 100%);
-    touch-action: none;
-    cursor: grab;
+    position: relative; width: 100%; height: 100%; overflow: hidden;
+    background: radial-gradient(circle at center, #1c1b18 0%, #090a0b 100%);
+    touch-action: none; cursor: grab;
   }
   .board-viewport:active { cursor: grabbing; }
 
-  /* 八純卦天時環境光暈 */
+  /* 八純卦天時水墨邊緣暈染 */
   .board-viewport::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 70;
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 70;
     transition: box-shadow 0.45s ease;
-    box-shadow: inset 0 0 28px rgba(0, 0, 0, 0.45);
+    box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.65);
   }
-  .board-viewport[data-hex="qian"]::after { box-shadow: inset 0 0 42px rgba(250, 204, 21, 0.34); }
-  .board-viewport[data-hex="kun"]::after  { box-shadow: inset 0 0 42px rgba(180, 130, 70, 0.36); }
-  .board-viewport[data-hex="kan"]::after  { box-shadow: inset 0 0 48px rgba(56, 189, 248, 0.40); }
-  .board-viewport[data-hex="li"]::after   { box-shadow: inset 0 0 48px rgba(239, 68, 68, 0.40); }
-  .board-viewport[data-hex="zhen"]::after { box-shadow: inset 0 0 42px rgba(168, 85, 247, 0.36); }
-  .board-viewport[data-hex="xun"]::after  { box-shadow: inset 0 0 42px rgba(52, 211, 153, 0.34); }
-  .board-viewport[data-hex="gen"]::after  { box-shadow: inset 0 0 42px rgba(148, 163, 184, 0.38); }
-  .board-viewport[data-hex="dui"]::after  { box-shadow: inset 0 0 42px rgba(45, 212, 191, 0.34); }
+  .board-viewport[data-hex="qian"]::after { box-shadow: inset 0 0 46px rgba(212, 175, 106, 0.34); }
+  .board-viewport[data-hex="kun"]::after  { box-shadow: inset 0 0 46px rgba(156, 114, 62, 0.36); }
+  .board-viewport[data-hex="kan"]::after  { box-shadow: inset 0 0 52px rgba(78, 138, 150, 0.42); }
+  .board-viewport[data-hex="li"]::after   { box-shadow: inset 0 0 52px rgba(200, 62, 55, 0.42); }
+  .board-viewport[data-hex="zhen"]::after { box-shadow: inset 0 0 46px rgba(145, 98, 168, 0.36); }
+  .board-viewport[data-hex="xun"]::after  { box-shadow: inset 0 0 46px rgba(94, 156, 118, 0.34); }
+  .board-viewport[data-hex="gen"]::after  { box-shadow: inset 0 0 46px rgba(135, 132, 124, 0.36); }
+  .board-viewport[data-hex="dui"]::after  { box-shadow: inset 0 0 46px rgba(110, 168, 161, 0.36); }
 
   .camera-layer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 1024px;
-    height: 1024px;
-    transform-origin: 0 0;
-    will-change: transform;
+    position: absolute; left: 0; top: 0;
+    width: 1152px; height: 1152px;
+    transform-origin: 0 0; will-change: transform;
   }
-  .board-shake-wrap {
-    position: absolute;
-    inset: 0;
-    transition: transform 0.04s linear;
-  }
+  .board-shake-wrap { position: absolute; inset: 0; transition: transform 0.04s linear; }
 
-  /* 棋盤地磚：暖米宣紙 × 淡墨青石板 */
+  /* 9×9 暗黑水墨青石地磚 */
   .grid-layer {
-    position: absolute;
-    inset: 0;
-    display: grid;
-    grid-template-columns: repeat(8, 128px);
-    grid-template-rows: repeat(8, 128px);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.75);
+    position: absolute; inset: 0; display: grid;
+    grid-template-columns: repeat(9, 128px);
+    grid-template-rows: repeat(9, 128px);
+    box-shadow: 0 0 48px rgba(0, 0, 0, 0.92);
+    border: 3px solid #4a3f2f;
   }
   .tile {
-    width: 128px;
-    height: 128px;
-    position: relative;
-    border: 1px solid rgba(58, 49, 36, 0.22);
-    box-shadow: inset 0 0 12px rgba(58, 49, 36, 0.07);
+    width: 128px; height: 128px; position: relative;
+    border: 1px solid rgba(212, 175, 106, 0.12);
+    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.32);
     pointer-events: none;
   }
   .tile.plain {
-    background: linear-gradient(145deg, #ebe2ce 0%, #e1d5bc 100%);
+    background: linear-gradient(145deg, #2b2925 0%, #22201d 100%);
   }
   .tile.plain.alt {
-    background: linear-gradient(145deg, #d7d2c3 0%, #c9c4b4 100%);
+    background: linear-gradient(145deg, #23221f 0%, #1a1917 100%);
   }
-  /* 障礙：立體泰山石碑質感 */
+  /* 障礙：暗墨泰山石碑 */
   .tile.wall {
-    background: linear-gradient(160deg, #3f464e 0%, #242930 58%, #16191f 100%);
-    border: 2px solid #525b66;
-    box-shadow: inset 0 6px 10px rgba(255,255,255,0.12), inset 0 -10px 14px rgba(0,0,0,0.65);
+    background: linear-gradient(160deg, #1b1d20 0%, #101113 60%, #08090a 100%);
+    border: 2px solid #3c3a35;
+    box-shadow: inset 0 6px 12px rgba(255, 248, 230, 0.06), inset 0 -10px 16px rgba(0, 0, 0, 0.85);
   }
   .tile.wall::after {
     content: "石";
-    position: absolute;
-    inset: 14px;
-    border: 1.5px solid rgba(180, 170, 150, 0.25);
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(203, 213, 225, 0.32);
-    font-size: 32px;
-    font-weight: 900;
-    font-family: "KaiTi", "DFKai-SB", "Noto Serif TC", serif;
+    position: absolute; inset: 14px;
+    border: 1.5px solid rgba(212, 175, 106, 0.22); border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    color: rgba(180, 172, 155, 0.32); font-size: 34px; font-weight: 900;
+    font-family: var(--font-serif);
   }
-  /* 坎卦積水：墨池水澤 */
+  /* 坎卦積水：深黛墨池水澤 */
   .tile.water {
-    background: radial-gradient(circle at 35% 35%, #6da3c7 0%, #3d6d94 60%, #274c6b 100%);
-    border-color: rgba(147, 197, 253, 0.35);
-    box-shadow: inset 0 0 18px rgba(15, 35, 60, 0.45);
+    background: radial-gradient(circle at 38% 36%, #244854 0%, #163038 58%, #0d1d24 100%);
+    border-color: rgba(110, 168, 161, 0.35);
+    box-shadow: inset 0 0 22px rgba(5, 14, 18, 0.72);
   }
-  /* 冉有【足民之策】木柵欄障礙 */
+  .tile.water::after {
+    content: "水";
+    position: absolute; right: 10px; bottom: 6px;
+    color: rgba(157, 212, 204, 0.5); font-size: 22px; font-weight: 800;
+    font-family: var(--font-serif);
+  }
+  /* 冉有【足民之策】暗檀木柵欄 */
   .tile.fence {
-    background: repeating-linear-gradient(90deg, #6b4423 0px, #6b4423 14px, #4a2d14 14px, #4a2d14 20px);
-    border: 2px solid #a16207;
-    box-shadow: inset 0 4px 10px rgba(255,230,180,0.2), inset 0 -8px 12px rgba(0,0,0,0.6);
+    background: repeating-linear-gradient(90deg, #422b18 0px, #422b18 14px, #29190c 14px, #29190c 20px);
+    border: 2px solid #8c622d;
+    box-shadow: inset 0 4px 10px rgba(255, 230, 180, 0.14), inset 0 -8px 14px rgba(0, 0, 0, 0.75);
   }
   .tile.fence::after {
     content: "柵";
     position: absolute; inset: 16px;
-    border: 1.5px solid rgba(253, 224, 71, 0.35); border-radius: 6px;
+    border: 1.5px solid rgba(212, 175, 106, 0.35); border-radius: 4px;
     display: flex; align-items: center; justify-content: center;
-    color: rgba(254, 243, 199, 0.65); font-size: 28px; font-weight: 900;
+    color: rgba(236, 210, 155, 0.65); font-size: 28px; font-weight: 900;
+    font-family: var(--font-serif);
   }
-  .unit-anchor.stealth { opacity: 0.48; }
-  .unit-anchor.frozen .unit-box, .unit-anchor.frozen .sprite-canvas { filter: hue-rotate(155deg) brightness(1.12); }
-  .unit-anchor.fortress .unit-box { box-shadow: 0 0 18px 4px #94a3b8; border-color: #e2e8f0; }
+  .unit-anchor.stealth { opacity: 0.45; }
+  .unit-anchor.frozen .unit-box, .unit-anchor.frozen .sprite-canvas { filter: hue-rotate(155deg) brightness(1.08); }
+  .unit-anchor.fortress .unit-box { box-shadow: 0 0 18px 4px #a8a296; border-color: #e6dfd1; }
   .recruit-callout {
-    background: linear-gradient(135deg, #3b2609, #1f160a);
-    border: 2px solid #facc15; border-radius: 10px; padding: 10px 14px;
-    color: #fef08a; font-size: 0.85rem; font-weight: 900; line-height: 1.5;
-    box-shadow: 0 0 22px rgba(250, 204, 21, 0.35);
+    background: linear-gradient(135deg, #302210, #17120a);
+    border: 2px solid var(--gold); border-radius: 6px; padding: 10px 14px;
+    color: var(--gold-bright); font-family: var(--font-serif);
+    font-size: 0.88rem; font-weight: 900; line-height: 1.5;
+    box-shadow: 0 0 22px rgba(212, 175, 106, 0.28);
   }
-  .shield-bar-bg {
-    height: 3px; background: rgba(0,0,0,0.75); border-radius: 2px; overflow: hidden;
-  }
-  .shield-bar-fill { height: 100%; background: linear-gradient(90deg, #38bdf8, #e0f2fe); transition: width 0.2s; }
+  .shield-bar-bg { height: 3px; background: rgba(0,0,0,0.8); border-radius: 2px; overflow: hidden; }
+  .shield-bar-fill { height: 100%; background: linear-gradient(90deg, #6ea8a1, #d8f3ef); transition: width 0.2s; }
 
-  .tile.water::after {
-    content: "水";
-    position: absolute;
-    right: 10px;
-    bottom: 6px;
-    color: rgba(219, 234, 254, 0.55);
-    font-size: 20px;
-    font-weight: 800;
-    font-family: "KaiTi", "DFKai-SB", serif;
-  }
-
+  /* 暗黑水墨格線高亮（石青 / 硃砂 / 竹綠 / 泥金） */
   .tile.move-range::before {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    background: rgba(56, 189, 248, 0.36);
-    border: 3px solid #0284c7;
-    border-radius: 8px;
-    box-shadow: inset 0 0 14px rgba(56, 189, 248, 0.4);
+    content: ""; position: absolute; inset: 6px;
+    background: rgba(110, 168, 161, 0.30);
+    border: 3px solid #7ab8b0; border-radius: 6px;
+    box-shadow: inset 0 0 16px rgba(110, 168, 161, 0.35);
   }
   .tile.attack-range::before {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    background: rgba(220, 38, 38, 0.38);
-    border: 3px solid #dc2626;
-    border-radius: 8px;
+    content: ""; position: absolute; inset: 6px;
+    background: rgba(200, 62, 55, 0.36);
+    border: 3px solid #d44d46; border-radius: 6px;
   }
   .tile.heal-range::before {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    background: rgba(34, 197, 94, 0.38);
-    border: 3px solid #16a34a;
-    border-radius: 8px;
+    content: ""; position: absolute; inset: 6px;
+    background: rgba(94, 156, 118, 0.34);
+    border: 3px solid #6eb589; border-radius: 6px;
   }
   .tile.special-range::before {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    background: rgba(234, 179, 8, 0.38);
-    border: 3px solid #ca8a04;
-    border-radius: 8px;
+    content: ""; position: absolute; inset: 6px;
+    background: rgba(212, 175, 106, 0.32);
+    border: 3px solid #d4af6a; border-radius: 6px;
   }
-  .tile.selected-tile {
-    box-shadow: inset 0 0 0 5px #facc15;
-  }
+  .tile.selected-tile { box-shadow: inset 0 0 0 5px var(--gold); }
   .tile.preview-target {
-    box-shadow: inset 0 0 0 6px #fef08a, inset 0 0 28px rgba(239, 68, 68, 0.65);
+    box-shadow: inset 0 0 0 6px var(--gold-bright), inset 0 0 28px rgba(200, 62, 55, 0.65);
     animation: targetPulse 0.9s infinite ease-in-out;
   }
-  @keyframes targetPulse {
-    0%, 100% { filter: brightness(1); }
-    50% { filter: brightness(1.22); }
-  }
+  @keyframes targetPulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.24); } }
 
   /* 移動殘影 */
   .ghost-layer { position: absolute; inset: 0; pointer-events: none; z-index: 8; }
   .move-ghost {
-    position: absolute;
-    width: 108px;
-    height: 108px;
-    margin: 10px;
-    border-radius: 12px;
-    border: 3px dashed #38bdf8;
-    background: rgba(56, 189, 248, 0.22);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #e0f2fe;
-    font-weight: 900;
-    font-size: 36px;
-    line-height: 1;
+    position: absolute; width: 108px; height: 108px; margin: 10px; border-radius: 8px;
+    border: 3px dashed #7ab8b0; background: rgba(110, 168, 161, 0.2);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #e6f2f0; font-family: var(--font-serif); font-weight: 900; font-size: 36px; line-height: 1;
     text-shadow: 0 2px 6px #000;
   }
-  .move-ghost span { font-size: 16px; color: #bae6fd; margin-top: 6px; }
+  .move-ghost span { font-size: 16px; color: #b5ded8; margin-top: 6px; }
 
   /* 單位圖層：128×128 1:1 無損呈現 */
   .unit-layer { position: absolute; inset: 0; pointer-events: none; }
   .unit-anchor {
-    position: absolute;
-    width: 128px;
-    height: 128px;
-    transition: left 0.16s ease, top 0.16s ease;
-    pointer-events: none;
+    position: absolute; width: 128px; height: 128px;
+    transition: left 0.16s ease, top 0.16s ease; pointer-events: none;
   }
   .unit-box {
-    position: absolute;
-    left: 14px;
-    top: 10px;
-    width: 100px;
-    height: 100px;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    font-weight: 900;
-    color: #fff;
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.65);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.38);
-    border: 3px solid rgba(255, 255, 255, 0.72);
+    position: absolute; left: 14px; top: 10px; width: 100px; height: 100px;
+    border-radius: 10px; display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-size: 48px; font-weight: 900; color: #fbf6ec;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.85);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.65), inset 0 0 14px rgba(0, 0, 0, 0.35);
+    border: 3px solid rgba(236, 210, 155, 0.68);
     transition: transform 0.1s ease, filter 0.08s ease;
   }
   .sprite-canvas {
-    position: absolute;
-    left: 0;
-    top: -10px;
-    width: 128px;
-    height: 128px;
-    image-rendering: pixelated;
-    pointer-events: none;
+    position: absolute; left: 0; top: -10px; width: 128px; height: 128px;
+    image-rendering: pixelated; pointer-events: none;
   }
-  .unit-anchor.selected .unit-box { border: 4px solid #facc15; box-shadow: 0 0 22px rgba(250, 204, 21, 0.92); }
-  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 10px #facc15); }
-  .unit-anchor.exhausted .unit-box, .unit-anchor.exhausted .sprite-canvas { filter: saturate(0.42) brightness(0.74); }
-  .unit-anchor.hit-flash .unit-box, .unit-anchor.hit-flash .sprite-canvas { filter: brightness(4) contrast(0.5) !important; }
-  .unit-anchor.invincible .unit-box { box-shadow: 0 0 20px 5px #fde047; border-color: #fef08a; }
-  .unit-anchor.lockhp .unit-box { box-shadow: 0 0 20px 5px #ef4444; border-color: #fca5a5; }
-  .unit-anchor.sleeping .unit-box { filter: brightness(0.65) hue-rotate(25deg); }
+  .unit-anchor.selected .unit-box { border: 4px solid var(--gold-bright); box-shadow: 0 0 24px rgba(212, 175, 106, 0.9); }
+  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 10px #d4af6a); }
+  .unit-anchor.exhausted .unit-box, .unit-anchor.exhausted .sprite-canvas { filter: saturate(0.35) brightness(0.68); }
+  .unit-anchor.hit-flash .unit-box, .unit-anchor.hit-flash .sprite-canvas { filter: brightness(3.8) contrast(0.5) !important; }
+  .unit-anchor.invincible .unit-box { box-shadow: 0 0 20px 5px var(--gold-bright); border-color: #fff3d6; }
+  .unit-anchor.lockhp .unit-box { box-shadow: 0 0 20px 5px #c83e37; border-color: #f09c97; }
+  .unit-anchor.sleeping .unit-box { filter: brightness(0.62) hue-rotate(25deg); }
   .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
 
-  /* 除錯基準框與 anim-pill：預設隱藏，開啟基準框才顯示 */
   .art-guide {
-    display: none;
-    position: absolute;
-    left: 0;
-    top: -10px;
-    width: 128px;
-    height: 128px;
-    border: 2px dashed rgba(250, 204, 21, 0.85);
-    pointer-events: none;
+    display: none; position: absolute; left: 0; top: -10px; width: 128px; height: 128px;
+    border: 2px dashed rgba(212, 175, 106, 0.85); pointer-events: none;
   }
   .art-guide::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    bottom: 12px;
-    border-bottom: 2px solid rgba(239, 68, 68, 0.9);
+    content: ""; position: absolute; left: 0; right: 0; bottom: 12px;
+    border-bottom: 2px solid rgba(200, 62, 55, 0.9);
   }
   .anim-pill {
-    display: none;
-    position: absolute;
-    top: -18px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(2, 6, 23, 0.88);
-    color: #38bdf8;
-    border: 1px solid #334155;
-    font-size: 13px;
-    font-family: monospace;
-    padding: 1px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
+    display: none; position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
+    background: rgba(12, 13, 14, 0.92); color: var(--accent); border: 1px solid #3c372f;
+    font-size: 13px; font-family: monospace; padding: 1px 6px; border-radius: 4px; white-space: nowrap;
   }
-  .anim-pill.hit { background: #7f1d1d; color: #fef08a; border-color: #facc15; }
-  .show-guides .art-guide,
-  .show-guides .anim-pill { display: block; }
+  .anim-pill.hit { background: #6b1a16; color: var(--gold-bright); border-color: var(--gold); }
+  .show-guides .art-guide, .show-guides .anim-pill { display: block; }
 
   @keyframes hitShake {
     0% { transform: translateX(0); }
@@ -698,174 +659,100 @@
   }
   .unit-anchor.shake .unit-box, .unit-anchor.shake .sprite-canvas { animation: hitShake 0.14s linear; }
 
-  /* 角色腳底 HUD（100% 露出立繪上半身與臉部） */
+  /* 角色腳底 HUD */
   .hud-layer { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
-  .unit-hud {
-    position: absolute;
-    width: 128px;
-    height: 128px;
-    transition: left 0.16s ease, top 0.16s ease;
-  }
+  .unit-hud { position: absolute; width: 128px; height: 128px; transition: left 0.16s ease, top 0.16s ease; }
   .hud-foot-badges {
-    position: absolute;
-    left: 6px;
-    right: 6px;
-    bottom: 18px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+    position: absolute; left: 6px; right: 6px; bottom: 18px;
+    display: flex; justify-content: space-between; align-items: flex-end;
   }
   .hud-yy-circle {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: rgba(15, 23, 42, 0.88);
-    border: 1.5px solid #facc15;
-    color: #fef08a;
-    font-size: 12px;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+    min-width: 22px; height: 22px; padding: 0 5px; border-radius: 4px;
+    background: rgba(16, 15, 13, 0.92); border: 1.5px solid var(--gold); color: var(--gold-bright);
+    font-family: var(--font-serif); font-size: 12px; font-weight: 900;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
   }
   .hud-ap-circle {
-    min-width: 22px;
-    height: 22px;
-    padding: 0 5px;
-    border-radius: 999px;
-    background: rgba(12, 74, 110, 0.92);
-    border: 1.5px solid #38bdf8;
-    color: #e0f2fe;
-    font-size: 12px;
-    font-weight: 900;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.65);
+    min-width: 22px; height: 22px; padding: 0 5px; border-radius: 999px;
+    background: rgba(20, 48, 45, 0.94); border: 1.5px solid var(--accent); color: #daf2ef;
+    font-size: 12px; font-weight: 900;
+    display: inline-flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.8);
   }
   .hud-status {
-    position: absolute;
-    bottom: 42px;
-    right: 6px;
-    font-size: 13px;
-    font-weight: 900;
-    background: rgba(15, 23, 42, 0.9);
-    border: 1px solid #facc15;
-    color: #fde047;
-    padding: 1px 5px;
-    border-radius: 4px;
+    position: absolute; bottom: 42px; right: 6px; font-size: 12px; font-weight: 900;
+    background: rgba(18, 16, 14, 0.92); border: 1px solid var(--gold); color: var(--gold-bright);
+    padding: 1px 5px; border-radius: 3px; font-family: var(--font-serif);
   }
-  .hud-bars {
-    position: absolute;
-    left: 8px;
-    right: 8px;
-    bottom: 4px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+  .hud-bars { position: absolute; left: 8px; right: 8px; bottom: 4px; display: flex; flex-direction: column; gap: 2px; }
   .hp-bar-bg {
-    height: 7px;
-    background: rgba(0, 0, 0, 0.85);
-    border: 1px solid rgba(15, 23, 42, 0.95);
-    border-radius: 3px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    height: 7px; background: rgba(0, 0, 0, 0.88); border: 1px solid rgba(58, 53, 44, 0.95);
+    border-radius: 2px; overflow: hidden; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
   }
-  .hp-bar-fill { height: 100%; background: linear-gradient(90deg, #16a34a, #4ade80); transition: width 0.2s; }
-  .hp-bar-fill.enemy { background: linear-gradient(90deg, #b91c1c, #f87171); }
+  .hp-bar-fill { height: 100%; background: linear-gradient(90deg, #3c7a56, #74bd90); transition: width 0.2s; }
+  .hp-bar-fill.enemy { background: linear-gradient(90deg, #8c231e, #d9524a); }
   .qi-bar-bg {
-    height: 4px;
-    background: rgba(0, 0, 0, 0.85);
-    border: 1px solid rgba(15, 23, 42, 0.95);
-    border-radius: 2px;
-    overflow: hidden;
+    height: 4px; background: rgba(0, 0, 0, 0.88); border: 1px solid rgba(58, 53, 44, 0.95);
+    border-radius: 2px; overflow: hidden;
   }
-  .qi-bar-fill { height: 100%; background: linear-gradient(90deg, #d97706, #fde047); transition: width 0.2s; }
+  .qi-bar-fill { height: 100%; background: linear-gradient(90deg, #9e7332, #ecd29b); transition: width 0.2s; }
 
-  /* 刀光特效與傷害浮字（128px 尺度） */
+  /* 水墨刀光與陽刻硃砂篆印 */
   .vfx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 55; overflow: hidden; }
   .vfx-slash {
-    position: absolute;
-    width: 128px;
-    height: 128px;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    border: 6px solid #f8fafc;
-    box-shadow: 0 0 24px #38bdf8, inset 0 0 18px #0f172a;
+    position: absolute; width: 128px; height: 128px; transform: translate(-50%, -50%);
+    border-radius: 50%; border: 6px solid #eae3d5;
+    box-shadow: 0 0 26px #6ea8a1, inset 0 0 20px #0c0d0e;
     animation: vfxBurst 0.34s ease-out forwards;
   }
   .vfx-slash.ult {
-    width: 196px;
-    height: 196px;
-    border-color: #facc15;
-    box-shadow: 0 0 36px #f97316, inset 0 0 26px #7c2d12;
+    width: 204px; height: 204px; border-color: var(--gold-bright);
+    box-shadow: 0 0 38px #c83e37, inset 0 0 28px #42120f;
   }
   @keyframes vfxBurst {
     0% { opacity: 0.95; transform: translate(-50%, -50%) scale(0.35) rotate(-25deg); }
-    60% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.1) rotate(18deg); }
-    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.35) rotate(35deg); }
+    60% { opacity: 0.9; transform: translate(-50%, -50%) scale(1.12) rotate(18deg); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.38) rotate(35deg); }
   }
-  .screen-vfx-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 95;
-    overflow: hidden;
-  }
+  .screen-vfx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 95; overflow: hidden; }
   .vfx-stamp {
-    position: absolute;
-    left: 50%;
-    top: 42%;
-    transform: translate(-50%, -50%);
-    background: rgba(127, 29, 29, 0.95);
-    color: #fef08a;
-    border: 3px solid #facc15;
-    border-radius: 8px;
-    padding: 7px 18px;
-    font-size: 1.35rem;
-    font-weight: 900;
-    letter-spacing: 3px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.78);
+    position: absolute; left: 50%; top: 42%;
+    transform: translate(-50%, -50%) rotate(-4deg);
+    background: rgba(145, 28, 24, 0.96);
+    color: #fdf4e3;
+    border: 3px double #ecd29b;
+    border-radius: 4px;
+    padding: 8px 20px;
+    font-family: var(--font-serif);
+    font-size: 1.42rem; font-weight: 900; letter-spacing: 4px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.85), inset 0 0 12px rgba(0, 0, 0, 0.35);
     animation: stampPop 0.92s ease-out forwards;
     white-space: nowrap;
   }
   @keyframes stampPop {
-    0% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
-    20% { opacity: 1; transform: translate(-50%, -50%) scale(0.96); }
-    80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-    100% { opacity: 0; transform: translate(-50%, -62%) scale(0.95); }
+    0% { opacity: 0; transform: translate(-50%, -50%) rotate(-8deg) scale(1.65); }
+    20% { opacity: 1; transform: translate(-50%, -50%) rotate(-3deg) scale(0.96); }
+    80% { opacity: 1; transform: translate(-50%, -50%) rotate(-4deg) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -62%) rotate(-4deg) scale(0.95); }
   }
 
   .fx-layer { position: absolute; inset: 0; pointer-events: none; z-index: 60; overflow: hidden; }
   .float-text {
-    position: absolute;
-    font-weight: 900;
-    font-size: 28px;
-    text-shadow: 0 3px 6px rgba(0, 0, 0, 0.96), 0 0 3px #000;
-    transform: translate(-50%, 0);
-    animation: floatUp 0.95s ease-out forwards;
-    white-space: nowrap;
+    position: absolute; font-weight: 900; font-size: 28px;
+    text-shadow: 0 3px 8px rgba(0, 0, 0, 0.98), 0 0 4px #000;
+    transform: translate(-50%, 0); animation: floatUp 0.95s ease-out forwards; white-space: nowrap;
   }
-  .float-text.dmg { color: #ff4d4f; font-size: 32px; }
-  .float-text.crit { color: #fb923c; font-size: 38px; }
-  .float-text.heal { color: #4ade80; font-size: 30px; }
-  .float-text.info { color: #38bdf8; font-size: 26px; }
+  .float-text.dmg { color: #e85a54; font-size: 32px; }
+  .float-text.crit { color: #f0a45d; font-size: 38px; font-family: var(--font-serif); }
+  .float-text.heal { color: #79c997; font-size: 30px; }
+  .float-text.info { color: #8ec9c2; font-size: 26px; }
   .float-text.taiji {
-    color: #fde047;
-    font-size: 30px;
-    background: rgba(15, 23, 42, 0.94);
-    border: 3px solid #facc15;
-    padding: 4px 12px;
-    border-radius: 8px;
-    animation: floatUpBig 1.35s ease-out forwards;
+    color: var(--gold-bright); font-family: var(--font-serif); font-size: 30px;
+    background: rgba(16, 15, 13, 0.95); border: 2px solid var(--gold);
+    padding: 4px 12px; border-radius: 4px; animation: floatUpBig 1.35s ease-out forwards;
   }
-  @keyframes floatUp {
-    0% { opacity: 1; transform: translate(-50%, 0); }
-    100% { opacity: 0; transform: translate(-50%, -56px); }
-  }
+  @keyframes floatUp { 0% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -56px); } }
   @keyframes floatUpBig {
     0% { opacity: 0; transform: translate(-50%, 10px) scale(0.85); }
     18% { opacity: 1; transform: translate(-50%, -12px) scale(1.1); }
@@ -873,293 +760,170 @@
     100% { opacity: 0; transform: translate(-50%, -64px) scale(0.95); }
   }
 
-  /* 視野外敵軍邊緣預警 */
-  .threat-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 75;
-  }
+  /* 視野外敵軍邊緣預警（硃砂暗印） */
+  .threat-layer { position: absolute; inset: 0; pointer-events: none; z-index: 75; }
   .threat-pill {
-    position: absolute;
-    pointer-events: auto;
-    cursor: pointer;
-    background: rgba(153, 27, 27, 0.84);
-    border: 1.5px solid #fca5a5;
-    color: #fff;
-    font-size: 0.68rem;
-    font-weight: 900;
-    padding: 3px 7px;
-    border-radius: 999px;
-    white-space: nowrap;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65);
-    backdrop-filter: blur(2px);
+    position: absolute; pointer-events: auto; cursor: pointer;
+    background: rgba(128, 28, 24, 0.9); border: 1.5px solid #e0827c; color: #fdf4e3;
+    font-family: var(--font-serif); font-size: 0.68rem; font-weight: 900;
+    padding: 3px 8px; border-radius: 4px; white-space: nowrap;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.75); backdrop-filter: blur(2px);
   }
   .threat-pill:active { transform: scale(0.95); }
 
-  /* 螢幕浮動 UI 層：原地快捷浮標 & 古風指令浮窗 */
-  .float-ui-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 85;
-  }
+  /* 螢幕浮動 UI 層：暗墨竹簡指令浮窗 */
+  .float-ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 85; }
   .quick-action-pill {
-    position: absolute;
-    pointer-events: auto;
-    background: linear-gradient(180deg, rgba(247, 240, 224, 0.96), rgba(228, 215, 187, 0.96));
-    color: #2c1e12;
-    border: 2px solid #9a6b2f;
-    border-radius: 999px;
-    padding: 6px 12px;
-    font-size: 0.76rem;
-    font-weight: 900;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.65);
-    cursor: pointer;
-    white-space: nowrap;
+    position: absolute; pointer-events: auto;
+    background: linear-gradient(180deg, rgba(34, 30, 25, 0.96), rgba(18, 16, 14, 0.96));
+    color: var(--gold-bright); border: 1.5px solid var(--gold);
+    border-radius: 4px; padding: 6px 13px;
+    font-family: var(--font-serif); font-size: 0.78rem; font-weight: 900; letter-spacing: 1px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8); cursor: pointer; white-space: nowrap;
     transform: translate(-50%, 0);
   }
   .quick-action-pill:active { transform: translate(-50%, 0) scale(0.96); }
 
   .cmd-popover {
-    position: absolute;
-    pointer-events: auto;
-    width: 196px;
-    background: linear-gradient(180deg, rgba(248, 242, 228, 0.96) 0%, rgba(235, 224, 200, 0.96) 100%);
-    color: #1f1a16;
-    border: 2px solid #8c6228;
-    border-radius: 10px;
-    padding: 7px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.72), inset 0 0 18px rgba(139, 98, 40, 0.14);
-    backdrop-filter: blur(3px);
+    position: absolute; pointer-events: auto; width: 198px;
+    background: linear-gradient(180deg, rgba(26, 24, 21, 0.97) 0%, rgba(15, 14, 13, 0.97) 100%);
+    color: var(--text); border: 1.5px solid #8c6d3b; border-radius: 6px; padding: 7px;
+    display: flex; flex-direction: column; gap: 5px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.88), inset 0 0 20px rgba(212, 175, 106, 0.06);
+    backdrop-filter: blur(4px);
   }
   .cmd-pop-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(140, 98, 40, 0.35);
-    padding-bottom: 4px;
-    font-size: 0.74rem;
-    font-weight: 900;
-    color: #5c3a14;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.28); padding-bottom: 4px;
+    font-family: var(--font-serif); font-size: 0.78rem; font-weight: 900; color: var(--gold-bright);
   }
   .cmd-btn {
-    width: 100%;
-    text-align: left;
-    background: rgba(255, 253, 247, 0.88);
-    border: 1.5px solid #b59763;
-    border-radius: 7px;
-    padding: 6px 8px;
-    color: #1f1a16;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-    transition: transform 0.08s;
+    width: 100%; text-align: left;
+    background: rgba(34, 33, 30, 0.92); border: 1px solid #4a4235; border-radius: 5px;
+    padding: 6px 8px; color: var(--text); cursor: pointer;
+    display: flex; flex-direction: column; gap: 1px; transition: transform 0.08s;
   }
   .cmd-btn:active:not(:disabled) { transform: scale(0.97); }
-  .cmd-btn:disabled { opacity: 0.42; cursor: not-allowed; }
-  .cmd-btn-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.78rem;
-    font-weight: 900;
-  }
-  .cmd-btn-sub {
-    font-size: 0.65rem;
-    color: #574c40;
-    line-height: 1.25;
-  }
+  .cmd-btn:disabled { opacity: 0.36; cursor: not-allowed; }
+  .cmd-btn-top { display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem; font-weight: 900; }
+  .cmd-btn-sub { font-size: 0.65rem; color: var(--muted); line-height: 1.25; }
   .cmd-btn.undo {
-    background: linear-gradient(180deg, #0369a1, #075985);
-    border-color: #38bdf8;
-    color: #fff;
-    align-items: center;
-    text-align: center;
-    font-size: 0.8rem;
-    font-weight: 900;
-    padding: 6px 8px;
+    background: linear-gradient(180deg, #214a46, #14302d); border-color: var(--accent);
+    color: #e4f7f5; align-items: center; text-align: center; font-size: 0.78rem; font-weight: 900; padding: 6px 8px;
   }
-  .cmd-btn.ult { border-color: #c2410c; background: #fff7ed; }
-  .cmd-btn.ult .cmd-btn-top { color: #9a3412; }
-  .cmd-btn.combo { border-color: #b45309; background: linear-gradient(180deg, #fef3c7, #fde68a); }
-  .cmd-btn.combo .cmd-btn-top { color: #78350f; }
-  .cmd-btn.hexflip { border-color: #7e22ce; background: #faf5ff; }
-  .cmd-btn.hexflip .cmd-btn-top { color: #581c87; }
+  .cmd-btn.ult { border-color: #a8352e; background: linear-gradient(180deg, #331412, #210c0b); }
+  .cmd-btn.ult .cmd-btn-top { color: #f5b4af; }
+  .cmd-btn.combo { border-color: var(--gold); background: linear-gradient(180deg, #3d2d14, #261b0b); }
+  .cmd-btn.combo .cmd-btn-top { color: var(--gold-bright); }
+  .cmd-btn.hexflip { border-color: #7e5a94; background: #221629; }
+  .cmd-btn.hexflip .cmd-btn-top { color: #dfc7ed; }
   .cmd-btn.wait {
-    background: #2c2824;
-    border-color: #575049;
-    color: #f5efe2;
-    text-align: center;
-    align-items: center;
-    font-size: 0.76rem;
-    font-weight: 800;
-    padding: 6px 8px;
+    background: #141413; border-color: #453f36; color: #cfc7b8;
+    text-align: center; align-items: center; font-size: 0.76rem; font-weight: 800; padding: 6px 8px;
   }
 
   /* 戰前傷害預覽確認條 */
   .preview-banner {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    z-index: 90;
-    background: rgba(15, 23, 42, 0.95);
-    border: 2px solid #facc15;
-    border-radius: 10px;
-    padding: 8px 10px;
-    display: none;
-    flex-direction: column;
-    gap: 6px;
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.78);
+    position: absolute; top: 8px; left: 8px; right: 8px; z-index: 90;
+    background: rgba(16, 15, 13, 0.96); border: 1.5px solid var(--gold); border-radius: 6px;
+    padding: 8px 10px; display: none; flex-direction: column; gap: 6px;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.86);
   }
   .preview-banner.show { display: flex; }
   .preview-main-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 900;
-    color: #fef08a;
+    display: flex; justify-content: space-between; align-items: center; gap: 6px;
+    font-family: var(--font-serif); font-size: 0.82rem; font-weight: 900; color: var(--gold-bright);
   }
-  .preview-metrics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    font-size: 0.73rem;
-    color: #e2e8f0;
-  }
-  .preview-actions {
-    display: grid;
-    grid-template-columns: 1fr 1.6fr;
-    gap: 6px;
-  }
+  .preview-metrics { display: flex; flex-wrap: wrap; gap: 6px; font-size: 0.73rem; color: #dcd4c6; }
+  .preview-actions { display: grid; grid-template-columns: 1fr 1.6fr; gap: 6px; }
 
-  /* 3. 底部懸浮單行狀態膠囊 (~12%) */
+  /* 3. 底部懸浮單行狀態膠囊 */
   .battle-bottom-capsule {
-    flex: 0 0 auto;
-    min-height: 62px;
-    max-height: 13dvh;
-    background: linear-gradient(180deg, #131b2c 0%, #0a0f1a 100%);
-    border-top: 1.5px solid #4d3d22;
+    flex: 0 0 auto; min-height: 62px; max-height: 13dvh;
+    background: linear-gradient(180deg, #171614 0%, #0b0c0d 100%);
+    border-top: 1.5px solid #5c4b30;
     padding: 7px 10px calc(7px + env(safe-area-inset-bottom));
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    z-index: 30;
+    display: flex; align-items: center; justify-content: space-between; gap: 8px; z-index: 30;
   }
-  .capsule-unit-info {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .capsule-bars {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
+  .capsule-unit-info { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; }
+  .capsule-bars { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
   .capsule-name-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.8rem;
-    font-weight: 900;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 5px;
+    font-family: var(--font-serif); font-size: 0.84rem; font-weight: 900;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .capsule-meter-row {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.69rem;
-    color: #cbd5e1;
-  }
-  .capsule-actions {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex-shrink: 0;
-  }
+  .capsule-meter-row { display: flex; align-items: center; gap: 6px; font-size: 0.69rem; color: #cfc7b8; }
+  .capsule-actions { display: flex; align-items: center; gap: 5px; flex-shrink: 0; }
   .btn-end-turn {
-    min-height: 40px;
-    padding: 0 12px;
-    border-radius: 9px;
-    border: 2px solid #f59e0b;
-    background: linear-gradient(180deg, #d97706, #b45309);
-    color: #fff;
-    font-size: 0.82rem;
-    font-weight: 900;
-    cursor: pointer;
-    white-space: nowrap;
+    min-height: 40px; padding: 0 13px; border-radius: 5px;
+    border: 1.5px solid #d4655d;
+    background: linear-gradient(180deg, #9e2a24, #6e1915);
+    color: #fdf4e3; font-family: var(--font-serif); font-size: 0.85rem; font-weight: 900;
+    letter-spacing: 1px; cursor: pointer; white-space: nowrap;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55);
   }
-  .btn-end-turn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-end-turn:disabled { opacity: 0.36; cursor: not-allowed; }
   .btn-capsule-undo {
-    min-height: 40px;
-    padding: 0 9px;
-    border-radius: 9px;
-    border: 2px solid #38bdf8;
-    background: #0369a1;
-    color: #fff;
-    font-size: 0.78rem;
-    font-weight: 900;
-    cursor: pointer;
-    white-space: nowrap;
+    min-height: 40px; padding: 0 9px; border-radius: 5px;
+    border: 1.5px solid var(--accent); background: #183835;
+    color: #e4f7f5; font-size: 0.78rem; font-weight: 900; cursor: pointer; white-space: nowrap;
   }
 
-  /* 彈窗抽屜 */
-  .modal-backdrop { position: fixed; inset: 0; background: rgba(2, 6, 23, 0.84); display: none; align-items: flex-end; justify-content: center; z-index: 250; }
+  /* 彈窗抽屜（暗墨宣紙捲軸） */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(4, 5, 6, 0.86); display: none; align-items: flex-end; justify-content: center; z-index: 250; }
   .modal-backdrop.center { align-items: center; padding: 14px; }
   .modal-backdrop.show { display: flex; }
   .modal-sheet {
-    background: var(--panel); border: 2px solid var(--gold);
-    border-radius: 14px 14px 0 0; padding: 14px; width: 100%; max-width: 480px;
+    background: linear-gradient(180deg, #1b1a18 0%, #121213 100%);
+    border: 1.5px solid var(--gold);
+    border-radius: 10px 10px 0 0; padding: 14px; width: 100%; max-width: 480px;
     max-height: 85dvh; overflow-y: auto; display: flex; flex-direction: column; gap: 9px;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.85);
   }
-  .modal-backdrop.center .modal-sheet { border-radius: 12px; }
-  .modal-sheet h3 { margin: 0; font-size: 1rem; color: var(--gold); }
+  .modal-backdrop.center .modal-sheet { border-radius: 8px; }
+  .modal-sheet h3 {
+    margin: 0; font-family: var(--font-serif); font-size: 1.04rem;
+    color: var(--gold-bright); letter-spacing: 1px;
+  }
 
   .hex-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-  .hex-choice { padding: 8px; border-radius: 8px; border: 2px solid #475569; background: var(--panel-dark); color: #cbd5e1; text-align: left; cursor: pointer; font-size: 0.75rem; }
-  .hex-choice.opposite { border-color: #facc15; background: #422006; color: #fef08a; }
-  .hex-choice:disabled { opacity: 0.35; }
+  .hex-choice {
+    padding: 8px; border-radius: 5px; border: 1.5px solid #453f36;
+    background: var(--panel-dark); color: #cfc7b8; text-align: left; cursor: pointer; font-size: 0.75rem;
+  }
+  .hex-choice.opposite { border-color: var(--gold); background: #2e2211; color: var(--gold-bright); }
+  .hex-choice:disabled { opacity: 0.34; }
 
   .sprite-status-list {
-    display: flex; flex-direction: column; gap: 4px;
-    max-height: 210px; overflow-y: auto;
-    background: var(--panel-dark); border: 1px solid #334155;
-    border-radius: 8px; padding: 7px;
+    display: flex; flex-direction: column; gap: 4px; max-height: 210px; overflow-y: auto;
+    background: var(--panel-dark); border: 1px solid #3a352c; border-radius: 6px; padding: 7px;
   }
   .sprite-status-row {
     display: flex; justify-content: space-between; align-items: center;
-    font-size: 0.73rem; padding: 4px 6px; border-radius: 5px;
-    background: rgba(30, 41, 59, 0.55); gap: 6px;
+    font-size: 0.73rem; padding: 4px 6px; border-radius: 4px; background: rgba(34, 33, 30, 0.6); gap: 6px;
   }
-  .sprite-path { font-family: monospace; color: #93c5fd; font-size: 0.69rem; }
+  .sprite-path { font-family: monospace; color: var(--accent); font-size: 0.69rem; }
 
-  .log-box { max-height: 220px; overflow-y: auto; font-size: 0.75rem; line-height: 1.45; display: flex; flex-direction: column; gap: 3px; }
-  .log-entry { padding: 3px 6px; border-radius: 4px; background: rgba(15,23,42,0.6); border-left: 3px solid #475569; }
-  .log-entry.player { border-left-color: #38bdf8; }
-  .log-entry.enemy { border-left-color: #ef4444; }
-  .log-entry.taiji { border-left-color: #facc15; color: #fef08a; font-weight: 700; }
-  .log-entry.hex { border-left-color: #a855f7; color: #e9d5ff; }
-  .log-entry.ult { border-left-color: #f97316; color: #ffedd5; font-weight: 700; }
+  .log-box { max-height: 220px; overflow-y: auto; font-size: 0.75rem; line-height: 1.48; display: flex; flex-direction: column; gap: 3px; }
+  .log-entry { padding: 3px 6px; border-radius: 3px; background: rgba(15, 16, 18, 0.75); border-left: 3px solid #4a4439; }
+  .log-entry.player { border-left-color: var(--accent); }
+  .log-entry.enemy { border-left-color: var(--danger); }
+  .log-entry.taiji { border-left-color: var(--gold); color: var(--gold-bright); font-weight: 700; }
+  .log-entry.hex { border-left-color: #9370a8; color: #dfc7ed; }
+  .log-entry.ult { border-left-color: #c86437; color: #f7d2be; font-weight: 700; }
 
-  textarea.save-area { width: 100%; height: 110px; background: #020617; color: #86efac; border: 1px solid #475569; border-radius: 6px; padding: 8px; font-family: monospace; font-size: 0.72rem; }
-  .overlay { position: absolute; inset: 0; background: rgba(2, 6, 23, 0.92); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 120; gap: 12px; text-align: center; padding: 18px; }
+  textarea.save-area {
+    width: 100%; height: 110px; background: #090a0b; color: #9ed4b2;
+    border: 1px solid #4a4439; border-radius: 5px; padding: 8px; font-family: monospace; font-size: 0.72rem;
+  }
+  .overlay {
+    position: absolute; inset: 0; background: rgba(8, 9, 10, 0.94);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 120; gap: 12px; text-align: center; padding: 18px;
+  }
   .overlay.show { display: flex; }
-  .overlay h2 { margin: 0; font-size: 1.6rem; color: var(--gold); }
-  .overlay p { margin: 0; color: #cbd5e1; font-size: 0.85rem; line-height: 1.5; }
+  .overlay h2 { margin: 0; font-family: var(--font-serif); font-size: 1.68rem; color: var(--gold-bright); letter-spacing: 3px; }
+  .overlay p { margin: 0; color: #cfc7b8; font-size: 0.85rem; line-height: 1.55; }
 </style>
 </head>
 <body>
@@ -1167,7 +931,7 @@
 <div class="mobile-shell">
   <!-- 頂部共用狀態列 -->
   <div class="top-header">
-    <div class="brand-title">論語戰棋 v0.5</div>
+    <div class="brand-title">論語戰棋・墨韻</div>
     <div class="res-pills">
       <span class="pill gold" id="navGold">1000兩</span>
       <span class="pill" id="navSuxiu">束脩:2</span>
@@ -1187,32 +951,39 @@
         <svg class="china-svg" id="chinaMapSvg" viewBox="0 0 420 440" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <radialGradient id="parchmentBg" cx="42%" cy="45%" r="68%">
-              <stop offset="0%" stop-color="#3c3322"/>
-              <stop offset="60%" stop-color="#252119"/>
-              <stop offset="100%" stop-color="#141821"/>
+              <stop offset="0%" stop-color="#292620"/>
+              <stop offset="58%" stop-color="#1a1815"/>
+              <stop offset="100%" stop-color="#0f1011"/>
             </radialGradient>
             <linearGradient id="seaGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#0f2338"/>
-              <stop offset="100%" stop-color="#091524"/>
+              <stop offset="0%" stop-color="#0d1417"/>
+              <stop offset="100%" stop-color="#070a0c"/>
             </linearGradient>
+            <radialGradient id="inkMist" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#3d382e" stop-opacity="0.22"/>
+              <stop offset="100%" stop-color="#0c0d0e" stop-opacity="0"/>
+            </radialGradient>
           </defs>
           <rect x="0" y="0" width="420" height="440" fill="url(#seaGrad)"/>
           <path d="M 0,0 L 340,0 L 325,38 L 295,62 L 312,86 L 368,88 L 395,112 L 372,142 L 340,162 L 352,218 L 382,272 L 362,320 L 330,375 L 285,425 L 240,440 L 0,440 Z"
-                fill="url(#parchmentBg)" stroke="#7a6238" stroke-width="2.5"/>
-          <g stroke="#5c4d35" stroke-width="1.6" fill="none" opacity="0.65">
-            <path d="M 95,110 L 115,85 L 135,112 M 120,108 L 138,88 L 155,112"/>
-            <path d="M 290,108 L 306,90 L 322,108"/>
-            <path d="M 55,225 L 78,200 L 100,226 M 85,228 L 108,205 L 130,228"/>
-            <path d="M 180,275 L 198,258 L 216,275"/>
+                fill="url(#parchmentBg)" stroke="#6e5c3e" stroke-width="2.2"/>
+          <ellipse cx="195" cy="215" rx="145" ry="130" fill="url(#inkMist)"/>
+          <!-- 水墨遠山 -->
+          <g stroke="#544b3c" stroke-width="1.6" fill="rgba(22,20,17,0.45)" opacity="0.82">
+            <path d="M 92,112 L 115,82 L 136,112 M 118,110 L 138,86 L 158,112"/>
+            <path d="M 288,110 L 306,88 L 324,110"/>
+            <path d="M 52,226 L 78,198 L 102,226 M 84,228 L 108,204 L 132,228"/>
+            <path d="M 178,276 L 198,256 L 218,276"/>
           </g>
-          <text x="372" y="185" fill="#476c8a" font-size="12" font-weight="800" letter-spacing="3">東海</text>
-          <text x="275" y="46" fill="#476c8a" font-size="11" font-weight="800">渤海</text>
-          <text x="95" y="130" fill="#7c6c52" font-size="10" opacity="0.75">太行山</text>
-          <text x="295" y="120" fill="#7c6c52" font-size="10" opacity="0.75">泰山</text>
-          <path d="M 0,188 Q 75,180 130,175 T 230,152 T 320,102 L 348,88" fill="none" stroke="#60a5fa" stroke-width="4" opacity="0.55" stroke-linecap="round"/>
-          <text x="148" y="166" fill="#93c5fd" font-size="10" font-weight="700" opacity="0.85">黃河</text>
-          <path d="M 0,335 Q 70,350 135,342 T 245,328 T 355,295 L 382,282" fill="none" stroke="#38bdf8" stroke-width="5" opacity="0.55" stroke-linecap="round"/>
-          <text x="255" y="344" fill="#7dd3fc" font-size="10" font-weight="700" opacity="0.85">長江</text>
+          <text x="372" y="185" fill="#466266" font-family="Noto Serif TC, KaiTi, serif" font-size="12" font-weight="800" letter-spacing="3">東海</text>
+          <text x="275" y="46" fill="#466266" font-family="Noto Serif TC, KaiTi, serif" font-size="11" font-weight="800">渤海</text>
+          <text x="95" y="130" fill="#7c705b" font-family="Noto Serif TC, KaiTi, serif" font-size="10" opacity="0.85">太行山</text>
+          <text x="295" y="120" fill="#7c705b" font-family="Noto Serif TC, KaiTi, serif" font-size="10" opacity="0.85">泰山</text>
+          <!-- 石青墨色黃河、長江 -->
+          <path d="M 0,188 Q 75,180 130,175 T 230,152 T 320,102 L 348,88" fill="none" stroke="#538287" stroke-width="4" opacity="0.62" stroke-linecap="round"/>
+          <text x="148" y="166" fill="#82b3b8" font-family="Noto Serif TC, KaiTi, serif" font-size="10" font-weight="700" opacity="0.9">黃河</text>
+          <path d="M 0,335 Q 70,350 135,342 T 245,328 T 355,295 L 382,282" fill="none" stroke="#477a82" stroke-width="5" opacity="0.62" stroke-linecap="round"/>
+          <text x="255" y="344" fill="#78adb5" font-family="Noto Serif TC, KaiTi, serif" font-size="10" font-weight="700" opacity="0.9">長江</text>
           <g id="mapRoutesLayer"></g>
           <g id="mapCitiesLayer"></g>
         </svg>
@@ -1221,7 +992,7 @@
       <div class="briefing-card">
         <div class="briefing-head">
           <div>
-            <div style="font-size:0.72rem; color:#93c5fd; font-weight:800;" id="briefRegion">第一站・魯衛之交</div>
+            <div style="font-size:0.72rem; color:#8ec9c2; font-weight:800;" id="briefRegion">第一站・魯衛之交</div>
             <div class="briefing-title" id="briefName">匡地突圍</div>
           </div>
           <span class="pill" id="briefStatus">尚未通關</span>
@@ -1276,7 +1047,7 @@
 
           <!-- 子頁 2：裝備配戴（僅顯示當前這位弟子的 3 個槽位，一屏免捲動） -->
           <div class="focus-subpane" id="focusPane_equip">
-            <div style="font-size:0.72rem; color:#94a3b8;">點擊槽位開啟裝備庫（支援一鍵從其他弟子轉移裝備或直接購買）。</div>
+            <div style="font-size:0.72rem; color:#9a9284;">點擊槽位開啟裝備庫（支援一鍵從其他弟子轉移裝備或直接購買）。</div>
             <div class="equip-slot-list" id="focusEquipSlots"></div>
           </div>
 
@@ -1286,9 +1057,9 @@
               <span class="pill player" id="talentLiuyiPts">六藝點：0</span>
               <span class="pill gold" id="talentWudaoPts">悟道點：0</span>
             </div>
-            <div style="font-weight:800; color:#38bdf8; font-size:0.78rem;">內圈・六藝盤（基礎屬性）</div>
+            <div style="font-weight:800; color:#6ea8a1; font-size:0.78rem;">內圈・六藝盤（基礎屬性）</div>
             <div id="innerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
-            <div style="font-weight:800; color:#facc15; font-size:0.78rem; margin-top:2px;">外圈・八卦命格盤（天時與連攜）</div>
+            <div style="font-weight:800; color:#d4af6a; font-size:0.78rem; margin-top:2px;">外圈・八卦命格盤（天時與連攜）</div>
             <div id="outerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
           </div>
         </div>
@@ -1296,7 +1067,7 @@
 
       <!-- 模式 B：束脩羈絆 -->
       <div class="camp-pane" id="campMode_bond">
-        <div style="font-size:0.74rem; color:#94a3b8;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義；束脩可於【列國市集】購買。</div>
+        <div style="font-size:0.74rem; color:#9a9284;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義；束脩可於【列國市集】購買。</div>
         <div id="campBondList" style="display:flex; flex-direction:column; gap:7px;"></div>
       </div>
     </div>
@@ -1377,7 +1148,7 @@
       <!-- 3. 底部懸浮單行狀態膠囊 (~12%) -->
       <div class="battle-bottom-capsule" id="battleBottomCapsule">
         <div class="capsule-unit-info" id="capsuleUnitInfo">
-          <span style="font-size:0.75rem; color:#94a3b8;">點選我方武將行動｜單指拖曳巡視戰場</span>
+          <span style="font-size:0.75rem; color:#9a9284;">點選我方武將行動｜單指拖曳巡視戰場</span>
         </div>
         <div class="capsule-actions">
           <button class="btn-capsule-undo" id="btnCapsuleUndo" onclick="undoPendingMove()" style="display:none;">↩ 悔步</button>
@@ -1404,14 +1175,14 @@
         <span class="char-chip" id="cdChip">孔</span>
         <div>
           <h3 id="cdName" style="margin:0;">孔子 Lv.1</h3>
-          <div style="font-size:0.74rem; color:#93c5fd;" id="cdTags">陽/陰雙全｜本命卦：乾卦</div>
+          <div style="font-size:0.74rem; color:#8ec9c2;" id="cdTags">陽/陰雙全｜本命卦：乾卦</div>
         </div>
       </div>
       <button class="btn sm" onclick="closeModal('charDetailModal')">關閉</button>
     </div>
     <div class="stat-pill-grid" id="cdStatsGrid"></div>
     <div class="section-divider">目前配戴裝備</div>
-    <div id="cdEquipSummary" style="font-size:0.75rem; color:#fde68a; background:#0c1322; padding:7px 9px; border-radius:7px; border:1px solid #334155;"></div>
+    <div id="cdEquipSummary" style="font-size:0.75rem; color:#ecd29b; background:#121314; padding:7px 9px; border-radius:6px; border:1px solid #3a352c;"></div>
     <div class="section-divider">攻擊方式與《論語》招式</div>
     <div id="cdSkillsList" style="display:flex; flex-direction:column; gap:6px;"></div>
   </div>
@@ -1424,7 +1195,7 @@
       <h3 id="eqDrawerTitle">選擇兵器</h3>
       <button class="btn sm" onclick="closeModal('equipDrawerModal')">關閉</button>
     </div>
-    <div style="font-size:0.74rem; color:#94a3b8;" id="eqDrawerSub">點擊已持有的裝備即可穿戴或從其他武將轉移。</div>
+    <div style="font-size:0.74rem; color:#9a9284;" id="eqDrawerSub">點擊已持有的裝備即可穿戴或從其他武將轉移。</div>
     <div id="eqDrawerList" style="display:flex; flex-direction:column; gap:7px;"></div>
   </div>
 </div>
@@ -1433,11 +1204,11 @@
 <div class="modal-backdrop" id="itemModal" onclick="if(event.target===this) closeModal('itemModal')">
   <div class="modal-sheet">
     <h3>🎒 戰場補給道具</h3>
-    <div style="font-size:0.75rem; color:#94a3b8;">先點選棋盤上我方角色，再使用回復道具；蓍草可直接卜卦/重骰。</div>
+    <div style="font-size:0.75rem; color:#9a9284;">先點選棋盤上我方角色，再使用回復道具；蓍草可直接卜卦/重骰。</div>
     <button class="btn" id="btnItemYarrow" onclick="useItem('yarrow')">蓍草·預告4回合 / 重骰天時 (<span id="cntYarrow">0</span>)</button>
     <button class="btn" id="btnItemPotion" onclick="useItem('potion')">一般傷藥 +40 HP (<span id="cntPotion">0</span>)</button>
     <button class="btn primary" id="btnItemBento" onclick="useItem('bento')">簞食瓢飲 +50 HP / +20 氣（禁補豁免）(<span id="cntBento">0</span>)</button>
-    <div id="forecastBar" style="font-size:0.76rem; color:#bae6fd; background:#0c4a6e; padding:6px 8px; border-radius:6px; display:none;"></div>
+    <div id="forecastBar" style="font-size:0.76rem; color:#cdeae6; background:#15302e; border:1px solid #3f756e; padding:6px 8px; border-radius:6px; display:none;"></div>
     <button class="btn" onclick="closeModal('itemModal')">關閉</button>
   </div>
 </div>
@@ -1463,7 +1234,7 @@
 <div class="modal-backdrop center" id="hexModal">
   <div class="modal-sheet">
     <h3>【韋編三絕】翻轉陰陽對立卦</h3>
-    <div style="font-size:0.76rem; color:#cbd5e1;">消耗孔子 1 點行動點（每場限 2 次），強制翻轉當前天時。</div>
+    <div style="font-size:0.76rem; color:#cfc7b8;">消耗孔子 1 點行動點（每場限 2 次），強制翻轉當前天時。</div>
     <div class="hex-choice-grid" id="hexChoiceGrid"></div>
     <button class="btn" onclick="closeModal('hexModal')">取消</button>
   </div>
@@ -1488,7 +1259,7 @@
 // 一、 資料定義（裝備資料庫、技能射程標籤、關卡首通掉落）
 // ============================================================================
 const SAVE_KEY = 'confucius_tactics_v05_mobile_save';
-const GRID_SIZE = 8;
+const GRID_SIZE = 9;
 const TILE_PX = 128;
 const WORLD_PX = GRID_SIZE * TILE_PX;
 
@@ -1684,170 +1455,182 @@ const BOND_PAIRS = [
 
 // 12 關春秋列國輿圖（7 主線 + 5 隱藏支線，完整覆蓋 12 位新武將首通收徒）
 const DATA_STAGES = [
-  // ---- 主線 7 站 ----
+  // ---- 主線 7 站 (9×9 戰術縱深配置) ----
   {
     id: 'lu_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
     victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
-    obstacles: [[2,1],[2,6],[5,1],[5,6]],
+    obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[3,3],[3,4],[4,3],[2,3],[4,4],[3,2]],
+    playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '匡地盾兵甲', r: 1, c: 2 },
+      { tpl: 'soldier', name: '匡地盾兵甲', r: 1, c: 3 },
       { tpl: 'soldier', name: '匡地盾兵乙', r: 1, c: 5 },
-      { tpl: 'archer',  name: '匡地弓手甲', r: 0, c: 3 },
-      { tpl: 'soldier', name: '匡地盾兵丙', r: 6, c: 2 },
-      { tpl: 'archer',  name: '匡地弓手乙', r: 7, c: 4 }
+      { tpl: 'archer',  name: '匡地弓手甲', r: 0, c: 4 },
+      { tpl: 'soldier', name: '匡地盾兵丙', r: 7, c: 2 },
+      { tpl: 'soldier', name: '匡地盾兵丁', r: 7, c: 6 },
+      { tpl: 'archer',  name: '匡地弓手乙', r: 8, c: 4 }
     ]
   },
   {
     id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
     victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
-    obstacles: [[1,3],[1,4],[6,3],[6,4]],
+    obstacles: [[2,2],[2,6],[4,3],[4,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[4,3],[4,4],[5,3],[5,4],[4,2],[5,2]],
+    playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
     enemySpawns: [
-      { tpl: 'soldier', name: '衛國禁軍甲', r: 1, c: 1 },
-      { tpl: 'soldier', name: '衛國禁軍乙', r: 1, c: 6 },
+      { tpl: 'soldier', name: '衛國禁軍甲', r: 2, c: 3 },
+      { tpl: 'soldier', name: '衛國重盾',   r: 2, c: 4 },
+      { tpl: 'soldier', name: '衛國禁軍乙', r: 2, c: 5 },
       { tpl: 'archer',  name: '衛國箭手甲', r: 0, c: 2 },
-      { tpl: 'archer',  name: '衛國箭手乙', r: 0, c: 5 },
-      { tpl: 'soldier', name: '衛國重盾',   r: 2, c: 3 }
+      { tpl: 'archer',  name: '衛國箭手乙', r: 0, c: 4 },
+      { tpl: 'archer',  name: '衛國箭手丙', r: 0, c: 6 }
     ]
   },
   {
     id: 'song_huan', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
     victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
-    obstacles: [[2,2],[3,5],[5,2],[5,5]],
+    obstacles: [[2,1],[2,7],[4,2],[4,6],[6,1],[6,7]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[3,3],[3,4],[4,3],[4,4],[2,4],[4,2]],
+    playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,5]],
     enemySpawns: [
       { tpl: 'soldier', name: '桓魋私兵甲', r: 0, c: 1 },
-      { tpl: 'soldier', name: '桓魋私兵乙', r: 0, c: 6 },
-      { tpl: 'soldier', name: '桓魋私兵丙', r: 6, c: 1 },
-      { tpl: 'soldier', name: '桓魋私兵丁', r: 6, c: 6 },
-      { tpl: 'archer',  name: '伏林弓手甲', r: 1, c: 4 },
-      { tpl: 'archer',  name: '伏林弓手乙', r: 7, c: 3 }
+      { tpl: 'soldier', name: '桓魋私兵乙', r: 0, c: 7 },
+      { tpl: 'soldier', name: '桓魋私兵丙', r: 8, c: 1 },
+      { tpl: 'soldier', name: '桓魋私兵丁', r: 8, c: 7 },
+      { tpl: 'soldier', name: '桓魋伏衛',   r: 1, c: 4 },
+      { tpl: 'archer',  name: '伏林弓手甲', r: 0, c: 5 },
+      { tpl: 'archer',  name: '伏林弓手乙', r: 8, c: 4 }
     ]
   },
   {
     id: 'lu_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
     victoryType: 'annihilate', rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
-    obstacles: [[2,3],[2,4],[5,3],[5,4]],
+    obstacles: [[2,4],[3,4],[5,4],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,1],[4,2],[3,1],[3,2],[5,1],[5,2]],
     enemySpawns: [
       { tpl: 'soldier', name: '齊國侵兵甲', r: 2, c: 6 },
-      { tpl: 'soldier', name: '齊國侵兵乙', r: 5, c: 6 },
-      { tpl: 'soldier', name: '齊國重甲',   r: 3, c: 5 },
-      { tpl: 'archer',  name: '齊國弩手甲', r: 1, c: 7 },
-      { tpl: 'archer',  name: '齊國弩手乙', r: 6, c: 7 }
+      { tpl: 'soldier', name: '齊國重甲',   r: 4, c: 6 },
+      { tpl: 'soldier', name: '齊國侵兵乙', r: 6, c: 6 },
+      { tpl: 'archer',  name: '齊國弩手甲', r: 1, c: 8 },
+      { tpl: 'archer',  name: '齊國弩手乙', r: 4, c: 8 },
+      { tpl: 'archer',  name: '齊國弩手丙', r: 7, c: 8 }
     ]
   },
   {
     id: 'wei_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
-    obstacles: [[1,2],[3,4],[4,4],[6,2]],
+    obstacles: [[2,3],[3,5],[4,4],[5,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[6,5],[6,6],[5,5],[5,6],[7,5],[7,6]],
+    playerSlots: [[6,6],[6,7],[7,6],[7,7],[5,7],[7,8]],
     enemySpawns: [
-      { tpl: 'soldier', name: '晉軍鐵衛甲', r: 1, c: 1 },
-      { tpl: 'soldier', name: '晉軍鐵衛乙', r: 2, c: 3 },
+      { tpl: 'soldier', name: '晉軍鐵衛甲', r: 2, c: 2 },
+      { tpl: 'soldier', name: '晉軍鐵衛乙', r: 3, c: 4 },
+      { tpl: 'soldier', name: '晉軍鐵衛丙', r: 4, c: 1 },
       { tpl: 'archer',  name: '西河神射甲', r: 0, c: 2 },
       { tpl: 'archer',  name: '西河神射乙', r: 0, c: 5 },
-      { tpl: 'archer',  name: '西河神射丙', r: 2, c: 6 }
+      { tpl: 'archer',  name: '西河神射丙', r: 1, c: 7 }
     ]
   },
   {
     id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
     victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_boniu',
-    obstacles: [[2,2],[2,5],[5,2],[5,5]],
+    obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
-    playerSlots: [[3,3],[3,4],[4,3],[4,4],[3,2],[4,2]],
+    playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[5,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '陳蔡圍兵甲', r: 0, c: 2 },
+      { tpl: 'soldier', name: '陳蔡圍兵甲', r: 0, c: 3 },
       { tpl: 'soldier', name: '陳蔡圍兵乙', r: 0, c: 5 },
       { tpl: 'archer',  name: '陳蔡弓手甲', r: 1, c: 4 },
-      { tpl: 'soldier', name: '陳蔡圍兵丙', r: 7, c: 2 },
-      { tpl: 'soldier', name: '陳蔡圍兵丁', r: 7, c: 5 },
-      { tpl: 'archer',  name: '陳蔡弓手乙', r: 6, c: 3 }
+      { tpl: 'soldier', name: '陳蔡圍兵丙', r: 4, c: 0 },
+      { tpl: 'soldier', name: '陳蔡圍兵丁', r: 4, c: 8 },
+      { tpl: 'soldier', name: '陳蔡圍兵戊', r: 8, c: 3 },
+      { tpl: 'archer',  name: '陳蔡弓手乙', r: 8, c: 5 }
     ]
   },
   {
     id: 'chu_boss', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
-    obstacles: [[2,1],[2,6],[5,1],[5,6]],
+    obstacles: [[2,2],[2,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[4,3],[4,4],[5,3],[3,3],[5,4],[4,2]],
+    playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
     enemySpawns: [
-      { tpl: 'boss',    name: '首領·心魔', r: 0, c: 3 },
-      { tpl: 'soldier', name: '心魔護衛甲', r: 1, c: 2 },
+      { tpl: 'boss',    name: '首領·心魔', r: 0, c: 4 },
+      { tpl: 'soldier', name: '心魔護衛甲', r: 1, c: 3 },
       { tpl: 'soldier', name: '心魔護衛乙', r: 1, c: 5 },
-      { tpl: 'archer',  name: '妄念弓手',   r: 1, c: 4 }
+      { tpl: 'soldier', name: '心魔先鋒',   r: 2, c: 4 },
+      { tpl: 'archer',  name: '妄念弓手甲', r: 1, c: 1 },
+      { tpl: 'archer',  name: '妄念弓手乙', r: 1, c: 7 }
     ]
   },
 
-  // ---- 隱藏外傳 / 歷史支線 5 站 ----
+  // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 特化地形) ----
   {
     id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
     victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
-    obstacles: [[3,1],[3,6],[4,1],[4,6]],
+    obstacles: [[3,2],[3,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,3],[7,4]],
+    playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
     enemySpawns: [
-      { tpl: 'boss',    name: '幻影·心魔', r: 1, c: 3 },
+      { tpl: 'boss',    name: '幻影·心魔', r: 1, c: 4 },
+      { tpl: 'soldier', name: '幻影盾衛甲', r: 2, c: 3 },
+      { tpl: 'soldier', name: '幻影盾衛乙', r: 2, c: 5 },
       { tpl: 'archer',  name: '幻影弓手甲', r: 0, c: 1 },
-      { tpl: 'archer',  name: '幻影弓手乙', r: 0, c: 6 },
-      { tpl: 'soldier', name: '幻影盾衛',   r: 2, c: 4 }
+      { tpl: 'archer',  name: '幻影弓手乙', r: 0, c: 7 }
     ]
   },
   {
     id: 'ex_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
-    obstacles: [[2,2],[2,5],[4,3],[4,4]],
+    obstacles: [[2,2],[2,6],[4,3],[4,5],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,2],[7,5]],
+    playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
     enemySpawns: [
       { tpl: 'soldier', name: '衛宮影衛甲', r: 1, c: 2 },
-      { tpl: 'soldier', name: '衛宮影衛乙', r: 1, c: 5 },
+      { tpl: 'soldier', name: '衛宮影衛乙', r: 1, c: 6 },
+      { tpl: 'soldier', name: '帷幕親衛',   r: 2, c: 4 },
       { tpl: 'archer',  name: '宮廷樂師甲', r: 0, c: 3 },
-      { tpl: 'archer',  name: '宮廷樂師乙', r: 0, c: 4 }
+      { tpl: 'archer',  name: '宮廷樂師乙', r: 0, c: 5 }
     ]
   },
   {
     id: 'ex_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
     victoryType: 'annihilate', rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
-    obstacles: [[1,1],[3,3],[3,4],[6,6]],
+    obstacles: [[1,3],[3,2],[4,4],[5,6],[7,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[5,1],[5,2],[6,1],[6,2],[5,3],[6,3]],
+    playerSlots: [[6,1],[6,2],[7,1],[7,2],[6,3],[7,3]],
     enemySpawns: [
-      { tpl: 'soldier', name: '苛稅官兵甲', r: 1, c: 4 },
-      { tpl: 'soldier', name: '苛稅官兵乙', r: 2, c: 5 },
-      { tpl: 'soldier', name: '猛虎精銳',   r: 1, c: 6 },
-      { tpl: 'archer',  name: '山林獵手甲', r: 0, c: 5 },
-      { tpl: 'archer',  name: '山林獵手乙', r: 3, c: 6 }
+      { tpl: 'soldier', name: '苛稅官兵甲', r: 1, c: 5 },
+      { tpl: 'soldier', name: '苛稅官兵乙', r: 2, c: 6 },
+      { tpl: 'soldier', name: '猛虎精銳甲', r: 1, c: 7 },
+      { tpl: 'soldier', name: '猛虎精銳乙', r: 3, c: 7 },
+      { tpl: 'archer',  name: '山林獵手甲', r: 0, c: 6 },
+      { tpl: 'archer',  name: '山林獵手乙', r: 4, c: 8 }
     ]
   },
   {
     id: 'ex_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
-    obstacles: [[2,1],[2,2],[2,5],[2,6],[5,3],[5,4]],
+    obstacles: [[3,1],[3,2],[3,4],[3,6],[3,7],[6,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,3],[7,4]],
+    playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
     enemySpawns: [
-      { tpl: 'soldier', name: '季氏家臣甲', r: 1, c: 2 },
-      { tpl: 'soldier', name: '季氏家臣乙', r: 1, c: 5 },
-      { tpl: 'soldier', name: '攻城重盾',   r: 3, c: 3 },
-      { tpl: 'archer',  name: '費邑弩兵甲', r: 0, c: 1 },
+      { tpl: 'soldier', name: '季氏家臣甲', r: 2, c: 3 },
+      { tpl: 'soldier', name: '季氏家臣乙', r: 2, c: 5 },
+      { tpl: 'soldier', name: '攻城重盾甲', r: 4, c: 3 },
+      { tpl: 'soldier', name: '攻城重盾乙', r: 4, c: 5 },
+      { tpl: 'archer',  name: '費邑弩兵甲', r: 0, c: 2 },
       { tpl: 'archer',  name: '費邑弩兵乙', r: 0, c: 6 }
     ]
   },
@@ -1855,15 +1638,16 @@ const DATA_STAGES = [
     id: 'ex_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
-    obstacles: [[1,3],[1,4],[4,1],[4,6]],
+    obstacles: [[1,4],[4,1],[4,7],[7,4]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0, banNormalHeal: false },
-    playerSlots: [[6,2],[6,3],[6,4],[6,5],[7,2],[7,5]],
+    playerSlots: [[7,2],[7,3],[7,5],[7,6],[8,3],[8,5]],
     enemySpawns: [
       { tpl: 'soldier', name: '水澤武者甲', r: 1, c: 2 },
-      { tpl: 'soldier', name: '水澤武者乙', r: 1, c: 5 },
+      { tpl: 'soldier', name: '水澤武者乙', r: 1, c: 6 },
+      { tpl: 'soldier', name: '阿谷守衛甲', r: 2, c: 3 },
+      { tpl: 'soldier', name: '阿谷守衛乙', r: 2, c: 5 },
       { tpl: 'archer',  name: '清流弓手甲', r: 0, c: 3 },
-      { tpl: 'archer',  name: '清流弓手乙', r: 0, c: 4 },
-      { tpl: 'soldier', name: '阿谷守衛',   r: 2, c: 3 }
+      { tpl: 'archer',  name: '清流弓手乙', r: 0, c: 5 }
     ]
   }
 ];
@@ -2089,7 +1873,7 @@ function renderMapScene() {
     const line = document.createElementNS(ns, 'line');
     line.setAttribute('x1', prev.x); line.setAttribute('y1', prev.y);
     line.setAttribute('x2', st.x);   line.setAttribute('y2', st.y);
-    line.setAttribute('stroke', unlocked ? '#facc15' : '#64748b');
+    line.setAttribute('stroke', unlocked ? '#d4af6a' : '#4a453c');
     line.setAttribute('stroke-width', unlocked ? '3' : '2');
     line.setAttribute('stroke-dasharray', unlocked ? (st.isSecret ? '5,4' : 'none') : '5,5');
     line.setAttribute('opacity', unlocked ? '0.88' : '0.45');
@@ -2104,40 +1888,40 @@ function renderMapScene() {
 
     if (selected) {
       const ring = document.createElementNS(ns, 'circle');
-      ring.setAttribute('r', '26'); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#facc15');
+      ring.setAttribute('r', '26'); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#d4af6a');
       ring.setAttribute('stroke-width', '3'); ring.setAttribute('class', 'city-ring-pulse');
       g.appendChild(ring);
     }
     const base = document.createElementNS(ns, 'circle');
     base.setAttribute('r', '19');
-    base.setAttribute('fill', cleared ? '#14532d' : (unlocked ? '#1e293b' : '#111827'));
-    base.setAttribute('stroke', selected ? '#facc15' : (cleared ? '#4ade80' : (unlocked ? '#38bdf8' : '#475569')));
+    base.setAttribute('fill', cleared ? '#173022' : (unlocked ? '#1c1b18' : '#0f1011'));
+    base.setAttribute('stroke', selected ? '#ecd29b' : (cleared ? '#6eb589' : (unlocked ? '#6ea8a1' : '#3f3a32')));
     base.setAttribute('stroke-width', selected ? '3' : '2');
     g.appendChild(base);
 
     const castle = document.createElementNS(ns, 'path');
     castle.setAttribute('d', 'M -12,9 L -12,-2 L -15,-2 L -9,-10 L 9,-10 L 15,-2 L 12,-2 L 12,9 Z');
-    castle.setAttribute('fill', cleared ? '#86efac' : (st.isSecret ? '#e879f9' : '#f8fafc'));
+    castle.setAttribute('fill', cleared ? '#9ed4b2' : (st.isSecret ? '#c792d4' : '#eae3d5'));
     g.appendChild(castle);
     const gate = document.createElementNS(ns, 'path');
-    gate.setAttribute('d', 'M -4,9 L -4,2 A 4,4 0 0,1 4,2 L 4,9 Z'); gate.setAttribute('fill', '#0f172a');
+    gate.setAttribute('d', 'M -4,9 L -4,2 A 4,4 0 0,1 4,2 L 4,9 Z'); gate.setAttribute('fill', '#0b0c0d');
     g.appendChild(gate);
 
     if (cleared) {
       const pole = document.createElementNS(ns, 'line');
       pole.setAttribute('x1', '10'); pole.setAttribute('y1', '-6'); pole.setAttribute('x2', '10'); pole.setAttribute('y2', '-24');
-      pole.setAttribute('stroke', '#fde047'); pole.setAttribute('stroke-width', '2'); g.appendChild(pole);
+      pole.setAttribute('stroke', '#ecd29b'); pole.setAttribute('stroke-width', '2'); g.appendChild(pole);
       const flag = document.createElementNS(ns, 'polygon');
-      flag.setAttribute('points', '10,-24 25,-19 10,-14'); flag.setAttribute('fill', '#dc2626'); flag.setAttribute('stroke', '#facc15'); flag.setAttribute('stroke-width', '1'); g.appendChild(flag);
+      flag.setAttribute('points', '10,-24 25,-19 10,-14'); flag.setAttribute('fill', '#b82e28'); flag.setAttribute('stroke', '#ecd29b'); flag.setAttribute('stroke-width', '1'); g.appendChild(flag);
     }
 
     const lblBg = document.createElementNS(ns, 'rect');
     lblBg.setAttribute('x', '-34'); lblBg.setAttribute('y', '21'); lblBg.setAttribute('width', '68'); lblBg.setAttribute('height', '17'); lblBg.setAttribute('rx', '4');
-    lblBg.setAttribute('fill', selected ? '#713f12' : 'rgba(15, 23, 42, 0.9)'); lblBg.setAttribute('stroke', selected ? '#facc15' : '#475569'); lblBg.setAttribute('stroke-width', '1');
+    lblBg.setAttribute('fill', selected ? '#473216' : 'rgba(16, 15, 13, 0.92)'); lblBg.setAttribute('stroke', selected ? '#d4af6a' : '#4a4337'); lblBg.setAttribute('stroke-width', '1');
     g.appendChild(lblBg);
     const lbl = document.createElementNS(ns, 'text');
     lbl.setAttribute('x', '0'); lbl.setAttribute('y', '33'); lbl.setAttribute('text-anchor', 'middle');
-    lbl.setAttribute('fill', selected ? '#fef08a' : '#f1f5f9'); lbl.setAttribute('font-size', '10.5'); lbl.setAttribute('font-weight', '900');
+    lbl.setAttribute('fill', selected ? '#fff3d6' : '#eae3d5'); lbl.setAttribute('font-family', 'Noto Serif TC, KaiTi, serif'); lbl.setAttribute('font-size', '10.5'); lbl.setAttribute('font-weight', '900');
     lbl.textContent = st.cityLabel; g.appendChild(lbl);
 
     if (unlocked) g.onclick = () => { saveData.selectedStageId = st.id; persistSave(); renderMapScene(); };
@@ -2156,17 +1940,17 @@ function renderMapScene() {
   if (sel.firstClearRecruit && DATA_UNITS[sel.firstClearRecruit]) {
     const rec = DATA_UNITS[sel.firstClearRecruit];
     const joined = Boolean(saveData.roster[sel.firstClearRecruit]);
-    dropLine += `<br><span style="color:#86efac;">👤 首通收徒入隊：<strong>${rec.name}</strong>（${rec.role}）${joined ? '【已入隊】' : '【未招募】'}</span>`;
+    dropLine += `<br><span style="color:#8ec9a4;">👤 首通收徒入隊：<strong>${rec.name}</strong>（${rec.role}）${joined ? '【已入隊】' : '【未招募】'}</span>`;
   }
   if (sel.firstClearEquip) {
     const eq = DATA_EQUIPS[sel.firstClearEquip];
     const owned = (saveData.equipInventory[sel.firstClearEquip] || 0) > 0;
-    dropLine += `<br><span style="color:#fde047;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
+    dropLine += `<br><span style="color:#ecd29b;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
   }
   document.getElementById('briefMeta').innerHTML =
     `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>｜出戰：${saveData.deployedIds.length}/6 人<br>` +
     `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
-    (sel.modifiers.starvationPct ? '<br><span style="color:#f87171;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
+    (sel.modifiers.starvationPct ? '<br><span style="color:#e86b64;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
 }
 
 function devUnlockAll() {
@@ -2231,10 +2015,10 @@ function openCharDetail(uid) {
   }
   if (ultSk) {
     const extraCost = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
-    skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#fed7aa;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extraCost}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
+    skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extraCost}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
   }
   if (uid === 'p_kong') {
-    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#a855f7;"><div class="skill-detail-head"><span style="color:#e9d5ff;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」（如乾↔坤、坎↔離），可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」（如乾↔坤、坎↔離），可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
   }
   document.getElementById('cdSkillsList').innerHTML = skillsHtml.join('');
   document.getElementById('charDetailModal').classList.add('show');
@@ -2296,9 +2080,9 @@ function openEquipDrawer(uid, slot) {
     const wearerTxt = wearers.length ? `穿戴者：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '無人穿戴';
     card.innerHTML = `
       <div class="row-between"><strong>${eq.name}</strong>${statusBadge}</div>
-      <div style="font-size:0.74rem; color:#e2e8f0; line-height:1.4;">${eq.fullDesc}</div>
-      <div class="row-between" style="font-size:0.72rem; color:#94a3b8; margin-top:2px;">
-        <span>取得方式：<strong style="color:#fde68a;">${eq.sourceLabel}</strong>${ownedCount > 0 ? `｜${wearerTxt}` : ''}</span>
+      <div style="font-size:0.74rem; color:#e0d8c8; line-height:1.4;">${eq.fullDesc}</div>
+      <div class="row-between" style="font-size:0.72rem; color:#9a9284; margin-top:2px;">
+        <span>取得方式：<strong style="color:#ecd29b;">${eq.sourceLabel}</strong>${ownedCount > 0 ? `｜${wearerTxt}` : ''}</span>
       </div>
       <div style="display:flex; justify-content:flex-end; margin-top:2px;">${actionBtnHtml}</div>
     `;
@@ -2425,10 +2209,10 @@ function renderCampScene() {
           <span class="char-chip" style="background:${tpl.color}; width:42px; height:42px; font-size:1.25rem;">${tpl.char}</span>
           <div style="min-width:0;">
             <div style="font-size:0.95rem; font-weight:900; color:#fff;">
-              ${tpl.name} <span style="color:#fde047; font-size:0.8rem;">Lv.${prog.lv}</span>
+              ${tpl.name} <span style="color:#ecd29b; font-size:0.8rem;">Lv.${prog.lv}</span>
               <span class="pill" style="font-size:0.64rem;">${effYY}</span>
             </div>
-            <div style="font-size:0.72rem; color:#93c5fd;">${tpl.role}｜本命：${trigramName}｜開局氣 ${startQi}</div>
+            <div style="font-size:0.72rem; color:#8ec9c2;">${tpl.role}｜本命：${trigramName}｜開局氣 ${startQi}</div>
           </div>
         </div>
         <div style="display:flex; gap:4px; flex-shrink:0;">
@@ -2454,10 +2238,10 @@ function renderCampScene() {
     }
     if (ultSk) {
       const extra = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
-      skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#fed7aa;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extra}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
+      skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extra}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
     }
     if (uid === 'p_kong') {
-      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#a855f7;"><div class="skill-detail-head"><span style="color:#e9d5ff;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」，可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」，可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
     }
     document.getElementById('focusSkillsList').innerHTML = skillsHtml.join('');
 
@@ -2470,7 +2254,7 @@ function renderCampScene() {
         <button class="equip-slot-btn ${item ? 'equipped' : ''}" onclick="openEquipDrawer('${uid}','${slot}')">
           <div class="slot-top">
             <span>${SLOT_LABELS[slot]}：${item ? item.name : '未裝備'}</span>
-            <span style="color:#38bdf8; font-size:0.74rem;">${item ? '更換 / 卸下 ▸' : '裝備 / 來源 ▸'}</span>
+            <span style="color:#6ea8a1; font-size:0.74rem;">${item ? '更換 / 卸下 ▸' : '裝備 / 來源 ▸'}</span>
           </div>
           <div class="slot-sub">${item ? item.shortDesc : '點擊開啟裝備庫檢視詞條、轉移他人裝備或購買'}</div>
         </button>`;
@@ -2484,14 +2268,14 @@ function renderCampScene() {
     TALENTS_INNER.forEach(t => {
       const lv = prog.inner[t.id] || 0;
       const div = document.createElement('div'); div.className = 'mobile-card';
-      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#38bdf8;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
+      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#6ea8a1;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cfc7b8;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
       inG.appendChild(div);
     });
     const outG = document.getElementById('outerTalentGrid'); outG.innerHTML = '';
     TALENTS_OUTER.forEach(t => {
       const lv = prog.outer[t.id] || 0;
       const div = document.createElement('div'); div.className = 'mobile-card';
-      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#facc15;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cbd5e1;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
+      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#d4af6a;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cfc7b8;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
       outG.appendChild(div);
     });
   }
@@ -2503,7 +2287,7 @@ function renderCampScene() {
     const div = document.createElement('div'); div.className = 'mobile-card';
     div.innerHTML = `
       <div class="row-between"><strong>${bp.name}</strong><span class="pill ${unlocked?'gold':''}">Lv.${lv} ${unlocked?'★已解鎖':'需Lv.2'}</span></div>
-      <div style="font-size:0.74rem; color:#cbd5e1;">【${bp.comboName}】${bp.desc}</div>
+      <div style="font-size:0.74rem; color:#cfc7b8;">【${bp.comboName}】${bp.desc}</div>
       <button class="btn sm gold" ${saveData.items.suxiu<=0||lv>=3?'disabled':''} onclick="giftSuxiu('${bp.id}')">贈送束脩 (+1級)</button>`;
     bList.appendChild(div);
   });
@@ -2521,8 +2305,8 @@ function renderShopScene() {
         <div><strong>[${SLOT_LABELS[eq.slot]}] ${eq.name}</strong> <span class="pill ${owned>0?'green':''}">持有:${owned}</span></div>
         <button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipToBag('${eq.id}')">${eq.price}兩 購買</button>
       </div>
-      <div style="font-size:0.73rem; color:#cbd5e1; line-height:1.4;">${eq.fullDesc}</div>
-      ${wearerTxt ? `<div style="font-size:0.7rem; color:#fde68a;">${wearerTxt.slice(1)}</div>` : ''}`;
+      <div style="font-size:0.73rem; color:#cfc7b8; line-height:1.4;">${eq.fullDesc}</div>
+      ${wearerTxt ? `<div style="font-size:0.7rem; color:#ecd29b;">${wearerTxt.slice(1)}</div>` : ''}`;
     eqShop.appendChild(div);
   });
 
@@ -2534,7 +2318,7 @@ function renderShopScene() {
     { key: 'suxiu',  name: '束脩（羈絆室送禮解鎖合體奧義）', price: 250 }
   ].forEach(it => {
     const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#94a3b8;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
+    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#9a9284;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
     itShop.appendChild(div);
   });
 }
@@ -2676,7 +2460,7 @@ function toggleCameraZoom() {
   } else if (sel) {
     focusCameraOn(sel.r, sel.c, true);
   } else {
-    focusCameraOn(3.5, 3.5, true);
+    focusCameraOn(4, 4, true);
   }
 }
 
@@ -2904,7 +2688,7 @@ function startSelectedStage() {
 
   units = []; fallenAllies = [];
   saveData.deployedIds.forEach((id, idx) => {
-    const slot = activeStage.playerSlots[idx] || [3, 3];
+    const slot = activeStage.playerSlots[idx] || [4, 4];
     units.push(instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]));
   });
   activeStage.enemySpawns.forEach((sp, idx) => {
@@ -3673,7 +3457,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const enemies = units.filter(x => x.team === 'enemy' && x.hp > 0);
         for (const e of enemies) {
           primaryEnemy = e;
-          const pullR = e.r + Math.sign(3 - e.r), pullC = e.c + Math.sign(3 - e.c);
+          const pullR = e.r + Math.sign(4 - e.r), pullC = e.c + Math.sign(4 - e.c);
           if (grid[pullR]?.[pullC] === 0 && !getUnitAt(pullR, pullC)) { e.r = pullR; e.c = pullC; }
           await applyDamage(e, 95, true, false, unit);
         }
@@ -3990,7 +3774,7 @@ function finishBattleAndReturn() { switchScene('map'); }
 
 function applyHexagramTerrain() {
   for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (grid[r][c]===2) grid[r][c]=0;
-  if (getHex().waterMap) [[2,3],[2,4],[3,2],[3,5],[4,2],[4,5],[5,3],[5,4]].forEach(([r,c])=>{ if (grid[r][c]===0) grid[r][c]=2; });
+  if (getHex().waterMap) [[2,3],[2,4],[2,5],[3,2],[3,6],[4,2],[4,6],[5,2],[5,6],[6,3],[6,4],[6,5]].forEach(([r,c])=>{ if (grid[r][c]===0) grid[r][c]=2; });
 }
 
 function renderItemModal() {
@@ -4220,7 +4004,7 @@ function renderBottomCapsule() {
   if (undoBtn) undoBtn.style.display = canUndo ? 'inline-flex' : 'none';
 
   if (!u) {
-    infoEl.innerHTML = `<span style="font-size:0.74rem; color:#94a3b8;">${canUndo ? '已暫定移動：點選武將出招，或按【↩ 悔步】退回。' : '點選我方武將移動｜單指拖曳巡視戰場'}</span>`;
+    infoEl.innerHTML = `<span style="font-size:0.74rem; color:#9a9284;">${canUndo ? '已暫定移動：點選武將出招，或按【↩ 悔步】退回。' : '點選我方武將移動｜單指拖曳巡視戰場'}</span>`;
     return;
   }
 
@@ -4233,12 +4017,12 @@ function renderBottomCapsule() {
     <div class="capsule-bars">
       <div class="capsule-name-row">
         <span>${u.name}</span>
-        <span style="font-size:0.68rem; color:#fde047;">[${getEffectiveYinYang(u)}]</span>
+        <span style="font-size:0.68rem; color:#ecd29b;">[${getEffectiveYinYang(u)}]</span>
         ${detailBtn}
       </div>
       <div class="capsule-meter-row">
-        <span style="color:#4ade80; font-weight:800;">HP ${u.hp}/${u.maxHp}</span>
-        ${u.team === 'player' ? `<span style="color:#fde047; font-weight:800;">氣 ${u.qi}</span>` : ''}
+        <span style="color:#79c997; font-weight:800;">HP ${u.hp}/${u.maxHp}</span>
+        ${u.team === 'player' ? `<span style="color:#ecd29b; font-weight:800;">氣 ${u.qi}</span>` : ''}
         <span>攻${s.atk} 防${s.def}</span>
       </div>
     </div>`;
@@ -4288,7 +4072,7 @@ function renderFloatingUi() {
 
     if (canAct && basicSk) {
       htmlStr += `<button class="cmd-btn" onclick="selectMode('basic')">
-        <div class="cmd-btn-top"><span>⚔ ${basicSk.name}</span><span style="color:#0369a1; font-size:0.68rem;">${basicSk.rangeText}</span></div>
+        <div class="cmd-btn-top"><span>⚔ ${basicSk.name}</span><span style="color:#8ec9c2; font-size:0.68rem;">${basicSk.rangeText}</span></div>
         <div class="cmd-btn-sub">+25 氣｜普攻出招</div>
       </button>`;
     }
@@ -4297,7 +4081,7 @@ function renderFloatingUi() {
       const ok = u.qi >= skC && (!sk.goldCost || saveData.gold >= sk.goldCost);
       const costTxt = `${skC}氣${sk.goldCost ? `+${sk.goldCost}兩` : ''}`;
       htmlStr += `<button class="cmd-btn" ${ok ? '' : 'disabled'} onclick="selectMode('skill')">
-        <div class="cmd-btn-top"><span>✦ ${sk.name}</span><span style="color:#b45309; font-size:0.68rem;">${costTxt}</span></div>
+        <div class="cmd-btn-top"><span>✦ ${sk.name}</span><span style="color:#d4af6a; font-size:0.68rem;">${costTxt}</span></div>
         <div class="cmd-btn-sub">${sk.rangeText}</div>
       </button>`;
     }
@@ -4395,7 +4179,7 @@ function computePreviewInfo(u, mode, tr, tc) {
     const critPct = Math.round((hex.critRate + (u.bonusCrit || 0)) * 100);
     return {
       title: `⚔ ${sk.name} → ${target.name}`,
-      metrics: `預計傷害 <strong style="color:#f87171;">${dmg}</strong>｜暴擊率 <strong style="color:#fb923c;">${critPct}%</strong>｜太極合擊：${willTaiji ? '<strong style="color:#fde047;">★ 觸發！</strong>' : '無'}`,
+      metrics: `預計傷害 <strong style="color:#e86b64;">${dmg}</strong>｜暴擊率 <strong style="color:#e8a15d;">${critPct}%</strong>｜太極合擊：${willTaiji ? '<strong style="color:#ecd29b;">★ 觸發！</strong>' : '無'}`,
       confirmTxt: '⚔ 確認出招（或再點目標）'
     };
   }
@@ -4407,13 +4191,13 @@ function computePreviewInfo(u, mode, tr, tc) {
       const critPct = Math.round((hex.critRate + 0.1) * 100);
       return {
         title: `✦ ${sk.name} → ${target.name}`,
-        metrics: `預計傷害 <strong style="color:#f87171;">${dmg}</strong>＋暈眩｜暴擊率 <strong style="color:#fb923c;">${critPct}%</strong>｜太極：${willTaiji ? '<strong style="color:#fde047;">★ 觸發！</strong>' : '無'}`,
+        metrics: `預計傷害 <strong style="color:#e86b64;">${dmg}</strong>＋暈眩｜暴擊率 <strong style="color:#e8a15d;">${critPct}%</strong>｜太極：${willTaiji ? '<strong style="color:#ecd29b;">★ 觸發！</strong>' : '無'}`,
         confirmTxt: '✦ 確認施放'
       };
     }
     return {
       title: `✦ ${sk.name}${target ? ` → ${target.name}` : ''}`,
-      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#fde047;">★ 觸發太極合擊！</strong>' : ''}`,
+      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#ecd29b;">★ 觸發太極合擊！</strong>' : ''}`,
       confirmTxt: '✦ 確認施放'
     };
   }
@@ -4422,7 +4206,7 @@ function computePreviewInfo(u, mode, tr, tc) {
     const sk = DATA_SKILLS[u.ultId];
     return {
       title: `🔥 大絕【${sk.name}】`,
-      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#fde047;">★ 觸發太極合擊！</strong>' : ''}`,
+      metrics: `${sk.desc}${willTaiji ? '｜<strong style="color:#ecd29b;">★ 觸發太極合擊！</strong>' : ''}`,
       confirmTxt: '🔥 確認爆發大絕'
     };
   }
@@ -4450,7 +4234,7 @@ function renderPreviewBanner() {
   if (!u) { bar.classList.remove('show'); return; }
   const info = computePreviewInfo(u, pendingAction.mode, pendingAction.r, pendingAction.c);
   bar.innerHTML = `
-    <div class="preview-main-row"><span>${info.title}</span><span style="font-size:0.68rem; color:#93c5fd;">再次點擊目標亦可出手</span></div>
+    <div class="preview-main-row"><span>${info.title}</span><span style="font-size:0.68rem; color:#8ec9c2;">再次點擊目標亦可出手</span></div>
     <div class="preview-metrics">${info.metrics}</div>
     <div class="preview-actions">
       <button class="btn sm" onclick="cancelPendingAction()">取消</button>
