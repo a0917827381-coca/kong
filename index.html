@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.6 — 暗黑水墨・單畫布零重排極速版</title>
+<title>《論語戰棋》v1.7 — 暗黑水墨・防死鎖安全網與韋編三絕重製版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -910,10 +910,12 @@
 
   .hex-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
   .hex-choice {
-    padding: 8px; border-radius: 5px; border: 1.5px solid #453f36;
-    background: var(--panel-dark); color: #cfc7b8; text-align: left; cursor: pointer; font-size: 0.75rem;
+    padding: 8px; border-radius: 5px; border: 1.5px solid #6e5c3e;
+    background: #181715; color: #eae3d5; text-align: left; cursor: pointer; font-size: 0.74rem;
+    line-height: 1.38; transition: transform 0.08s, border-color 0.12s;
   }
-  .hex-choice.opposite { border-color: var(--gold); background: #2e2211; color: var(--gold-bright); }
+  .hex-choice:active { transform: scale(0.97); border-color: var(--gold-bright); }
+  .hex-choice.current-hex { border-color: var(--gold); background: #2a2011; color: var(--gold-bright); }
   .hex-choice:disabled { opacity: 0.34; }
 
   .sprite-status-list {
@@ -1405,6 +1407,8 @@
     align-items: center;
     z-index: 310;
     padding-bottom: env(safe-area-inset-bottom);
+    cursor: pointer;
+    touch-action: manipulation;
   }
   .story-overlay.show { display: flex; }
   .story-stage {
@@ -1882,11 +1886,11 @@
   </div>
 </div>
 
-<!-- 彈窗：韋編三絕 -->
+<!-- 彈窗：韋編三絕（方案 B：八純卦任選＋全軍戰吼） -->
 <div class="modal-backdrop center" id="hexModal">
   <div class="modal-sheet">
-    <h3>【韋編三絕】翻轉陰陽對立卦</h3>
-    <div style="font-size:0.76rem; color:#cfc7b8;">消耗孔子 1 點行動點（每場限 2 次），強制翻轉當前天時。</div>
+    <h3>☯ 【韋編三絕】竹簡三斷・任選八純卦</h3>
+    <div style="font-size:0.75rem; color:#cfc7b8; line-height:1.45;">不耗行動點（每回合限 1 次、每場限 2 次）：可從八純卦中<strong>任選其一</strong>（強行改寫關卡鎖卦並重置倒數為 2 回合），同時觸發對應<strong>全軍即時戰吼</strong>！</div>
     <div class="hex-choice-grid" id="hexChoiceGrid"></div>
     <button class="btn" onclick="closeModal('hexModal')">取消</button>
   </div>
@@ -1939,7 +1943,7 @@
     <div class="guide-pane" id="guidePane_hex">
       <div class="guide-block">
         <div class="g-head">天時變卦與【韋編三絕】</div>
-        每 2 回合天時會依序輪轉（部分關卡有特定開局卦或鎖卦）。<strong>孔子每場擁有 2 次【韋編三絕】</strong>，消耗 1 AP 即可將當前天時強制翻轉為「陰陽對立卦」，是逆轉戰局的王牌！
+        每 2 回合天時會依序輪轉（部分關卡有特定開局卦或鎖卦）。<strong>孔子每場擁有 2 次【韋編三絕】（0 AP 瞬發、每回合限 1 次）</strong>，可從八純卦中<strong>任選其一</strong>（連鎖卦都能強行改寫）並立即觸發全軍戰吼，是逆轉戰局的王牌！
         <div class="guide-hex-grid">
           <div class="guide-hex-item"><strong>乾 ↔ 坤</strong><br>乾：攻+25% 暴+30%<br>坤：防+50% 移-1</div>
           <div class="guide-hex-item"><strong>坎 ↔ 離</strong><br>坎：墨池積水 陰+25%<br>離：陽+25% 普攻灼燒</div>
@@ -2087,14 +2091,14 @@ const DATA_EQUIPS = {
 };
 
 const DATA_HEXAGRAMS = [
-  { id: 'qian', name: '乾卦', opposite: 'kun', desc: '天行健：攻擊+25%、暴擊+30%', atkMult: 1.25, defMult: 1.0, moveMod: 0, critRate: 0.30, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
-  { id: 'kun',  name: '坤卦', opposite: 'qian', desc: '厚德載物：防禦+50%、移動-1', atkMult: 1.0, defMult: 1.5, moveMod: -1, critRate: 0.05, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
-  { id: 'kan',  name: '坎卦', opposite: 'li', desc: '習坎重險：場地積水(耗2)、陰招+25%', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: true, yangBoost: 1.0, yinBoost: 1.25, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
-  { id: 'li',   name: '離卦', opposite: 'kan', desc: '麗乎明：陽招+25%、普攻附灼燒', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.15, waterMap: false, yangBoost: 1.25, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0, burnOnHit: true },
-  { id: 'zhen', name: '震卦', opposite: 'xun', desc: '驚雷百里：移動+1、攻擊+15%', atkMult: 1.15, defMult: 1.0, moveMod: 1, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
-  { id: 'xun',  name: '巽卦', opposite: 'zhen', desc: '隨風無孔：射程+1、行動+10氣', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 1, healMult: 1.0, taijiBonus: 0, bonusQi: 10 },
-  { id: 'gen',  name: '艮卦', opposite: 'dui', desc: '止如山嶽：未移動減傷30%、防禦+20%', atkMult: 1.0, defMult: 1.2, moveMod: 0, critRate: 0.05, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.0, taijiBonus: 0, stillDmgRed: 0.30 },
-  { id: 'dui',  name: '兌卦', opposite: 'gen', desc: '麗澤相悅：治療+30%、太極合擊+20傷', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.3, taijiBonus: 20 }
+  { id: 'qian', name: '乾卦', opposite: 'kun',  desc: '天行健：攻擊+25%、暴擊+30%',       warcryDesc: '戰吼：全軍立即 +25 氣並攻防+20%(1回合)', atkMult: 1.25, defMult: 1.0, moveMod: 0,  critRate: 0.30, waterMap: false, yangBoost: 1.0,  yinBoost: 1.0,  rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'kun',  name: '坤卦', opposite: 'qian', desc: '厚德載物：防禦+50%、移動-1',       warcryDesc: '戰吼：全軍獲得 +40 護盾並淨化負面狀態',    atkMult: 1.0,  defMult: 1.5, moveMod: -1, critRate: 0.05, waterMap: false, yangBoost: 1.0,  yinBoost: 1.0,  rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'kan',  name: '坎卦', opposite: 'li',   desc: '習坎重險：場地積水(耗2)、陰招+25%', warcryDesc: '戰吼：澤水困敵，全體敵軍凍結 1 回合',     atkMult: 1.0,  defMult: 1.0, moveMod: 0,  critRate: 0.10, waterMap: true,  yangBoost: 1.0,  yinBoost: 1.25, rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'li',   name: '離卦', opposite: 'kan',  desc: '麗乎明：陽招+25%、普攻附灼燒',     warcryDesc: '戰吼：天火焚陣，全敵受 25 真傷＋灼燒 2 回合', atkMult: 1.0,  defMult: 1.0, moveMod: 0,  critRate: 0.15, waterMap: false, yangBoost: 1.25, yinBoost: 1.0,  rangeMod: 0, healMult: 1.0, taijiBonus: 0, burnOnHit: true },
+  { id: 'zhen', name: '震卦', opposite: 'xun',  desc: '驚雷百里：移動+1、攻擊+15%',       warcryDesc: '戰吼：全軍移+2暴+20%，震暈孔子3格內敵軍', atkMult: 1.15, defMult: 1.0, moveMod: 1,  critRate: 0.10, waterMap: false, yangBoost: 1.0,  yinBoost: 1.0,  rangeMod: 0, healMult: 1.0, taijiBonus: 0 },
+  { id: 'xun',  name: '巽卦', opposite: 'zhen', desc: '隨風無孔：射程+1、行動+10氣',     warcryDesc: '戰吼：全軍 +15 氣，已耗盡行動友軍 +1 AP',   atkMult: 1.0,  defMult: 1.0, moveMod: 0,  critRate: 0.10, waterMap: false, yangBoost: 1.0,  yinBoost: 1.0,  rangeMod: 1, healMult: 1.0, taijiBonus: 0, bonusQi: 10 },
+  { id: 'gen',  name: '艮卦', opposite: 'dui',  desc: '止如山嶽：未移動減傷30%、防禦+20%', warcryDesc: '戰吼：全軍防禦姿態(減傷25%)＋獲得 30 護盾', atkMult: 1.0,  defMult: 1.2, moveMod: 0,  critRate: 0.05, waterMap: false, yangBoost: 1.0,  yinBoost: 1.0,  rangeMod: 0, healMult: 1.0, taijiBonus: 0, stillDmgRed: 0.30 },
+  { id: 'dui',  name: '兌卦', opposite: 'gen',  desc: '麗澤相悅：治療+30%、太極合擊+20傷', warcryDesc: '戰吼：甘霖潤澤，全軍回血 25%（豁免禁補）＋15氣', atkMult: 1.0, defMult: 1.0, moveMod: 0, critRate: 0.10, waterMap: false, yangBoost: 1.0, yinBoost: 1.0, rangeMod: 0, healMult: 1.3, taijiBonus: 20 }
 ];
 
 const DATA_SKILLS = {
@@ -2942,7 +2946,7 @@ function openCharDetail(uid) {
     skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extraCost}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
   }
   if (uid === 'p_kong') {
-    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」（如乾↔坤、坎↔離），可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">0 AP・每回合1次・每場2次</span></div><div class="skill-detail-desc">竹簡翻斷三次，隨心改寫天象！從八純卦中任選一卦（強行改寫關卡鎖卦並重置倒數 2 回合），立即觸發對應全軍戰吼。</div></div>`);
   }
   document.getElementById('cdSkillsList').innerHTML = skillsHtml.join('');
   document.getElementById('charDetailModal').classList.add('show');
@@ -3166,7 +3170,7 @@ function renderCampScene() {
       skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extra}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
     }
     if (uid === 'p_kong') {
-      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">每場限2次・1 AP</span></div><div class="skill-detail-desc">強制將當前天時翻轉為「陰陽對立卦」，可打破陳蔡絕糧的鎖卦封鎖。</div></div>`);
+      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">0 AP・每回合1次・每場2次</span></div><div class="skill-detail-desc">竹簡翻斷三次，隨心改寫天象！從八純卦中任選一卦（強行改寫關卡鎖卦並重置倒數 2 回合），立即觸發對應全軍戰吼。</div></div>`);
     }
     document.getElementById('focusSkillsList').innerHTML = skillsHtml.join('');
 
@@ -3594,7 +3598,7 @@ function toggleHexDescToast() {
 
 const STATE = { PLAYER_TURN: 'PLAYER_TURN', ANIMATION_BUSY: 'ANIMATION_BUSY', ENEMY_TURN: 'ENEMY_TURN', TURN_END_CHECK: 'TURN_END_CHECK', GAME_OVER: 'GAME_OVER' };
 let activeStage = null, gameState = STATE.PLAYER_TURN, turnNumber = 1;
-let hexIndex = 0, hexCountdown = 2, hexLockedByStage = false, hexFlipRemaining = 2;
+let hexIndex = 0, hexCountdown = 2, hexLockedByStage = false, hexFlipRemaining = 2, hexFlipUsedThisTurn = false;
 let forecastVisible = false, xinzhaiDomainTurns = 0, summonCounter = 1, showGuides = false;
 let grid = [], units = [], fallenAllies = [], selectedUnitId = null, actionMode = 'move', activeComboDef = null;
 let reachableTiles = new Map(), targetableTiles = new Set(), lastPlayerAction = null, pendingMove = null;
@@ -3702,8 +3706,17 @@ function playAnimWithHitSync(unit, stateName, onHitCallback) {
     unit.animState = stateName; unit.animFrame = 0; unit.animTimer = 0; updateUnitVisualFrame(unit);
     const hitIdx = def.hitOffset !== undefined ? def.hitOffset : 2, frameMs = 1000 / def.fps;
     setTimeout(async () => {
-      if (onHitCallback) await onHitCallback();
-      setTimeout(() => { if (unit.hp > 0) { unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit); } resolve(); }, Math.max(80, (def.count - hitIdx) * frameMs));
+      try {
+        if (onHitCallback) await onHitCallback();
+      } catch (err) {
+        console.error('Anim callback error:', err);
+        addLog(`⚠ 招式演出異常已自動恢復：${err?.message || err}`, 'enemy');
+      } finally {
+        setTimeout(() => {
+          if (unit && unit.hp > 0) { unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit); }
+          resolve();
+        }, Math.max(80, (def.count - hitIdx) * frameMs));
+      }
     }, hitIdx * frameMs);
   });
 }
@@ -3727,6 +3740,11 @@ const VfxEngine = {
   },
 
   clear() {
+    for (let i = 0; i < this.effects.length; i++) {
+      if (this.effects[i].onArrive) {
+        try { this.effects[i].onArrive(); } catch (e) {}
+      }
+    }
     this.effects = [];
     this.particles = [];
     const cvs = document.getElementById('vfxCanvas');
@@ -3799,19 +3817,25 @@ const VfxEngine = {
       const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
       const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
       const dur = Math.max(0.14, Math.min(0.26, dist / 1700));
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        if (style === 'arrow') {
+          this.spawnSlash(r2, c2, Math.atan2(p2.y - p1.y, p2.x - p1.x), color, false);
+        } else {
+          this.spawnRipple(r2, c2, color, 2, false);
+        }
+        resolve();
+      };
       this.effects.push({
         type: 'projectile', style, color,
         x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
         angle: Math.atan2(p2.y - p1.y, p2.x - p1.x),
-        t: 0, dur, onArrive: () => {
-          if (style === 'arrow') {
-            this.spawnSlash(r2, c2, Math.atan2(p2.y - p1.y, p2.x - p1.x), color, false);
-          } else {
-            this.spawnRipple(r2, c2, color, 2, false);
-          }
-          resolve();
-        }
+        t: 0, dur, onArrive: done
       });
+      // 手機背景切換或掉幀雙重逾時保底，絕不卡死非同步管線
+      setTimeout(done, Math.round(dur * 1000) + 180);
     });
   },
 
@@ -4401,7 +4425,7 @@ function showTurnBanner(side, turn) {
   });
 }
 
-function toggleArtGuides() { showGuides = !showGuides; document.getElementById('boardViewport').classList.toggle('show-guides', showGuides); document.getElementById('btnToggleGuides').textContent = `格子基準框：${showGuides ? '開' : '關'}`; }
+function toggleArtGuides() { showGuides = !showGuides; const vp = document.getElementById('boardViewport'); if (vp) vp.classList.toggle('show-guides', showGuides); const bg = document.getElementById('btnToggleGuides'); if (bg) bg.textContent = `格子基準框：${showGuides ? '開' : '關'}`; }
 function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
 function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
 
@@ -4409,7 +4433,7 @@ function startSelectedStage() {
   activeStage = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
-  turnNumber = 1; hexFlipRemaining = 2; forecastVisible = false; xinzhaiDomainTurns = 0;
+  turnNumber = 1; hexFlipRemaining = 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
   selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null;
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
@@ -4749,9 +4773,13 @@ function setState(st) {
   document.getElementById('btnEndTurn').disabled = (st !== STATE.PLAYER_TURN);
 }
 
+function canKongHexFlip(u) {
+  return Boolean(u && u.id === 'p_kong' && hexFlipRemaining > 0 && !hexFlipUsedThisTurn && !u.stunned && u.sleepTurns <= 0 && u.silenceTurns <= 0 && u.doubtTurns <= 0);
+}
+
 function openInPlaceCmdMenu() {
   const u = getUnitById(selectedUnitId);
-  if (!u || u.team !== 'player' || u.ap <= 0) return;
+  if (!u || u.team !== 'player' || (u.ap <= 0 && !canKongHexFlip(u))) return;
   actionMode = 'move';
   pendingAction = null;
   targetableTiles.clear();
@@ -4772,8 +4800,9 @@ function cancelPendingAction() {
   renderAll();
 }
 
+let actionLockBusy = false;
 function confirmPendingAction() {
-  if (!pendingAction || gameState !== STATE.PLAYER_TURN) return;
+  if (actionLockBusy || !pendingAction || gameState !== STATE.PLAYER_TURN) return;
   const u = getUnitById(pendingAction.unitId);
   if (!u) { pendingAction = null; renderAll(); return; }
   const { mode, r, c } = pendingAction;
@@ -4816,8 +4845,8 @@ function onTileClick(r, c) {
     actionMode = 'move';
     pendingAction = null;
     targetableTiles.clear();
-    if (clicked.team === 'player' && clicked.ap > 0 && !clicked.stunned && clicked.sleepTurns <= 0) {
-      if (!clicked.moved) {
+    if (clicked.team === 'player' && !clicked.stunned && clicked.sleepTurns <= 0 && (clicked.ap > 0 || canKongHexFlip(clicked))) {
+      if (clicked.ap > 0 && !clicked.moved) {
         reachableTiles = computeReachable(clicked);
         showCmdPopover = false;
       } else {
@@ -5209,6 +5238,13 @@ async function executeEnemyCounter(enemy, playerUnit) {
 }
 
 async function executePlayerAction(unit, mode, tr, tc) {
+  if (actionLockBusy) return;
+  if (!unit || unit.hp <= 0) {
+    pendingMove = null; pendingAction = null; showCmdPopover = false;
+    setState(STATE.PLAYER_TURN); renderAll();
+    return;
+  }
+  actionLockBusy = true;
   pendingMove = null; pendingAction = null; showCmdPopover = false;
   setState(STATE.ANIMATION_BUSY); renderFloatingUi(); renderPreviewBanner();
   reachableTiles.clear(); targetableTiles.clear(); renderGrid(); renderGhost();
@@ -5218,8 +5254,11 @@ async function executePlayerAction(unit, mode, tr, tc) {
   let primaryEnemy = null;
   let grantPostMove = false;
 
+  try {
   if (mode === 'basic') {
-    const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+    const enemy = getUnitAt(tr, tc);
+    if (!enemy) return;
+    primaryEnemy = enemy;
     const sk = DATA_SKILLS[unit.basicId];
     unit.qi = Math.min(100, unit.qi + 25 + (hex.bonusQi || 0) + ((unit.outerTalents.qi_flow || 0) * 8));
     await playAnimWithHitSync(unit, 'attack', async () => {
@@ -5313,7 +5352,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
           spawnFloatText(a.r, a.c, `+${h}HP/+1AP`, 'heal');
         });
       } else if (sk.type === 'charge_stun') {
-        const e = getUnitAt(tr, tc); primaryEnemy = e;
+        const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e;
         const dr = Math.sign(e.r - unit.r), dc = Math.sign(e.c - unit.c);
         const stopR = e.r - dr, stopC = e.c - dc;
         if (stopR >= 0 && stopR < GRID_SIZE && stopC >= 0 && stopC < GRID_SIZE && !getUnitAt(stopR, stopC)) { unit.r = stopR; unit.c = stopC; }
@@ -5321,14 +5360,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
         await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def, Math.random() < (hex.critRate + 0.1), e), false, false, unit);
         if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); }
       } else if (sk.type === 'bribe') {
-        const e = getUnitAt(tr, tc); AudioManager.play('taiji');
+        const e = getUnitAt(tr, tc); if (!e) return; AudioManager.play('taiji');
         e.team = 'player'; e.color = '#0d9488'; e.ap = 2; e.moved = false; e.acted = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
         spawnFloatText(e.r, e.c, '千金倒戈！', 'taiji'); renderUnits();
       } else if (sk.type === 'sleep') {
-        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('bell');
+        const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
         e.sleepTurns = 2; spawnFloatText(e.r, e.c, '晝寢2回合', 'info'); renderUnits();
       } else if (sk.type === 'link_guard') {
-        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
+        const a = getUnitAt(tr, tc); if (!a) return; AudioManager.play('guqin');
         a.linkGuardianId = unit.id; a.linkTurns = 2;
         spawnFloatText(a.r, a.c, '共患難連結！', 'taiji');
       } else if (sk.type === 'absorb_debuffs') {
@@ -5369,10 +5408,10 @@ async function executePlayerAction(unit, mode, tr, tc) {
           spawnFloatText(a.r, a.c, '移+2 暴+20%', 'heal');
         });
       } else if (sk.type === 'mark_vuln') {
-        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('bell');
+        const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
         e.vulnerableTurns = 2; spawnFloatText(e.r, e.c, '易傷+35%！', 'info');
       } else if (sk.type === 'stealth_charm') {
-        const e = getUnitAt(tr, tc); primaryEnemy = e; AudioManager.play('guqin');
+        const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('guqin');
         unit.stealthTurns = 1; e.confusedTurns = 1;
         spawnFloatText(unit.r, unit.c, '隱身！', 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
       } else if (sk.type === 'harsh_tax_curse') {
@@ -5393,7 +5432,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         AudioManager.play('guqin'); unit.dodgeCounterTurns = 1;
         spawnFloatText(unit.r, unit.c, '80%閃避反擊！', 'taiji');
       } else if (sk.type === 'mother_shield') {
-        const a = getUnitAt(tr, tc); AudioManager.play('guqin');
+        const a = getUnitAt(tr, tc); if (!a) return; AudioManager.play('guqin');
         clearUnitDebuffs(a); a.shield = (a.shield || 0) + 65;
         spawnFloatText(a.r, a.c, '禮容護盾+65', 'heal');
       }
@@ -5681,7 +5720,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         }
         focusCameraOn(unit.r, unit.c);
       } else if (cdef.id === 'combo_kong_lu') {
-        const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), enemy = getUnitAt(tr, tc); if (!enemy) return; primaryEnemy = enemy;
         const oldLuR = lu ? lu.r : unit.r, oldLuC = lu ? lu.c : unit.c;
         focusCameraOn(enemy.r, enemy.c); await sleep(150);
         VfxEngine.spawnDashTrail(oldLuR, oldLuC, enemy.r, enemy.c, '#f0a45d');
@@ -5694,7 +5733,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         await applyDamage(enemy, 115, true, false, lu);
         if (enemy.hp > 0) enemy.stunned = true;
       } else if (cdef.id === 'combo_gong_wo') {
-        const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        const enemy = getUnitAt(tr, tc); if (!enemy) return; primaryEnemy = enemy;
         focusCameraOn(enemy.r, enemy.c); await sleep(150);
         triggerImpactFrame(); triggerCameraShake(6, 220);
         VfxEngine.spawnDomain(enemy.r, enemy.c, '#6ea8a1', 1.8, false);
@@ -5782,9 +5821,21 @@ async function executePlayerAction(unit, mode, tr, tc) {
   }
   actionMode = 'move';
   lastPlayerAction = { unitId: unit.id, name: unit.name, yinYang: getEffectiveYinYang(unit) };
-  renderAll();
-  if (checkVictoryOrDefeat()) return;
-  setState(STATE.PLAYER_TURN); renderAll();
+  } catch (err) {
+    console.error('executePlayerAction error:', err);
+    addLog(`⚠ 行動執行異常已自動恢復：${err?.message || err}`, 'enemy');
+  } finally {
+    actionLockBusy = false;
+    setUltSpotlight(false);
+    activeComboDef = null;
+    actionMode = 'move';
+    if (gameState !== STATE.GAME_OVER && currentScene === 'battle') {
+      if (!checkVictoryOrDefeat()) {
+        setState(STATE.PLAYER_TURN);
+        renderAll();
+      }
+    }
+  }
 }
 
 function findEmptyAdjacent(r, c) {
@@ -5926,8 +5977,11 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 }
 
 async function endPlayerTurn() {
-  if (gameState !== STATE.PLAYER_TURN) return;
+  if (actionLockBusy || gameState !== STATE.PLAYER_TURN) return;
+  actionLockBusy = true;
   pendingMove = null; pendingAction = null; showCmdPopover = false; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+
+  try {
 
   // 冉有【瞭望箭塔】於玩家回合結束自動射擊 3 格內敵軍
   for (const tower of units.filter(u => u.team === 'player' && u.isTower && u.hp > 0)) {
@@ -6148,7 +6202,7 @@ async function endPlayerTurn() {
   }
   if (checkVictoryOrDefeat()) return;
 
-  turnNumber++; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
+  turnNumber++; hexFlipUsedThisTurn = false; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
   if (activeStage.victoryType === 'survive' && turnNumber > activeStage.surviveTurns) { triggerBattleVictory(); return; }
 
   if (!hexLockedByStage) {
@@ -6178,8 +6232,29 @@ async function endPlayerTurn() {
   if (turnStory) {
     await StoryEngine.play(turnStory, `${activeStage.id}_turn${turnNumber}`, false);
   }
-  setState(STATE.PLAYER_TURN); renderAll();
-  showTurnBanner('player', turnNumber);
+  if (gameState !== STATE.GAME_OVER) {
+    setState(STATE.PLAYER_TURN); renderAll();
+    showTurnBanner('player', turnNumber);
+  }
+  } catch (err) {
+    console.error('endPlayerTurn error:', err);
+    addLog(`⚠ 回合切換異常已自動恢復：${err?.message || err}`, 'enemy');
+  } finally {
+    actionLockBusy = false;
+    setUltSpotlight(false);
+    if (counterResolveFn) {
+      const fn = counterResolveFn;
+      counterResolveFn = null;
+      fn('defend');
+    }
+    closeModal('counterModal');
+    if (gameState !== STATE.GAME_OVER && currentScene === 'battle') {
+      if (!checkVictoryOrDefeat()) {
+        setState(STATE.PLAYER_TURN);
+        renderAll();
+      }
+    }
+  }
 }
 
 function checkVictoryOrDefeat() {
@@ -6292,22 +6367,121 @@ function useItem(type) {
 
 function openHexModal() {
   const kong = getUnitById('p_kong');
-  if (gameState!==STATE.PLAYER_TURN || !kong || kong.ap<=0 || hexFlipRemaining<=0) return;
+  if (gameState !== STATE.PLAYER_TURN || !canKongHexFlip(kong)) return;
   const cur = getHex(), g = document.getElementById('hexChoiceGrid'); g.innerHTML = '';
   DATA_HEXAGRAMS.forEach((h, idx) => {
-    const isOpp = h.id === cur.opposite;
+    const isCur = (h.id === cur.id);
     const btn = document.createElement('button');
-    btn.className = 'hex-choice' + (isOpp ? ' opposite' : ''); btn.disabled = !isOpp;
-    btn.innerHTML = `<strong>${h.name}${isOpp?' ★對立':''}</strong><br>${h.desc}`;
-    if (isOpp) btn.onclick = () => {
-      closeModal('hexModal'); pendingMove = null;
-      kong.ap = Math.max(0, kong.ap - 1); hexFlipRemaining--;
-      hexIndex = idx; applyHexagramTerrain(); AudioManager.play('bell');
-      spawnVfx(kong.r, kong.c, true, `韋編三絕・${getHex().name}`); renderAll();
-    };
+    btn.className = 'hex-choice' + (isCur ? ' current-hex' : '');
+    btn.innerHTML = `<strong>${h.name}${isCur ? ' 【當前】' : ''}</strong><div style="color:#d6cebf; margin-top:2px;">${h.desc}</div><div style="color:#8ec9c2; font-size:0.68rem; margin-top:3px;">★ ${h.warcryDesc}</div>`;
+    btn.onclick = () => executeWeibianSanzhuo(idx);
     g.appendChild(btn);
   });
   document.getElementById('hexModal').classList.add('show');
+}
+
+async function executeWeibianSanzhuo(idx) {
+  const kong = getUnitById('p_kong');
+  if (actionLockBusy || gameState !== STATE.PLAYER_TURN || !canKongHexFlip(kong)) return;
+  closeModal('hexModal');
+  actionLockBusy = true;
+  setState(STATE.ANIMATION_BUSY);
+  try {
+    hexFlipRemaining--;
+    hexFlipUsedThisTurn = true;
+    hexIndex = idx;
+    hexCountdown = 2;
+    hexLockedByStage = false; // 強行改寫關卡鎖卦限制
+    applyHexagramTerrain();
+    AudioManager.play('bell');
+    const hex = getHex();
+
+    focusCameraOn(kong.r, kong.c);
+    VfxEngine.spawnDomain(kong.r, kong.c, '#ecd29b', 3.2, true);
+    VfxEngine.spawnSkyPillar(kong.r, kong.c, '#ecd29b', false);
+    spawnVfx(kong.r, kong.c, true, `韋編三絕・${hex.name}`);
+    triggerCameraShake(5, 180);
+
+    const allies = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower);
+    const enemies = units.filter(e => e.team === 'enemy' && e.hp > 0);
+
+    if (hex.id === 'qian') {
+      allies.forEach(p => {
+        p.qi = Math.min(100, p.qi + 25);
+        p.buffTurns = Math.max(p.buffTurns, 1);
+        spawnFloatText(p.r, p.c, '+25氣 攻防↑', 'taiji');
+      });
+    } else if (hex.id === 'kun') {
+      allies.forEach(p => {
+        clearUnitDebuffs(p);
+        p.shield = (p.shield || 0) + 40;
+        spawnFloatText(p.r, p.c, '淨化+40盾', 'heal');
+      });
+    } else if (hex.id === 'kan') {
+      enemies.forEach(e => {
+        e.frozenTurns = Math.max(e.frozenTurns, 1);
+        VfxEngine.spawnRipple(e.r, e.c, '#8ec9c2', 2, false);
+        spawnFloatText(e.r, e.c, '澤水凍結！', 'info');
+      });
+    } else if (hex.id === 'li') {
+      for (const e of enemies) {
+        if (e.hp <= 0) continue;
+        VfxEngine.spawnSlash(e.r, e.c, -0.4, '#e85a54', false);
+        await applyDamage(e, 25, false, true, kong);
+        if (e.hp > 0) e.burnTurns = Math.max(e.burnTurns, 2);
+      }
+    } else if (hex.id === 'zhen') {
+      allies.forEach(p => {
+        p.hasteBuffTurns = Math.max(p.hasteBuffTurns, 2);
+        spawnFloatText(p.r, p.c, '移+2 暴+20%', 'taiji');
+      });
+      enemies.filter(e => manhattan(kong.r, kong.c, e.r, e.c) <= 3).forEach(e => {
+        e.stunned = true;
+        spawnFloatText(e.r, e.c, '驚雷暈眩！', 'info');
+      });
+    } else if (hex.id === 'xun') {
+      allies.forEach(p => {
+        p.qi = Math.min(100, p.qi + 15);
+        if (p.ap <= 0) {
+          p.ap = 1;
+          p.acted = false;
+          spawnFloatText(p.r, p.c, '+1AP +15氣', 'taiji');
+        } else {
+          spawnFloatText(p.r, p.c, '+15氣', 'info');
+        }
+      });
+    } else if (hex.id === 'gen') {
+      allies.forEach(p => {
+        p.defStanceTurns = Math.max(p.defStanceTurns, 1);
+        p.shield = (p.shield || 0) + 30;
+        spawnFloatText(p.r, p.c, '固守+30盾', 'heal');
+      });
+    } else if (hex.id === 'dui') {
+      allies.forEach(p => {
+        const h = Math.min(p.maxHp - p.hp, Math.round(p.maxHp * 0.25));
+        p.hp += h;
+        p.qi = Math.min(100, p.qi + 15);
+        spawnFloatText(p.r, p.c, `甘霖+${h}HP/+15氣`, 'heal');
+      });
+    }
+
+    addLog(`☯ 孔子施展【韋編三絕】改寫天時為【${hex.name}】（倒數2回合），觸發${hex.warcryDesc}！`, 'hex');
+    await sleep(260);
+  } catch (err) {
+    console.error('executeWeibianSanzhuo error:', err);
+    addLog(`⚠ 韋編三絕異常已自動恢復：${err?.message || err}`, 'enemy');
+  } finally {
+    actionLockBusy = false;
+    if (gameState !== STATE.GAME_OVER && currentScene === 'battle') {
+      if (!checkVictoryOrDefeat()) {
+        if (kong && kong.hp > 0 && kong.ap > 0 && !kong.moved) {
+          reachableTiles = computeReachable(kong);
+        }
+        setState(STATE.PLAYER_TURN);
+        renderAll();
+      }
+    }
+  }
 }
 
 
@@ -6655,10 +6829,10 @@ function renderFloatingUi() {
 
   if (gameState !== STATE.PLAYER_TURN || pendingAction || actionMode !== 'move') return;
   const u = getUnitById(selectedUnitId);
-  if (!u || u.team !== 'player' || u.isTower || u.ap <= 0 || u.stunned || u.sleepTurns > 0) return;
+  if (!u || u.team !== 'player' || u.isTower || u.stunned || u.sleepTurns > 0 || (u.ap <= 0 && !canKongHexFlip(u))) return;
 
   // 階段 1：尚未移動、未展開指令窗 -> 腳邊顯示【原地出招 / 待機】快捷浮標
-  if (!showCmdPopover && !u.moved) {
+  if (!showCmdPopover && !u.moved && u.ap > 0) {
     const pill = document.createElement('button');
     pill.className = 'quick-action-pill';
     pill.id = 'quickActionPill';
@@ -6732,10 +6906,10 @@ function renderFloatingUi() {
       });
     }
 
-    if (u.id === 'p_kong' && hexFlipRemaining > 0 && u.ap > 0) {
+    if (canKongHexFlip(u)) {
       htmlStr += `<button class="cmd-btn hexflip" onclick="showCmdPopover=false; renderFloatingUi(); openHexModal();">
-        <div class="cmd-btn-top"><span>☯ 韋編三絕</span><span style="font-size:0.68rem;">剩${hexFlipRemaining}次</span></div>
-        <div class="cmd-btn-sub">翻轉陰陽對立卦</div>
+        <div class="cmd-btn-top"><span>☯ 韋編三絕</span><span style="font-size:0.68rem;">0AP・剩${hexFlipRemaining}次</span></div>
+        <div class="cmd-btn-sub">任選八純卦＋全軍戰吼</div>
       </button>`;
     }
 
@@ -7159,6 +7333,7 @@ const StoryEngine = {
   resolveFn: null,
   leftTpl: null,
   rightTpl: null,
+  lastTapTs: 0,
 
   hasStory(stageId, phase = 'preBattle') {
     const st = DATA_STORIES[stageId];
@@ -7252,12 +7427,17 @@ const StoryEngine = {
 
   onTap() {
     if (!this.active) return;
+    const now = performance.now();
+    if (now - this.lastTapTs < 90) return;
+    this.lastTapTs = now;
     const line = this.lines[this.idx];
+    if (!line) { this.finish(); return; }
+    const fullText = line.text || '';
     if (this.typingTimer) {
       clearInterval(this.typingTimer);
       this.typingTimer = null;
-      document.getElementById('storyText').textContent = line.text;
-      document.getElementById('storyNextHint').textContent = this.idx === this.lines.length - 1 ? '點擊繼續 ▾' : '點擊繼續 ▾';
+      document.getElementById('storyText').textContent = fullText;
+      document.getElementById('storyNextHint').textContent = this.idx === this.lines.length - 1 ? '點擊進入戰場 ▾' : '點擊繼續 ▾';
       return;
     }
     this.idx++;
