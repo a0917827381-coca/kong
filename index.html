@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.4 — 9×9暗黑水墨・戰場級奧義跟拍版</title>
+<title>《論語戰棋》v1.5 — 暗黑水墨・極速效能與歸魯終章版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -504,7 +504,6 @@
   .tile {
     width: 128px; height: 128px; position: relative;
     border: 1px solid rgba(212, 175, 106, 0.12);
-    box-shadow: inset 0 0 18px rgba(0, 0, 0, 0.32);
     pointer-events: none;
   }
   .tile.plain {
@@ -626,7 +625,15 @@
     image-rendering: pixelated; pointer-events: none;
   }
   .unit-anchor.selected .unit-box { border: 4px solid var(--gold-bright); box-shadow: 0 0 24px rgba(212, 175, 106, 0.9); }
-  .unit-anchor.selected .sprite-canvas { filter: drop-shadow(0 0 10px #d4af6a); }
+  .unit-anchor.selected::before {
+    content: "";
+    position: absolute;
+    left: 16px; right: 16px; bottom: 14px; height: 28px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse at center, rgba(236, 210, 155, 0.55) 0%, rgba(212, 175, 106, 0.22) 58%, transparent 78%);
+    border: 2px solid rgba(236, 210, 155, 0.85);
+    pointer-events: none;
+  }
   .unit-anchor.exhausted .unit-box, .unit-anchor.exhausted .sprite-canvas { filter: saturate(0.35) brightness(0.68); }
   .unit-anchor.hit-flash .unit-box, .unit-anchor.hit-flash .sprite-canvas { filter: brightness(3.8) contrast(0.5) !important; }
   .unit-anchor.invincible .unit-box { box-shadow: 0 0 20px 5px var(--gold-bright); border-color: #fff3d6; }
@@ -638,7 +645,7 @@
     transition: left 0.16s ease, top 0.16s ease, opacity 0.45s ease;
   }
   .unit-anchor.dead .sprite-canvas {
-    filter: saturate(0.45) brightness(0.84) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.7));
+    filter: saturate(0.45) brightness(0.84);
   }
   .unit-anchor.dead .unit-box {
     transform: translateY(20px) scaleY(0.55) rotate(-14deg);
@@ -775,11 +782,12 @@
   /* 視野外敵軍邊緣預警（硃砂暗印） */
   .threat-layer { position: absolute; inset: 0; pointer-events: none; z-index: 75; }
   .threat-pill {
-    position: absolute; pointer-events: auto; cursor: pointer;
-    background: rgba(128, 28, 24, 0.9); border: 1.5px solid #e0827c; color: #fdf4e3;
+    position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer;
+    background: rgba(122, 24, 20, 0.96); border: 1.5px solid #e0827c; color: #fdf4e3;
     font-family: var(--font-serif); font-size: 0.68rem; font-weight: 900;
     padding: 3px 8px; border-radius: 4px; white-space: nowrap;
-    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.75); backdrop-filter: blur(2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7);
+    will-change: transform;
   }
   .threat-pill:active { transform: scale(0.95); }
 
@@ -801,8 +809,7 @@
     background: linear-gradient(180deg, rgba(26, 24, 21, 0.97) 0%, rgba(15, 14, 13, 0.97) 100%);
     color: var(--text); border: 1.5px solid #8c6d3b; border-radius: 6px; padding: 7px;
     display: flex; flex-direction: column; gap: 5px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.88), inset 0 0 20px rgba(212, 175, 106, 0.06);
-    backdrop-filter: blur(4px);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.88), inset 0 0 16px rgba(212, 175, 106, 0.08);
   }
   .cmd-pop-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -1111,8 +1118,7 @@
   .ink-dialog-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(3, 4, 5, 0.84);
-    backdrop-filter: blur(3px);
+    background: rgba(3, 4, 5, 0.90);
     display: none;
     align-items: center;
     justify-content: center;
@@ -1384,6 +1390,188 @@
     100% { opacity: 0; }
   }
 
+
+  /* ==================== v1.5 暗黑水墨劇情對話系統 ==================== */
+  .story-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4, 5, 6, 0.76);
+    display: none;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    z-index: 310;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .story-overlay.show { display: flex; }
+  .story-stage {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .story-portraits {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 18px;
+    height: 106px;
+    pointer-events: none;
+  }
+  .story-actor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: transform 0.22s ease, opacity 0.22s ease;
+    opacity: 0;
+    transform: translateY(10px) scale(0.9);
+  }
+  .story-actor.visible { opacity: 0.45; transform: translateY(4px) scale(0.92); }
+  .story-actor.speaking { opacity: 1; transform: translateY(-6px) scale(1.04); }
+  .story-actor.fx-shake { animation: storyShake 0.28s linear; }
+  .story-actor.fx-lunge-left { transform: translate(14px, -6px) scale(1.06) !important; }
+  .story-actor.fx-lunge-right { transform: translate(-14px, -6px) scale(1.06) !important; }
+  .story-actor.fx-fadein { animation: storyFadeIn 0.55s ease-out; }
+  @keyframes storyShake {
+    0%, 100% { transform: translate(0, -6px) scale(1.04); }
+    25% { transform: translate(-7px, -6px) scale(1.04); }
+    50% { transform: translate(7px, -6px) scale(1.04); }
+    75% { transform: translate(-4px, -6px) scale(1.04); }
+  }
+  @keyframes storyFadeIn {
+    0% { opacity: 0; transform: translateY(14px) scale(0.88); }
+    100% { opacity: 1; transform: translateY(-6px) scale(1.04); }
+  }
+  .story-portrait-frame {
+    width: 84px;
+    height: 84px;
+    border-radius: 8px;
+    background: radial-gradient(circle at 50% 45%, #342c20 0%, #161513 72%, #0a0b0c 100%);
+    border: 2px solid #594a32;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .story-actor.speaking .story-portrait-frame {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 18px rgba(212, 175, 106, 0.45), 0 8px 20px rgba(0, 0, 0, 0.9);
+  }
+  .story-portrait-frame canvas {
+    width: 84px;
+    height: 84px;
+    image-rendering: pixelated;
+    display: block;
+  }
+  .story-actor.right .story-portrait-frame canvas { transform: scaleX(-1); }
+  .story-portrait-fallback {
+    font-family: var(--font-serif);
+    font-size: 2.1rem;
+    font-weight: 900;
+    color: #fdf6ec;
+  }
+  .story-box {
+    background: linear-gradient(180deg, rgba(28, 25, 21, 0.98) 0%, rgba(13, 13, 14, 0.99) 100%);
+    border-top: 2px solid var(--gold);
+    border-left: 1px solid #4a3f2f;
+    border-right: 1px solid #4a3f2f;
+    padding: 12px 15px 14px;
+    min-height: 158px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    box-shadow: 0 -10px 32px rgba(0, 0, 0, 0.92);
+    cursor: pointer;
+  }
+  .story-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.25);
+    padding-bottom: 6px;
+  }
+  .story-speaker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+  .story-seal {
+    width: 26px;
+    height: 26px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #9e2a24, #6b1713);
+    border: 1.5px solid #ecd29b;
+    color: #fdf4e3;
+    font-family: var(--font-serif);
+    font-size: 0.82rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transform: rotate(-3deg);
+  }
+  .story-seal.enemy {
+    background: linear-gradient(135deg, #4b1d52, #2b1030);
+    border-color: #c792d4;
+  }
+  .story-name {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .story-skip-btn {
+    background: #1b1a18;
+    border: 1px solid #594c38;
+    color: #cfc7b8;
+    border-radius: 4px;
+    padding: 3px 9px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .story-skip-btn:active { transform: scale(0.95); }
+  .story-text {
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: #efe8da;
+    min-height: 66px;
+    letter-spacing: 0.4px;
+  }
+  .story-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.7rem;
+    color: #9a9284;
+  }
+  .story-next-hint {
+    color: var(--gold-bright);
+    font-weight: 800;
+    animation: storyBlink 1.1s infinite ease-in-out;
+  }
+  @keyframes storyBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+  .briefing-actions-v15 {
+    display: grid;
+    grid-template-columns: auto 1fr 1.35fr;
+    gap: 6px;
+  }
+
 </style>
 </head>
 <body>
@@ -1458,7 +1646,8 @@
           <span class="pill" id="briefStatus">尚未通關</span>
         </div>
         <div class="briefing-meta" id="briefMeta"></div>
-        <div class="briefing-actions">
+        <div class="briefing-actions-v15">
+          <button class="btn" id="btnReplayStory" onclick="replaySelectedStageStory()" title="重溫本關劇情">📜 劇情</button>
           <button class="btn gold" onclick="switchScene('camp')">🏕 營地整備</button>
           <button class="btn primary" id="btnEnterBattle" onclick="startSelectedStage()">⚔ 帶隊出征</button>
         </div>
@@ -1578,7 +1767,7 @@
               <div class="unit-layer" id="unitLayer"></div>
               <div class="hud-layer" id="hudLayer"></div>
               <div class="vfx-layer" id="vfxLayer"></div>
-              <canvas class="vfx-canvas" id="vfxCanvas" width="1152" height="1152"></canvas>
+              <canvas class="vfx-canvas" id="vfxCanvas" width="576" height="576"></canvas>
               <div class="fx-layer" id="fxLayer"></div>
             </div>
           </div>
@@ -1811,6 +2000,35 @@
 
 
 
+
+
+<!-- v1.5 暗黑水墨劇情對話層 -->
+<div class="story-overlay" id="storyOverlay" onclick="StoryEngine.onTap()">
+  <div class="story-stage">
+    <div class="story-portraits">
+      <div class="story-actor left" id="storyActorLeft">
+        <div class="story-portrait-frame" id="storyFrameLeft"></div>
+      </div>
+      <div class="story-actor right" id="storyActorRight">
+        <div class="story-portrait-frame" id="storyFrameRight"></div>
+      </div>
+    </div>
+    <div class="story-box">
+      <div class="story-head">
+        <div class="story-speaker-wrap">
+          <span class="story-seal" id="storySeal">孔</span>
+          <span class="story-name" id="storyName">孔子</span>
+        </div>
+        <button class="story-skip-btn" onclick="event.stopPropagation(); StoryEngine.skip()">⏭ 略過</button>
+      </div>
+      <div class="story-text" id="storyText"></div>
+      <div class="story-foot">
+        <span id="storyProgress">1 / 3</span>
+        <span class="story-next-hint" id="storyNextHint">點擊繼續 ▾</span>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 // ============================================================================
@@ -2109,7 +2327,7 @@ const DATA_STAGES = [
     id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
     enemyScale: 1.95, startHex: 'kan',
-    victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_boniu',
+    victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
     obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[5,3]],
@@ -2127,7 +2345,7 @@ const DATA_STAGES = [
     id: 'chu_boss', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     enemyScale: 2.15, startHex: 'li',
-    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
+    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_boniu',
     obstacles: [[2,2],[2,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
@@ -2139,6 +2357,68 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '心魔蠱師',   r: 0, c: 2 },
       { tpl: 'archer',     name: '妄念弓手甲', r: 1, c: 1 },
       { tpl: 'archer',     name: '妄念弓手乙', r: 1, c: 7 }
+    ]
+  },
+  {
+    id: 'qi_jiagu', cityLabel: '齊魯・夾谷', x: 64, y: 306, req: 'chu_boss',
+    region: '主線第8站・歸魯終章', name: '夾谷會盟・萊夷伏兵',
+    enemyScale: 2.35, startHex: 'zhen',
+    victoryType: 'annihilate', rewardGold: 1300, rewardExp: 310, firstClearEquip: null, firstClearRecruit: null,
+    firstClearBonusItems: { suxiu: 2 },
+    obstacles: [[2,3],[2,5],[5,2],[5,6],[6,4]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[5,3]],
+    enemySpawns: [
+      { tpl: 'elite',      name: '齊國司馬・犁彌', r: 0, c: 4, eliteSkill: 'rally' },
+      { tpl: 'cavalry',    name: '萊夷伏騎甲',     r: 2, c: 0 },
+      { tpl: 'cavalry',    name: '萊夷伏騎乙',     r: 2, c: 8 },
+      { tpl: 'cavalry',    name: '萊夷伏騎丙',     r: 7, c: 1 },
+      { tpl: 'soldier',    name: '齊國重甲甲',     r: 1, c: 3 },
+      { tpl: 'soldier',    name: '齊國重甲乙',     r: 1, c: 5 },
+      { tpl: 'strategist', name: '齊宮優施',       r: 0, c: 2 },
+      { tpl: 'archer',     name: '齊國伏弩甲',     r: 8, c: 4 },
+      { tpl: 'archer',     name: '齊國伏弩乙',     r: 7, c: 7 }
+    ]
+  },
+  {
+    id: 'lu_sandu', cityLabel: '魯・墮三都', x: 68, y: 152, req: 'qi_jiagu',
+    region: '主線第9站・歸魯終章', name: '墮三都・三桓圍城',
+    enemyScale: 2.55, startHex: 'gen',
+    victoryType: 'annihilate', rewardGold: 1500, rewardExp: 350, firstClearEquip: null, firstClearRecruit: null,
+    firstClearBonusItems: { suxiu: 2, bento: 2 },
+    obstacles: [[2,2],[2,6],[4,1],[4,7],[6,2],[6,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemySpawns: [
+      { tpl: 'elite',      name: '季孫家宰・公山', r: 1, c: 4, eliteSkill: 'rally' },
+      { tpl: 'elite',      name: '孟孫家將・公斂', r: 2, c: 1, eliteSkill: 'crush' },
+      { tpl: 'elite',      name: '叔孫家臣・侯犯', r: 2, c: 7, eliteSkill: 'crush' },
+      { tpl: 'soldier',    name: '三桓鐵衛甲',     r: 3, c: 3 },
+      { tpl: 'soldier',    name: '三桓鐵衛乙',     r: 3, c: 5 },
+      { tpl: 'strategist', name: '季氏謀士甲',     r: 0, c: 3 },
+      { tpl: 'strategist', name: '孟氏謀士乙',     r: 0, c: 5 },
+      { tpl: 'archer',     name: '郈邑長弓甲',     r: 1, c: 0 },
+      { tpl: 'archer',     name: '費邑長弓乙',     r: 1, c: 8 }
+    ]
+  },
+  {
+    id: 'taishan_huolin', cityLabel: '泰山・獲麟', x: 242, y: 72, req: 'lu_sandu',
+    region: '最終章・泰山之巔', name: '獲麟絕筆（真正最終戰）',
+    enemyScale: 2.80, startHex: 'li',
+    victoryType: 'annihilate', rewardGold: 2200, rewardExp: 450, firstClearEquip: null, firstClearRecruit: null,
+    firstClearBonusItems: { suxiu: 3, bento: 3 },
+    obstacles: [[2,2],[2,6],[5,2],[5,6]],
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemySpawns: [
+      { tpl: 'boss',       name: '首領·亂世心魔', r: 0, c: 3 },
+      { tpl: 'boss',       name: '首領·時代巨輪', r: 0, c: 5 },
+      { tpl: 'elite',      name: '禮崩樂壞之影',   r: 2, c: 4, eliteSkill: 'rally' },
+      { tpl: 'cavalry',    name: '霸道玄騎甲',     r: 1, c: 1 },
+      { tpl: 'cavalry',    name: '霸道玄騎乙',     r: 1, c: 7 },
+      { tpl: 'strategist', name: '縱橫詭辯師',     r: 1, c: 4 },
+      { tpl: 'archer',     name: '亂世流矢甲',     r: 3, c: 0 },
+      { tpl: 'archer',     name: '亂世流矢乙',     r: 3, c: 8 }
     ]
   },
 
@@ -2345,11 +2625,14 @@ function refreshAllSpriteCanvases() {
 }
 
 setInterval(() => {
+  if (currentScene === 'battle' && !(typeof StoryEngine !== 'undefined' && StoryEngine.active)) return;
   uiIdleFrame = (uiIdleFrame + 1) % 4;
-  document.querySelectorAll('canvas.ui-sprite-cvs[data-anim="1"]').forEach(cvs => {
+  const scope = (currentScene === 'battle') ? document.getElementById('storyOverlay') : document;
+  if (!scope) return;
+  scope.querySelectorAll('canvas.ui-sprite-cvs[data-anim="1"]').forEach(cvs => {
     drawSpriteFrameToCanvas(cvs, cvs.dataset.tpl, uiIdleFrame);
   });
-}, 170); // ~6fps，與戰鬥待機節奏一致
+}, 170); // ~6fps，戰鬥中自動休眠，僅於營地或劇情演出時更新
 
 // ============================================================================
 // 三、 存檔與裝備庫存管理
@@ -2391,6 +2674,7 @@ function createDefaultSave() {
     items: { yarrow: 3, potion: 3, bento: 2, suxiu: 2 },
     equipInventory: { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 },
     clearedStages: [],
+    seenStories: [],
     selectedStageId: 'lu_kuang',
     deployedIds: ['p_kong', 'p_lu', 'p_hui'],
     roster,
@@ -2411,6 +2695,7 @@ function loadSaveData() {
       if (p && p.roster && p.items) {
         if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
         if (!p.bonds) p.bonds = {};
+        if (!Array.isArray(p.seenStories)) p.seenStories = [];
         BOND_PAIRS.forEach(b => { if (!p.bonds[b.id]) p.bonds[b.id] = 1; });
         return p;
       }
@@ -3646,6 +3931,8 @@ const VfxEngine = {
     const ctx = cvs.getContext('2d');
     ctx.clearRect(0, 0, cvs.width, cvs.height);
     this.hasDrawn = true;
+    ctx.save();
+    ctx.scale(0.5, 0.5);
 
     // 1. 更新並繪製特效主體
     for (let i = this.effects.length - 1; i >= 0; i--) {
@@ -3956,6 +4243,7 @@ const VfxEngine = {
       }
       ctx.restore();
     }
+    ctx.restore();
   }
 };
 
@@ -4108,7 +4396,8 @@ function startSelectedStage() {
   });
 
   document.getElementById('logBox').innerHTML = ''; document.getElementById('unitLayer').innerHTML = '';
-  document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = ''; VfxEngine.clear();
+  document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = '';
+  clearThreatPool(); VfxEngine.clear();
   document.getElementById('forecastBar').style.display = 'none';
   addLog(`=== 出征：${activeStage.cityLabel}・${activeStage.name} ===`, 'hex');
   camZoomMode = 'closeup';
@@ -4116,12 +4405,20 @@ function startSelectedStage() {
   const zBtn = document.getElementById('btnZoomToggle');
   if (zBtn) { zBtn.textContent = '🔍全盤'; zBtn.classList.remove('overview'); }
   initBoardPointerControls();
-  setState(STATE.PLAYER_TURN);
+  setState(STATE.ANIMATION_BUSY);
   resizeBoard();
   const lead = units.find(u => u.team === 'player' && u.hp > 0);
   if (lead) focusCameraOn(lead.r, lead.c, true);
   renderAll(); startAnimLoop();
-  showTurnBanner('player', turnNumber);
+  const stStory = DATA_STORIES[activeStage.id];
+  (async () => {
+    if (stStory && stStory.preBattle) {
+      await StoryEngine.play(stStory.preBattle, `${activeStage.id}_pre`, false);
+    }
+    setState(STATE.PLAYER_TURN);
+    renderAll();
+    showTurnBanner('player', turnNumber);
+  })();
 }
 
 function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null) {
@@ -5555,7 +5852,12 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
   renderUnits(); await sleep(180);
 
-  if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= target.maxHp * 0.5) { target.phase = 2; target.color = '#7e22ce'; spawnVfx(target.r, target.c, true, '心魔二階段！'); renderUnits(); }
+  if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= target.maxHp * 0.5) {
+    target.phase = 2; target.color = '#7e22ce';
+    spawnVfx(target.r, target.c, true, '首領二階段！'); renderUnits();
+    const stMid = DATA_STORIES[activeStage?.id]?.midBattle?.bossPhase2;
+    if (stMid) await StoryEngine.play(stMid, `${activeStage.id}_bossP2`, false);
+  }
   if (target.hp <= 0) {
     target.animState = 'die'; target.animFrame = 0; target.animTimer = 0;
     if (target.team === 'player' && !target.isTower && saveData.roster[target.id] && !fallenAllies.includes(target)) {
@@ -5821,6 +6123,10 @@ async function endPlayerTurn() {
   }
   const firstP = units.find(u => u.team === 'player' && u.hp > 0 && !u.isTower);
   if (firstP) focusCameraOn(firstP.r, firstP.c);
+  const turnStory = DATA_STORIES[activeStage?.id]?.midBattle?.[`turn${turnNumber}`];
+  if (turnStory) {
+    await StoryEngine.play(turnStory, `${activeStage.id}_turn${turnNumber}`, false);
+  }
   setState(STATE.PLAYER_TURN); renderAll();
   showTurnBanner('player', turnNumber);
 }
@@ -5839,7 +6145,7 @@ function checkVictoryOrDefeat() {
   return false;
 }
 
-function triggerBattleVictory() {
+async function triggerBattleVictory() {
   setState(STATE.GAME_OVER);
   const isFirstClear = !saveData.clearedStages.includes(activeStage.id);
   if (isFirstClear) saveData.clearedStages.push(activeStage.id);
@@ -5855,7 +6161,16 @@ function triggerBattleVictory() {
   if (isFirstClear && activeStage.firstClearEquip) {
     const eid = activeStage.firstClearEquip;
     saveData.equipInventory[eid] = (saveData.equipInventory[eid] || 0) + 1;
-    dropMsg = ` 🎁 首通獲得典籍【${DATA_EQUIPS[eid].name}】！`;
+    dropMsg += ` 🎁 首通獲得典籍【${DATA_EQUIPS[eid].name}】！`;
+  }
+  if (isFirstClear && activeStage.firstClearBonusItems) {
+    const bNames = { suxiu: '束脩', bento: '簞食瓢飲', yarrow: '蓍草', potion: '一般傷藥' };
+    const parts = [];
+    Object.entries(activeStage.firstClearBonusItems).forEach(([k, cnt]) => {
+      saveData.items[k] = (saveData.items[k] || 0) + cnt;
+      parts.push(`${bNames[k] || k}×${cnt}`);
+    });
+    if (parts.length) dropMsg += ` 🎁 首通補給：${parts.join('、')}！`;
   }
 
   // 出戰弟子獲得 100% EXP，板凳弟子「孔門共修」同步獲得 50% EXP
@@ -5867,7 +6182,14 @@ function triggerBattleVictory() {
     while (p.exp >= p.lv * 100) { p.exp -= p.lv * 100; p.lv++; p.liuyiPts++; p.wudaoPts++; lvUps.push(`${DATA_UNITS[id].name}→Lv.${p.lv}`); }
   });
   persistSave();
-  document.getElementById('endTitle').textContent = '🚩 攻克城池！';
+
+  const postStory = DATA_STORIES[activeStage.id]?.postBattle;
+  if (postStory) {
+    await StoryEngine.play(postStory, `${activeStage.id}_post`, false);
+  }
+
+  const isGrandFinale = activeStage.id === 'taishan_huolin';
+  document.getElementById('endTitle').textContent = isGrandFinale ? '🏆 獲麟絕筆・青史留名！' : '🚩 攻克城池！';
   document.getElementById('endSubtitle').innerHTML =
     `${recruitBanner}<div style="margin-top:6px;">獲得 ${activeStage.rewardGold} 兩與 ${activeStage.rewardExp} EXP（板凳共修 50%）。${dropMsg}` +
     (lvUps.length ? `<br>升級：${lvUps.join('、')}` : '') + `</div>`;
@@ -5973,12 +6295,32 @@ function renderBattleTop() {
   cTag.className = 'syn-tag' + (taijiReady ? ' taiji-ready' : '');
 }
 
+let tileDomPool = null;
+function ensureGridPool() {
+  const gl = document.getElementById('gridLayer');
+  if (!gl) return;
+  if (tileDomPool && gl.childElementCount === GRID_SIZE * GRID_SIZE) return;
+  gl.innerHTML = '';
+  tileDomPool = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE));
+  const frag = document.createDocumentFragment();
+  for (let r = 0; r < GRID_SIZE; r++) {
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const t = document.createElement('div');
+      t.className = 'tile plain';
+      tileDomPool[r][c] = t;
+      frag.appendChild(t);
+    }
+  }
+  gl.appendChild(frag);
+}
+
 function renderGrid() {
-  const gl = document.getElementById('gridLayer'); gl.innerHTML = '';
+  ensureGridPool();
+  if (!tileDomPool) return;
   const sel = getUnitById(selectedUnitId);
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
-      const t = document.createElement('div'), k = keyOf(r, c);
+      const t = tileDomPool[r][c], k = keyOf(r, c);
       let cls = 'tile ' + (grid[r][c] === 1 ? 'wall' : grid[r][c] === 3 ? 'fence' : grid[r][c] === 2 ? 'water' : ((r + c) % 2 === 0 ? 'plain' : 'plain alt'));
       if (sel && sel.r === r && sel.c === c) cls += ' selected-tile';
       if (actionMode === 'move' && reachableTiles.has(k)) cls += ' move-range';
@@ -5987,8 +6329,7 @@ function renderGrid() {
         cls += (sel && ((actionMode === 'skill' && ['p_kong', 'p_hui', 'p_min', 'p_ranyou', 'p_yanzhengzai'].includes(sel.id)) || (actionMode === 'ult' && sel.id === 'p_gong'))) ? ' heal-range' : ' special-range';
       }
       if (pendingAction && pendingAction.r === r && pendingAction.c === c) cls += ' preview-target';
-      t.className = cls;
-      gl.appendChild(t);
+      if (t.className !== cls) t.className = cls;
     }
   }
 }
@@ -6037,7 +6378,33 @@ function renderUnits() {
 
     if (isDead) return;
     let hud = hLayer.querySelector(`[data-hudid="${u.id}"]`);
-    if (!hud) { hud = document.createElement('div'); hud.className = 'unit-hud'; hud.dataset.hudid = u.id; hLayer.appendChild(hud); }
+    if (!hud) {
+      hud = document.createElement('div');
+      hud.className = 'unit-hud';
+      hud.dataset.hudid = u.id;
+      hud.innerHTML = `
+        <span class="hud-status" style="display:none;"></span>
+        <div class="hud-foot-badges">
+          <span class="hud-yy-circle"></span>
+          <span class="hud-ap-circle" style="display:none;"></span>
+        </div>
+        <div class="hud-bars">
+          <div class="shield-bar-bg" style="display:none;"><div class="shield-bar-fill"></div></div>
+          <div class="hp-bar-bg"><div class="hp-bar-fill"></div></div>
+          <div class="qi-bar-bg" style="display:none;"><div class="qi-bar-fill"></div></div>
+        </div>`;
+      hud._els = {
+        status: hud.querySelector('.hud-status'),
+        yy: hud.querySelector('.hud-yy-circle'),
+        ap: hud.querySelector('.hud-ap-circle'),
+        shBg: hud.querySelector('.shield-bar-bg'),
+        shFill: hud.querySelector('.shield-bar-fill'),
+        hpFill: hud.querySelector('.hp-bar-fill'),
+        qiBg: hud.querySelector('.qi-bar-bg'),
+        qiFill: hud.querySelector('.qi-bar-fill')
+      };
+      hLayer.appendChild(hud);
+    }
     hud.style.left = `${u.c * TILE_PX}px`; hud.style.top = `${u.r * TILE_PX}px`;
     const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
@@ -6061,17 +6428,37 @@ function renderUnits() {
     const effYY = getEffectiveYinYang(u);
     const yyShort = effYY === '陽/陰' ? '陰陽' : effYY;
 
-    hud.innerHTML = `
-      ${flags.length ? `<span class="hud-status">${flags.slice(0, 2).join('')}</span>` : ''}
-      <div class="hud-foot-badges">
-        <span class="hud-yy-circle">${yyShort}</span>
-        ${u.team === 'player' ? `<span class="hud-ap-circle">${u.ap}</span>` : ''}
-      </div>
-      <div class="hud-bars">
-        ${u.shield > 0 ? `<div class="shield-bar-bg"><div class="shield-bar-fill" style="width:${Math.min(100, Math.round((u.shield / u.maxHp) * 100))}%"></div></div>` : ''}
-        <div class="hp-bar-bg"><div class="hp-bar-fill ${u.team === 'enemy' ? 'enemy' : ''}" style="width:${hpPct}%"></div></div>
-        ${u.team === 'player' && !u.isTower ? `<div class="qi-bar-bg"><div class="qi-bar-fill" style="width:${qiPct}%"></div></div>` : ''}
-      </div>`;
+    const eH = hud._els;
+    const flagTxt = flags.slice(0, 2).join('');
+    if (flagTxt) {
+      eH.status.style.display = '';
+      if (eH.status.textContent !== flagTxt) eH.status.textContent = flagTxt;
+    } else {
+      eH.status.style.display = 'none';
+    }
+    if (eH.yy.textContent !== yyShort) eH.yy.textContent = yyShort;
+    if (u.team === 'player') {
+      eH.ap.style.display = '';
+      const apTxt = String(u.ap);
+      if (eH.ap.textContent !== apTxt) eH.ap.textContent = apTxt;
+    } else {
+      eH.ap.style.display = 'none';
+    }
+    if (u.shield > 0) {
+      eH.shBg.style.display = '';
+      eH.shFill.style.width = `${Math.min(100, Math.round((u.shield / u.maxHp) * 100))}%`;
+    } else {
+      eH.shBg.style.display = 'none';
+    }
+    const hpCls = u.team === 'enemy' ? 'hp-bar-fill enemy' : 'hp-bar-fill';
+    if (eH.hpFill.className !== hpCls) eH.hpFill.className = hpCls;
+    eH.hpFill.style.width = `${hpPct}%`;
+    if (u.team === 'player' && !u.isTower) {
+      eH.qiBg.style.display = '';
+      eH.qiFill.style.width = `${qiPct}%`;
+    } else {
+      eH.qiBg.style.display = 'none';
+    }
   });
 }
 
@@ -6371,21 +6758,48 @@ function renderPreviewBanner() {
 }
 
 // 視野外敵軍邊緣預警
+const threatNodePool = new Map();
+function clearThreatPool() {
+  threatNodePool.forEach(el => el.remove());
+  threatNodePool.clear();
+}
 function renderThreatIndicators() {
   const layer = document.getElementById('threatLayer');
   if (!layer) return;
-  layer.innerHTML = '';
-  if (currentScene !== 'battle' || camZoomMode === 'overview') return;
+  if (currentScene !== 'battle' || camZoomMode === 'overview') {
+    threatNodePool.forEach(el => { if (el.style.display !== 'none') el.style.display = 'none'; });
+    return;
+  }
 
   const { w, h } = getViewportSize();
-  const enemies = units.filter(u => u.team === 'enemy' && u.hp > 0);
   const centerR = (h / 2 - camY) / (TILE_PX * camScale) - 0.5;
   const centerC = (w / 2 - camX) / (TILE_PX * camScale) - 0.5;
+  const activeIds = new Set();
 
-  enemies.forEach(e => {
+  for (let i = 0; i < units.length; i++) {
+    const e = units[i];
+    if (e.team !== 'enemy' || e.hp <= 0) continue;
+    activeIds.add(e.id);
     const sx = camX + (e.c + 0.5) * TILE_PX * camScale;
     const sy = camY + (e.r + 0.5) * TILE_PX * camScale;
-    if (sx >= 14 && sx <= w - 14 && sy >= 14 && sy <= h - 14) return;
+    let el = threatNodePool.get(e.id);
+
+    if (sx >= 14 && sx <= w - 14 && sy >= 14 && sy <= h - 14) {
+      if (el && el.style.display !== 'none') el.style.display = 'none';
+      continue;
+    }
+
+    if (!el) {
+      el = document.createElement('button');
+      el.className = 'threat-pill';
+      el.onclick = ev => {
+        ev.stopPropagation();
+        const cur = getUnitById(e.id);
+        if (cur) focusCameraOn(cur.r, cur.c);
+      };
+      layer.appendChild(el);
+      threatNodePool.set(e.id, el);
+    }
 
     const dx = sx - w / 2, dy = sy - h / 2;
     let arrow = '▲';
@@ -6395,16 +6809,16 @@ function renderThreatIndicators() {
     const dist = Math.max(1, Math.round(Math.hypot(e.r - centerR, e.c - centerC)));
     const px = Math.max(36, Math.min(w - 36, sx));
     const py = Math.max(20, Math.min(h - 20, sy));
+    const txt = `${e.char} ${arrow}${dist}格`;
 
-    const el = document.createElement('button');
-    el.className = 'threat-pill';
-    el.textContent = `${e.char} ${arrow}${dist}格`;
-    el.style.left = `${px}px`;
-    el.style.top = `${py}px`;
-    el.style.transform = 'translate(-50%, -50%)';
-    el.onclick = ev => { ev.stopPropagation(); focusCameraOn(e.r, e.c); };
-    layer.appendChild(el);
-  });
+    if (el.textContent !== txt) el.textContent = txt;
+    if (el.style.display === 'none') el.style.display = '';
+    el.style.transform = `translate3d(${px.toFixed(0)}px, ${py.toFixed(0)}px, 0) translate(-50%, -50%)`;
+  }
+
+  for (const [id, el] of threatNodePool.entries()) {
+    if (!activeIds.has(id)) { el.remove(); threatNodePool.delete(id); }
+  }
 }
 
 function spawnFloatText(r, c, text, type = 'dmg') {
@@ -6417,6 +6831,338 @@ function addLog(msg, cls = '') {
   const box = document.getElementById('logBox'), div = document.createElement('div');
   div.className = `log-entry ${cls}`; div.textContent = msg;
   box.appendChild(div); box.scrollTop = box.scrollHeight;
+}
+
+
+// ============================================================================
+// 六、 v1.5 暗黑水墨劇情引擎（《論語》黑色幽默腳本）
+// ============================================================================
+const DATA_STORIES = {
+  lu_kuang: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '匡地校尉', seal: '兵', fx: 'lunge', text: '站住！那個高個子就是之前來匡城收保護費的陽虎！兄弟們抄傢伙，今天別讓他跑了！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '……壯士冷靜。吾乃魯國孔丘，不是陽虎。雖然我倆長得確實有點像，但臉盲不該成為行兇的理由。' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '老師別跟文盲講道理了！他們連長相都分不清，肯定也聽不懂《詩經》，我直接拿長戟幫他們物理矯正！' },
+      { side: 'left', tpl: 'p_hui', name: '顏回', seal: '回', text: '師兄冷靜，記得別把人打死，回頭又要寫檢討……總之先突圍再說！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_gong', name: '子貢', seal: '貢', fx: 'fadeIn', text: '老師！聽說您在匡城被人當成黑道大哥圍毆，我立刻帶著三百兩銀子來撈人了。' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '賜啊，這趟周遊列國看來路費很燒，以後隊伍的財務與「物理公關」就交給你了。' },
+      { side: 'right', tpl: 'p_gong', name: '子貢', seal: '貢', text: '放心，能用錢解決的敵人，我絕對不讓老師動手；解決不了的，就加錢買他倒戈！' }
+    ]
+  },
+  wei_nanzi: {
+    preBattle: [
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '老師，您真的要去見衛靈公那個名聲很野的夫人南子？傳出去我們孔門的清譽怎麼辦！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '予所否者，天厭之！……話說回來，衛國宮門這群禁軍拔刀幹嘛？只是來喝杯茶而已啊。' },
+      { side: 'right', tpl: 'elite', name: '衛宮侍衛長', seal: '衛', fx: 'lunge', text: '夫人有令：想進宮談政事，先證明你們這群讀書人不是只會嘴砲！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_wo', name: '宰我', seal: '我', fx: 'fadeIn', text: '哈欠……外面吵得要命，害我午覺都睡不好。老師，你們打完了嗎？' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', fx: 'shake', text: '朽木不可雕也！大白天的還在睡！給我起來入隊，以後敵人太吵就交給你用嘴砲催眠他們！' },
+      { side: 'right', tpl: 'p_wo', name: '宰我', seal: '我', text: '遵命遵命，只要能讓我用說的不用跑太遠，我保證把對面講到懷疑人生。' }
+    ]
+  },
+  song_huan: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '宋司馬・桓魋', seal: '宋', fx: 'lunge', text: '孔丘！你在我宋國的大樹下講什麼禮樂？來人，把樹給我砍了，順便連這個老夫子一起打包帶走！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '天生德於予，桓魋其如予何……好吧，嘴上這麼說，大家還是先換便服，準備迎戰騎兵！' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', text: '老師你剛才那句明明超帥，怎麼下一秒就開始找逃生路線了？' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_zhonggong', name: '仲弓', seal: '弓', fx: 'fadeIn', text: '老師受驚了。桓魋的輕騎雖然快，但在絕對的防禦面前只是撞牆。' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '雍也可使南面！仲弓你來得正好，前排老是靠子路衝太快容易暴斃，需要你這座重裝移動長城坐鎮。' }
+    ]
+  },
+  lu_wucheng: {
+    preBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '奇怪，武城明明快被齊國重甲兵包圍了，城裡怎麼還傳來叮叮咚咚的彈琴聲？' },
+      { side: 'right', tpl: 'p_ziyou', name: '子游', seal: '游', text: '老師別誤會！這不是擺爛，這是用禮樂給隊友上加速與暴擊 Buff！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '割雞焉用牛刀……不過看對面這個陣仗，今天確實得用牛刀了。各位，配合琴聲破陣！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_ziyou', name: '子游', seal: '游', fx: 'fadeIn', text: '老師您看，君子學道則愛人，小人學道則易使——敵軍聽完我的琴聲都直接躺平了！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '前言戲之耳。你這招全場音波共鳴確實管用，帶上琴跟我們一起走吧！' }
+    ]
+  },
+  wei_xihe: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '西河統領', seal: '晉', fx: 'lunge', text: '前面就是西河防線，滿山遍野都是神射手。孔門那群短手近戰，敢踏進一步就變刺蝟！' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '可惡，對面全部窩在遠處放冷箭，有種下來單挑啊！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '慌什麼？石碑就是最好的掩體。借天時與走位推進，打斷他們的節奏！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_zixia', name: '子夏', seal: '夏', fx: 'fadeIn', text: '敵方弓陣的射程計算破綻百出，連《詩經》的韻腳都比他們整齊。' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '商啊，你這四格超遠狙擊加上破甲考據，正是我們最缺的遠程火力。入隊吧！' }
+    ]
+  },
+  chencai: {
+    preBattle: [
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '老師！已經斷糧七天了，全隊每回合都在掉血，連傷藥都不讓吃！君子也會窮成這樣嗎？！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '君子固窮，小人窮斯濫矣。……撐住，只要死守六回合，別讓陳蔡大軍把我們包餃子！' },
+      { side: 'left', tpl: 'p_hui', name: '顏回', seal: '回', text: '大家靠過來！我的【一簞食，一瓢飲】不受禁補限制，在這關還效果翻倍，我來奶住全場！' }
+    ],
+    midBattle: {
+      turn3: [
+        { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '撐過一半了！肚子餓到我都出現幻覺，好像看到烤雞腿在棋盤上跑……' },
+        { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '那是陳蔡游騎，不是雞腿！再忍三回合，天無絕人之路！' }
+      ]
+    },
+    postBattle: [
+      { side: 'right', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', fx: 'fadeIn', text: '丘兒，苦了你與這群孩子了。母親雖已不在人世，但俎豆禮容之正氣，仍能化作護盾為你們擋災。' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', fx: 'shake', text: '母親……！孩兒在絕糧之境，竟能得見母親英靈護持！' },
+      { side: 'right', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', text: '前方的路還有心魔與列國權臣。從今日起，誰若倒下，母親便將他從鬼門關拉回來。繼續前行吧。' }
+    ]
+  },
+  chu_boss: {
+    preBattle: [
+      { side: 'right', tpl: 'boss', name: '首領·心魔', seal: '魔', fx: 'lunge', text: '孔丘，你奔波十四年，列國諸侯哪一個真聽你的仁政？承認吧，你的理想不過是一場笑話！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '知其不可而為之——這句話可不是說著好玩的。有母親與諸位弟子在側，區區心魔，今日便一劍斬破！' },
+      { side: 'left', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', text: '丘兒放心，我的【俎豆禮容】對心魔系敵人有雙倍淨化傷害，讓母親替你開路。' }
+    ],
+    midBattle: {
+      bossPhase2: [
+        { side: 'right', tpl: 'boss', name: '首領·心魔', seal: '魔', fx: 'shake', text: '可惡的迂腐老頭！既然說服不了你，就把你們全拖進無盡的妄念裡！' },
+        { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '心魔進入二階段了！注意牠的 2 格範圍噬魂與易傷，善用護盾與控場穩住陣腳！' }
+      ]
+    },
+    postBattle: [
+      { side: 'right', tpl: 'p_boniu', name: '冉伯牛', seal: '牛', fx: 'fadeIn', text: '咳咳……聽說老師斬破心魔，準備啟程歸魯了。弟子雖身染惡疾，卻不願只躺在窗邊看戲。' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '亡之，命矣夫！斯人也而有斯疾也……伯牛，你的身子扛得住嗎？' },
+      { side: 'right', tpl: 'p_boniu', name: '冉伯牛', seal: '牛', text: '老師別小看病人——歸魯路上滿是毒計與減益，我可以把隊友的負面狀態全吸過來，再雙倍反彈給權臣！' }
+    ]
+  },
+  qi_jiagu: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '齊國司馬・犁彌', seal: '齊', fx: 'lunge', text: '哈哈哈！孔丘說什麼「有文事者必有武備」？夾谷會盟上，我早已埋伏了滿山萊夷輕騎，看你怎麼收場！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '士兵之爭，非君子之盟……好吧，既然齊國先掀桌子，那我孔門也不必客氣了。' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '等這句很久了！兩側有高速輕騎包抄，後排快靠攏，別被他們切了菜！' }
+    ],
+    postBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '齊景公既已退兵歸還汶陽之田，我們在魯國的聲望也到了頂點。' },
+      { side: 'left', tpl: 'p_gong', name: '子貢', seal: '貢', text: '老師，外患剛平，國內那三家把持朝政的權臣「三桓」已經坐不住了，下一仗才是真正的硬骨頭！' }
+    ]
+  },
+  lu_sandu: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '季孫家宰・公山', seal: '桓', fx: 'lunge', text: '孔丘，你當個大司寇還真想拆了我們季、孟、叔三家的城牆？「墮三都」？先問過我們三位家將的刀！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '家不藏甲，邑無百雉之城。違法違建本來就該拆，你們三個一起上吧。' },
+      { side: 'left', tpl: 'p_boniu', name: '冉伯牛', seal: '牛', text: '敵陣有三名菁英將領加兩名策士群補，拖久了對我們不利，建議先點殺策士或直接開合體奧義清場！' }
+    ],
+    postBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '郈邑與費邑雖破，但成邑終究難下，禮崩樂壞的時代洪流，非一人一朝所能逆轉。' },
+      { side: 'left', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', text: '丘兒，泰山之巔傳來異象——那是時代給你的最後考題。集結你所有門生，去寫下最後的絕筆吧。' }
+    ]
+  },
+  taishan_huolin: {
+    preBattle: [
+      { side: 'right', tpl: 'boss', name: '首領·時代巨輪', seal: '天', fx: 'lunge', text: '西狩獲麟，吾道窮矣！孔丘，春秋已盡、戰國將起，這是兵荒馬亂的弱肉強食時代，你的仁義早該進博物館了！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '……吾道窮矣？不，只要還有人願意讀這部《春秋》、願意在絕境裡講道理，道就沒有窮盡的一天。' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '對面居然有兩個 Boss 同時上場！不過我們十五位孔門弟子全員就位，今天就把這「時代巨輪」拆成柴火！' },
+      { side: 'left', tpl: 'p_hui', name: '顏回', seal: '回', text: '老師，各位師兄弟，傾盡六藝與八卦天時，迎戰最後一役吧！' }
+    ],
+    midBattle: {
+      turn2: [
+        { side: 'right', tpl: 'boss', name: '首領·亂世心魔', seal: '魔', fx: 'shake', text: '撐過第一波了嗎？那就嚐嚐雙首領與全軍合圍的絕望吧！' },
+        { side: 'left', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', text: '別怕陣亡，留好浩然氣，母親隨時準備發動【聖母庇佑】逆轉戰局！' }
+      ],
+      bossPhase2: [
+        { side: 'right', tpl: 'boss', name: '首領·時代巨輪', seal: '天', fx: 'shake', text: '不可能！一群手無寸鐵的讀書人，怎麼可能撼動歷史的洪流？！' },
+        { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '誰跟你說我們手無寸鐵？六藝裡可是包含「射」與「御」的！收網！' }
+      ]
+    },
+    postBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '獲麟絕筆，春秋終成。雖然這世道依然喧囂，但我們走過的每一步，都已經刻進青史裡了。' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', text: '老師，打完這仗終於可以回曲阜吃頓好的了吧？我肚子快餓扁了！' },
+      { side: 'left', tpl: 'p_hui', name: '顏回', seal: '回', text: '師兄，其實一簞食一瓢飲也挺香的……恭喜老師，列國征程圓滿通關！' }
+    ]
+  },
+  // ---- 5 隱藏支線 ----
+  ex_xingtan: {
+    preBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '杏壇銀杏樹下怎麼冒出一群心魔幻影？看來連休假講學都不得安寧。' },
+      { side: 'right', tpl: 'boss', name: '幻影·心魔', seal: '幻', fx: 'lunge', text: '想在杏壇開班授課？先問過我們這群不及格的怨念！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_min', name: '閔子騫', seal: '騫', fx: 'fadeIn', text: '老師，弟子閔損前來報到。剛才看各位前排吃傷太痛了，以後分傷與凍結敵軍的事就交給我扛吧。' }
+    ]
+  },
+  ex_weimu: {
+    preBattle: [
+      { side: 'right', tpl: 'p_nanzi', name: '南子', seal: '南', fx: 'lunge', text: '孔夫子，衛宮帷幕之後步步殺機。想拉本宮入夥，先破了這局環佩迷陣再說～' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '……子路你先別激動，這場是正規外交切磋，我們打完就走。' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_nanzi', name: '南子', seal: '南', fx: 'fadeIn', text: '咯咯，孔門弟子果然身手不凡。這深宮待膩了，本宮就隨你們出去見識見識天下吧。' }
+    ]
+  },
+  ex_taishan: {
+    preBattle: [
+      { side: 'right', tpl: 'p_taishan', name: '泰山婦人', seal: '婦', text: '公公、丈夫、兒子都死在猛虎口下，我卻寧願留在泰山，也不願回山下繳那該死的苛稅……' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', fx: 'shake', text: '小子識之，苛政猛於虎也！那邊那群收稅官兵還敢追上山，給他們一點教訓！' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_taishan', name: '泰山婦人', seal: '婦', fx: 'fadeIn', text: '多謝夫子替山民出氣。這股怨念與幽冥猛虎之力，就借給夫子去懲戒天下的貪官酷吏吧。' }
+    ]
+  },
+  ex_feiyi: {
+    preBattle: [
+      { side: 'right', tpl: 'elite', name: '季氏大總管', seal: '季', fx: 'lunge', text: '季氏要出兵伐顓臾，孔老頭你少管閒事！費邑城牆石碑林立，你們攻不進來的！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '既來之，則安之——既然你們把牆築這麼厚，待會就連牆一起拆了。' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_ranyou', name: '冉有', seal: '有', fx: 'fadeIn', text: '老師我錯了，以後不再替季氏瞎忙活了！我會蓋箭塔、會騎馬打帶跑，連 3×3 障礙都能一砲轟平，收下我吧！' }
+    ]
+  },
+  ex_agu: {
+    preBattle: [
+      { side: 'right', tpl: 'p_agu', name: '阿谷處女', seal: '谷', fx: 'lunge', text: '河畔問道可沒那麼簡單。在積水的坎卦地形裡，看你們這群大男人抓不抓得到我的身影！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '這姑娘身法極快、閃避又高，大家穩紮穩打，別被她的機鋒反擊打亂陣腳。' }
+    ],
+    postBattle: [
+      { side: 'right', tpl: 'p_agu', name: '阿谷處女', seal: '谷', fx: 'fadeIn', text: '果然名不虛傳！這枚玉佩我收回了，從今天起就跟在夫子身邊，替各位試探天下敵人的深淺！' }
+    ]
+  }
+};
+
+const StoryEngine = {
+  active: false,
+  lines: [],
+  idx: 0,
+  charIdx: 0,
+  typingTimer: null,
+  resolveFn: null,
+  leftTpl: null,
+  rightTpl: null,
+
+  hasStory(stageId, phase = 'preBattle') {
+    const st = DATA_STORIES[stageId];
+    return Boolean(st && st[phase] && st[phase].length);
+  },
+
+  play(lines, storyKey = null, force = false) {
+    if (!lines || !lines.length) return Promise.resolve();
+    if (storyKey && !force && saveData.seenStories && saveData.seenStories.includes(storyKey)) {
+      return Promise.resolve();
+    }
+    if (storyKey) {
+      if (!saveData.seenStories) saveData.seenStories = [];
+      if (!saveData.seenStories.includes(storyKey)) {
+        saveData.seenStories.push(storyKey);
+        persistSave();
+      }
+    }
+    return new Promise(resolve => {
+      this.active = true;
+      this.lines = lines;
+      this.idx = 0;
+      this.leftTpl = null;
+      this.rightTpl = null;
+      this.resolveFn = resolve;
+      document.getElementById('storyOverlay').classList.add('show');
+      this.renderLine();
+    });
+  },
+
+  setPortrait(side, tplKey) {
+    const frame = document.getElementById(side === 'left' ? 'storyFrameLeft' : 'storyFrameRight');
+    const tpl = DATA_UNITS[tplKey];
+    if (!frame || !tpl) return;
+    const sheet = getSpriteSheetFor(tplKey);
+    if (sheet) {
+      frame.innerHTML = `<canvas class="ui-sprite-cvs" data-tpl="${tplKey}" data-anim="1" width="84" height="84"></canvas>`;
+      const cvs = frame.querySelector('canvas');
+      drawSpriteFrameToCanvas(cvs, tplKey, uiIdleFrame % 4);
+    } else {
+      frame.innerHTML = `<span class="story-portrait-fallback" style="color:${tpl.color};">${tpl.char}</span>`;
+    }
+  },
+
+  renderLine() {
+    clearInterval(this.typingTimer);
+    const line = this.lines[this.idx];
+    if (!line) { this.finish(); return; }
+
+    const leftEl = document.getElementById('storyActorLeft');
+    const rightEl = document.getElementById('storyActorRight');
+
+    if (line.side === 'left') {
+      if (this.leftTpl !== line.tpl) { this.leftTpl = line.tpl; this.setPortrait('left', line.tpl); }
+    } else {
+      if (this.rightTpl !== line.tpl) { this.rightTpl = line.tpl; this.setPortrait('right', line.tpl); }
+    }
+
+    leftEl.className = 'story-actor left' + (this.leftTpl ? ' visible' : '') + (line.side === 'left' ? ' speaking' : '');
+    rightEl.className = 'story-actor right' + (this.rightTpl ? ' visible' : '') + (line.side === 'right' ? ' speaking' : '');
+
+    const activeActor = line.side === 'left' ? leftEl : rightEl;
+    if (line.fx === 'shake') activeActor.classList.add('fx-shake');
+    else if (line.fx === 'lunge') activeActor.classList.add(line.side === 'left' ? 'fx-lunge-left' : 'fx-lunge-right');
+    else if (line.fx === 'fadeIn') activeActor.classList.add('fx-fadein');
+
+    const sealEl = document.getElementById('storySeal');
+    const tpl = DATA_UNITS[line.tpl];
+    sealEl.textContent = line.seal || (tpl ? tpl.char : '語');
+    sealEl.className = 'story-seal' + (tpl && tpl.team === 'enemy' ? ' enemy' : '');
+    document.getElementById('storyName').textContent = line.name || (tpl ? tpl.name : '');
+    document.getElementById('storyProgress').textContent = `${this.idx + 1} / ${this.lines.length}`;
+
+    const textEl = document.getElementById('storyText');
+    const hintEl = document.getElementById('storyNextHint');
+    textEl.textContent = '';
+    hintEl.textContent = '點擊加速 ▸';
+    this.charIdx = 0;
+
+    AudioManager.play('move');
+    this.typingTimer = setInterval(() => {
+      this.charIdx++;
+      textEl.textContent = line.text.slice(0, this.charIdx);
+      if (this.charIdx >= line.text.length) {
+        clearInterval(this.typingTimer);
+        this.typingTimer = null;
+        hintEl.textContent = this.idx === this.lines.length - 1 ? '點擊進入戰場 ▾' : '點擊繼續 ▾';
+      }
+    }, 26);
+  },
+
+  onTap() {
+    if (!this.active) return;
+    const line = this.lines[this.idx];
+    if (this.typingTimer) {
+      clearInterval(this.typingTimer);
+      this.typingTimer = null;
+      document.getElementById('storyText').textContent = line.text;
+      document.getElementById('storyNextHint').textContent = this.idx === this.lines.length - 1 ? '點擊繼續 ▾' : '點擊繼續 ▾';
+      return;
+    }
+    this.idx++;
+    if (this.idx >= this.lines.length) this.finish();
+    else this.renderLine();
+  },
+
+  skip() {
+    clearInterval(this.typingTimer);
+    this.typingTimer = null;
+    this.finish();
+  },
+
+  finish() {
+    this.active = false;
+    document.getElementById('storyOverlay').classList.remove('show');
+    const fn = this.resolveFn;
+    this.resolveFn = null;
+    if (fn) fn();
+  }
+};
+
+function replaySelectedStageStory() {
+  const sel = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  const st = DATA_STORIES[sel.id];
+  if (!st || !st.preBattle) {
+    showInkDialog({ seal: '卷', sealTone: 'info', title: '尚無劇情紀錄', bodyHtml: '本關目前無可重溫的戰前對白。', actions: [{ label: '知道了', cls: 'primary' }] });
+    return;
+  }
+  StoryEngine.play(st.preBattle, null, true);
 }
 
 // 啟動時自動掃描 assets/sprites/ 資料夾，並渲染地圖
