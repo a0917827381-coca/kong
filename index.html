@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.3 — 9×9暗黑水墨・水墨特效強化版</title>
+<title>《論語戰棋》v1.4 — 9×9暗黑水墨・戰場級奧義跟拍版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1357,6 +1357,31 @@
     18% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
     82% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
     100% { transform: skewY(-2deg) translateX(30px) scaleY(0.95); opacity: 0; }
+  }
+
+
+  /* v1.4 大絕戰場暗場聚光 & 0.07秒黑白閃墨 Impact Frame */
+  .board-viewport.ult-spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(10, 10, 12, 0.14) 15%, rgba(4, 4, 6, 0.62) 100%);
+    pointer-events: none;
+    z-index: 54;
+    transition: opacity 0.25s ease;
+  }
+  .impact-flash {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(255, 250, 238, 0.88) 0%, rgba(16, 15, 13, 0.72) 100%);
+    mix-blend-mode: hard-light;
+    pointer-events: none;
+    z-index: 97;
+    animation: impactFlashAnim 0.085s ease-out forwards;
+  }
+  @keyframes impactFlashAnim {
+    0% { opacity: 0.95; }
+    100% { opacity: 0; }
   }
 
 </style>
@@ -3518,6 +3543,96 @@ const VfxEngine = {
     });
   },
 
+  spawnBeam(r1, c1, r2, c2, color = '#ecd29b', width = 46) {
+    const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
+    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    this.effects.push({
+      type: 'beam', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+      angle, color, width, t: 0, dur: 0.52
+    });
+    const steps = Math.max(2, Math.round(Math.hypot(r2 - r1, c2 - c1)));
+    for (let s = 1; s <= steps; s++) {
+      const mx = p1.x + (p2.x - p1.x) * (s / steps);
+      const my = p1.y + (p2.y - p1.y) * (s / steps);
+      this.addParticles(mx, my, 8, {
+        colors: ['#0c0d0e', color, '#fff9ec', '#c83e37'],
+        speedMin: 80, speedMax: 260, life: 0.42
+      });
+    }
+  },
+
+  spawnSkyPillar(r, c, color = '#ecd29b', isThunder = false) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({
+      type: 'skyPillar', x: p.x, y: p.y, color, isThunder, t: 0, dur: 0.48
+    });
+    this.effects.push({
+      type: 'ripple', x: p.x, y: p.y, color, rings: 3, maxR: 112, t: 0, dur: 0.44
+    });
+    this.addParticles(p.x, p.y, 20, {
+      colors: isThunder ? ['#0b0c0d', '#c83e37', '#ecd29b', '#fff9ec'] : ['#0b0c0d', color, '#fff9ec', '#d4af6a'],
+      speedMin: 90, speedMax: 320, sizeMin: 3, sizeMax: 9, life: 0.44, vyBias: -40
+    });
+  },
+
+  spawnCrossSlash(r, c, color = '#e0827c', isPetals = true) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({
+      type: 'crossSlash', x: p.x, y: p.y, color, t: 0, dur: 0.36
+    });
+    this.addParticles(p.x, p.y, 18, {
+      colors: isPetals ? ['#c83e37', '#e0827c', '#ecd29b', '#120e0e'] : ['#0b0c0d', color, '#fff9ec'],
+      speedMin: 70, speedMax: 250, life: 0.48,
+      shape: isPetals ? 'petal' : 'dot', vyBias: -25
+    });
+  },
+
+  spawnArrowRain(r, c, count = 32, color = '#8ec9c2') {
+    const center = this.tileCenter(r, c);
+    for (let i = 0; i < count; i++) {
+      const tx = center.x + (Math.random() - 0.5) * TILE_PX * 4.2;
+      const ty = center.y + (Math.random() - 0.5) * TILE_PX * 4.2;
+      const delay = Math.random() * 0.28;
+      this.effects.push({
+        type: 'rainArrow',
+        x1: tx - 210, y1: ty - 340,
+        x2: tx, y2: ty,
+        color: i % 3 === 0 ? '#ecd29b' : color,
+        t: -delay, dur: 0.18
+      });
+    }
+  },
+
+  spawnDashTrail(r1, c1, r2, c2, color = '#8ec9c2') {
+    const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
+    this.effects.push({
+      type: 'dashTrail', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+      color, t: 0, dur: 0.34
+    });
+    this.addParticles(p2.x, p2.y, 12, {
+      colors: ['#0c0d0e', color, '#fff9ec'],
+      speedMin: 70, speedMax: 220, life: 0.34
+    });
+  },
+
+  spawnDebris(r, c) {
+    const p = this.tileCenter(r, c);
+    this.addParticles(p.x, p.y, 18, {
+      colors: ['#2b2925', '#4a4439', '#0e0f10', '#d4af6a', '#c83e37'],
+      speedMin: 90, speedMax: 300, sizeMin: 5, sizeMax: 11,
+      life: 0.52, gravity: 420, vyBias: -130, shape: 'shard'
+    });
+  },
+
+  spawnCurseChain(r1, c1, r2, c2, color = '#9370a8') {
+    const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
+    this.effects.push({
+      type: 'dashTrail', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+      color, t: 0, dur: 0.42
+    });
+    this.spawnRipple(r2, c2, color, 3, false);
+  },
+
   updateAndRender(dt) {
     const cvs = document.getElementById('vfxCanvas');
     if (!cvs) return;
@@ -3702,6 +3817,104 @@ const VfxEngine = {
         ctx.beginPath(); ctx.arc(0, -rad / 2, rad * 0.14, 0, Math.PI * 2); ctx.fill();
         ctx.fillStyle = '#0e0f10';
         ctx.beginPath(); ctx.arc(0, rad / 2, rad * 0.14, 0, Math.PI * 2); ctx.fill();
+      } else if (e.type === 'beam') {
+        const alpha = prog < 0.15 ? prog / 0.15 : (1 - Math.pow((prog - 0.15) / 0.85, 1.5));
+        const curW = e.width * (prog < 0.2 ? (0.4 + prog * 3) : (1 - (prog - 0.2) * 0.85));
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.lineCap = 'round';
+        // 外層焦墨氣場
+        ctx.strokeStyle = '#090a0b';
+        ctx.lineWidth = curW + 18;
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+        // 中層主光柱
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = curW;
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+        // 核心白熾光束
+        ctx.strokeStyle = '#fffaf0';
+        ctx.lineWidth = Math.max(4, curW * 0.36);
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+      } else if (e.type === 'skyPillar') {
+        const alpha = prog < 0.12 ? prog / 0.12 : (1 - Math.pow((prog - 0.12) / 0.88, 1.4));
+        const pillarW = (1 - prog * 0.65) * 62;
+        const topY = Math.max(0, e.y - 580);
+        ctx.globalAlpha = Math.max(0, alpha);
+        if (e.isThunder) {
+          // 鋸齒水墨天雷
+          ctx.strokeStyle = '#0a0b0c';
+          ctx.lineWidth = pillarW * 0.55;
+          ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+          ctx.beginPath();
+          ctx.moveTo(e.x, topY);
+          for (let s = 1; s <= 6; s++) {
+            const yy = topY + (e.y - topY) * (s / 6);
+            const xx = s === 6 ? e.x : e.x + (s % 2 === 0 ? 1 : -1) * (24 - prog * 14);
+            ctx.lineTo(xx, yy);
+          }
+          ctx.stroke();
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = pillarW * 0.28;
+          ctx.stroke();
+          ctx.strokeStyle = '#fffaf0';
+          ctx.lineWidth = Math.max(3, pillarW * 0.12);
+          ctx.stroke();
+        } else {
+          // 貫天聖光／沖天光柱
+          const grad = ctx.createLinearGradient(e.x - pillarW, e.y, e.x + pillarW, e.y);
+          grad.addColorStop(0, 'rgba(10,10,12,0)');
+          grad.addColorStop(0.25, '#0b0c0d');
+          grad.addColorStop(0.5, e.color);
+          grad.addColorStop(0.75, '#0b0c0d');
+          grad.addColorStop(1, 'rgba(10,10,12,0)');
+          ctx.fillStyle = grad;
+          ctx.fillRect(e.x - pillarW, topY, pillarW * 2, e.y - topY + 26);
+          ctx.fillStyle = '#fffaf0';
+          ctx.fillRect(e.x - pillarW * 0.22, topY, pillarW * 0.44, e.y - topY + 20);
+        }
+        // 落地爆點圓光
+        ctx.fillStyle = e.color;
+        ctx.beginPath(); ctx.ellipse(e.x, e.y + 18, 56 * (0.4 + prog * 0.8), 22 * (0.4 + prog * 0.8), 0, 0, Math.PI * 2); ctx.fill();
+      } else if (e.type === 'crossSlash') {
+        const alpha = 1 - prog * prog;
+        const reach = 92 * Math.min(1, prog * 2.5);
+        ctx.translate(e.x, e.y);
+        ctx.globalAlpha = Math.max(0, alpha);
+        [-0.72, 0.72].forEach(rot => {
+          ctx.save(); ctx.rotate(rot);
+          ctx.strokeStyle = '#090a0b'; ctx.lineWidth = (1 - prog * 0.5) * 16; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(-reach, 0); ctx.lineTo(reach, 0); ctx.stroke();
+          ctx.strokeStyle = e.color; ctx.lineWidth = (1 - prog * 0.55) * 8;
+          ctx.beginPath(); ctx.moveTo(-reach, 0); ctx.lineTo(reach, 0); ctx.stroke();
+          ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = (1 - prog * 0.7) * 3;
+          ctx.beginPath(); ctx.moveTo(-reach * 0.85, 0); ctx.lineTo(reach * 0.85, 0); ctx.stroke();
+          ctx.restore();
+        });
+      } else if (e.type === 'rainArrow') {
+        if (e.t < 0) { ctx.restore(); continue; }
+        const cx = e.x1 + (e.x2 - e.x1) * prog;
+        const cy = e.y1 + (e.y2 - e.y1) * prog;
+        const tp = Math.max(0, prog - 0.38);
+        const tx = e.x1 + (e.x2 - e.x1) * tp;
+        const ty = e.y1 + (e.y2 - e.y1) * tp;
+        ctx.globalAlpha = 1 - prog * 0.4;
+        ctx.strokeStyle = '#0a0b0c'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+        ctx.strokeStyle = e.color; ctx.lineWidth = 2.8;
+        ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+        if (prog > 0.88) {
+          ctx.fillStyle = '#fffaf0';
+          ctx.beginPath(); ctx.arc(e.x2, e.y2, 8 * (1 - prog) * 8, 0, Math.PI * 2); ctx.fill();
+        }
+      } else if (e.type === 'dashTrail') {
+        const alpha = 1 - prog;
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#0b0c0d'; ctx.lineWidth = (1 - prog * 0.5) * 20;
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+        ctx.strokeStyle = e.color; ctx.lineWidth = (1 - prog * 0.55) * 10;
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+        ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = (1 - prog * 0.7) * 3.5;
+        ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
       }
       ctx.restore();
 
@@ -3802,6 +4015,20 @@ function playCutin(unitList, titleText, subText = '絕學奧義', isCombo = fals
       resolve();
     }, 620);
   });
+}
+
+function setUltSpotlight(on) {
+  const vp = document.getElementById('boardViewport');
+  if (vp) vp.classList.toggle('ult-spotlight', Boolean(on));
+}
+
+function triggerImpactFrame() {
+  const sLayer = document.getElementById('screenVfxLayer');
+  if (!sLayer) return;
+  const f = document.createElement('div');
+  f.className = 'impact-flash';
+  sLayer.appendChild(f);
+  setTimeout(() => f.remove(), 95);
 }
 
 function spawnVfx(r, c, isUlt = false, stampText = '', vfxHint = 'slash', color = null) {
@@ -4598,7 +4825,18 @@ async function executePlayerCounter(defender, attacker, choice) {
         spawnFloatText(defender.r, defender.c, '隱身！', 'info'); spawnFloatText(attacker.r, attacker.c, '魅惑混亂！', 'taiji');
       } else if (sk.type === 'harsh_tax_curse') {
         AudioManager.play('bell');
-        units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => { e.harshTaxTurns = 2; spawnFloatText(e.r, e.c, '苛政詛咒', 'dmg'); });
+        const curseTargets = units.filter(e => e.team === 'enemy' && e.hp > 0);
+        for (const e of curseTargets) {
+          focusCameraOn(e.r, e.c);
+          await sleep(150);
+          e.harshTaxTurns = 2;
+          VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
+          AudioManager.play('slash');
+          spawnFloatText(e.r, e.c, '苛政詛咒！', 'dmg');
+          renderUnits();
+          await sleep(140);
+        }
+        focusCameraOn(defender.r, defender.c);
       }
       addLog(`✦ ${defender.name} 以絕招【${sk.name}】反擊 ${attacker.name}！`, 'player');
     });
@@ -4798,7 +5036,18 @@ async function executePlayerAction(unit, mode, tr, tc) {
         spawnFloatText(unit.r, unit.c, '隱身！', 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
       } else if (sk.type === 'harsh_tax_curse') {
         AudioManager.play('bell');
-        units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => { e.harshTaxTurns = 2; spawnFloatText(e.r, e.c, '苛政詛咒', 'dmg'); });
+        const curseTargets = units.filter(e => e.team === 'enemy' && e.hp > 0);
+        for (const e of curseTargets) {
+          focusCameraOn(e.r, e.c);
+          await sleep(150);
+          e.harshTaxTurns = 2;
+          VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
+          AudioManager.play('slash');
+          spawnFloatText(e.r, e.c, '苛政詛咒！', 'dmg');
+          renderUnits();
+          await sleep(140);
+        }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'counter_stance') {
         AudioManager.play('guqin'); unit.dodgeCounterTurns = 1;
         spawnFloatText(unit.r, unit.c, '80%閃避反擊！', 'taiji');
@@ -4814,123 +5063,234 @@ async function executePlayerAction(unit, mode, tr, tc) {
     unit.qi = Math.max(0, unit.qi - getSkillQiCost(unit, sk.qiCost));
     if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
     AudioManager.play('ult');
+    setUltSpotlight(true);
     await playCutin([unit], sk.name, `${unit.name}・無雙大絕`, false);
     await playAnimWithHitSync(unit, 'cast', async () => {
-      triggerHitstop(65); triggerCameraShake(6, 240);
-      const uHint = ['domain','frost_domain','taunt_thorns','revive_aura'].includes(sk.type) ? 'domain'
-        : (['ya_music_all','nanzi_assassinate','infight'].includes(sk.type) ? 'ripple' : (sk.type === 'three_tigers' ? 'claw' : 'slash'));
-      const uCol = sk.type === 'frost_domain' ? '#8ec9c2' : (sk.type === 'domain' || sk.type === 'revive_aura' ? '#79c997' : (sk.type === 'nanzi_assassinate' ? '#e0827c' : '#d4af6a'));
-      spawnVfx(tr, tc, true, '', uHint, uCol);
       if (sk.type === 'line_true') {
         const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn);
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c); let killed = false;
+        const endR = Math.max(0, Math.min(GRID_SIZE - 1, unit.r + dr * 5));
+        const endC = Math.max(0, Math.min(GRID_SIZE - 1, unit.c + dc * 5));
+        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(7, 260);
+        VfxEngine.spawnBeam(unit.r, unit.c, endR, endC, '#ecd29b', 54);
         for (let st = 1; st <= 5; st++) {
           const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
           const occ = getUnitAt(nr, nc);
-          if (occ && occ.team === 'enemy') { primaryEnemy = occ; await applyDamage(occ, 105 + Math.round(burn * 0.6), false, true, unit); if (occ.hp <= 0) killed = true; }
+          if (occ && occ.team === 'enemy') {
+            focusCameraOn(nr, nc); await sleep(120);
+            primaryEnemy = occ;
+            VfxEngine.spawnSkyPillar(nr, nc, '#ecd29b', false);
+            await applyDamage(occ, 105 + Math.round(burn * 0.6), false, true, unit);
+            if (occ.hp <= 0) killed = true;
+          }
         }
-        if (killed) { unit.hp = Math.max(1, unit.hp); unit.invincibleTurns = 1; spawnFloatText(unit.r, unit.c, '聖人無敵', 'taiji'); }
+        focusCameraOn(unit.r, unit.c);
+        if (killed) {
+          unit.hp = Math.max(1, unit.hp); unit.invincibleTurns = 1;
+          VfxEngine.spawnSkyPillar(unit.r, unit.c, '#ecd29b', false);
+          spawnFloatText(unit.r, unit.c, '聖人無敵', 'taiji');
+        }
       } else if (sk.type === 'self_berserk') {
-        unit.lockHpTurns = 2; spawnFloatText(unit.r, unit.c, '鎖血+雙倍攻', 'taiji');
+        unit.lockHpTurns = 2;
+        triggerImpactFrame(); triggerCameraShake(6, 220);
+        VfxEngine.spawnSkyPillar(unit.r, unit.c, '#c83e37', false);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#c83e37', 1.8, true);
+        spawnFloatText(unit.r, unit.c, '鎖血+雙倍攻', 'taiji');
       } else if (sk.type === 'domain') {
         xinzhaiDomainTurns = 3;
-        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.fatalShield = true; clearUnitDebuffs(p); });
+        triggerCameraShake(4, 180);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#79c997', 3.4, true);
+        units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => {
+          p.fatalShield = true; clearUnitDebuffs(p);
+          VfxEngine.spawnRipple(p.r, p.c, '#79c997', 2, false);
+        });
       } else if (sk.type === 'summon_chariots') {
+        focusCameraOn(tr, tc); await sleep(120);
+        VfxEngine.spawnSkyPillar(tr, tc, '#d4af6a', false);
         units.push(instantiateUnit(DATA_UNITS.chariot, tr, tc, `p_chariot_${summonCounter++}`, null));
         const adj = findEmptyAdjacent(tr, tc);
-        if (adj) units.push(instantiateUnit(DATA_UNITS.chariot, adj.r, adj.c, `p_chariot_${summonCounter++}`, null));
+        if (adj) {
+          VfxEngine.spawnSkyPillar(adj.r, adj.c, '#d4af6a', false);
+          units.push(instantiateUnit(DATA_UNITS.chariot, adj.r, adj.c, `p_chariot_${summonCounter++}`, null));
+        }
         units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.shield = (p.shield || 0) + 45; });
         renderUnits();
       } else if (sk.type === 'infight') {
+        focusCameraOn(tr, tc); await sleep(120);
+        VfxEngine.spawnRipple(tr, tc, '#6ea8a1', 4, false);
         for (const v of units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(e.r, e.c, tr, tc) <= 1)) {
           const others = units.filter(o => o.team === 'enemy' && o.hp > 0 && o.id !== v.id); if (!others.length) continue;
           others.sort((a, b) => manhattan(v.r, v.c, a.r, a.c) - manhattan(v.r, v.c, b.r, b.c));
+          focusCameraOn(v.r, v.c); await sleep(140);
           await playLunge(v, others[0].r, others[0].c);
+          await playAttackVfx(v, others[0]);
           await applyDamage(others[0], calcDamage(getEffectiveStats(v).atk * 1.15, getEffectiveStats(others[0]).def, false, others[0]), false, false, null);
         }
       } else if (sk.type === 'frost_domain') {
         unit.armorBrokenTurns = 1;
-        units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= 3).forEach(e => {
-          e.frozenTurns = 2; spawnFloatText(e.r, e.c, '極寒凍結！', 'info');
-        });
+        triggerImpactFrame(); triggerCameraShake(5, 220);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#8ec9c2', 3.2, false);
+        for (const e of units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= 3)) {
+          focusCameraOn(e.r, e.c); await sleep(130);
+          e.frozenTurns = 2;
+          VfxEngine.spawnRipple(e.r, e.c, '#8ec9c2', 3, false);
+          spawnFloatText(e.r, e.c, '極寒凍結！', 'info');
+          renderUnits(); await sleep(100);
+        }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'detonate_debuffs') {
         const cnt = Math.max(1, countUnitDebuffs(unit));
         const dmg = 35 + cnt * 35;
         clearUnitDebuffs(unit);
         unit.hp = Math.min(unit.maxHp, unit.hp + Math.round(unit.maxHp * 0.25));
+        triggerImpactFrame(); triggerCameraShake(6, 240);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#9370a8', 3.0, true);
         for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(unit.r, unit.c, x.r, x.c) <= 3)) {
+          focusCameraOn(e.r, e.c); await sleep(140);
           primaryEnemy = e; e.internalBleedTurns = 2; e.defBreakTurns = 2;
+          VfxEngine.spawnCurseChain(unit.r, unit.c, e.r, e.c, '#9370a8');
           await applyDamage(e, dmg, false, true, unit);
         }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'taunt_thorns') {
         unit.tauntTurns = 2; unit.thornsShield = Math.round(stats.def * 2);
         unit.shield = (unit.shield || 0) + unit.thornsShield;
+        triggerImpactFrame(); triggerCameraShake(6, 220);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#d4af6a', 3.0, false);
+        VfxEngine.spawnSkyPillar(unit.r, unit.c, '#d4af6a', false);
         spawnFloatText(unit.r, unit.c, `嘲諷+反傷盾${unit.thornsShield}`, 'taiji');
       } else if (sk.type === 'siege_3x3') {
+        focusCameraOn(tr, tc); await sleep(150);
+        VfxEngine.spawnArrowRain(tr, tc, 26, '#f0a45d');
+        await sleep(220);
+        triggerImpactFrame(); triggerCameraShake(8, 300);
+        const hitEnemies = [];
         for (let rr = tr - 1; rr <= tr + 1; rr++) for (let cc = tc - 1; cc <= tc + 1; cc++) {
           if (rr < 0 || rr >= GRID_SIZE || cc < 0 || cc >= GRID_SIZE) continue;
-          if (grid[rr][cc] === 1 || grid[rr][cc] === 3) grid[rr][cc] = 0;
-          const occ = getUnitAt(rr, cc);
-          if (occ && occ.team === 'enemy') {
-            primaryEnemy = occ;
-            await applyDamage(occ, calcDamage(stats.atk * 1.6, getEffectiveStats(occ).def, false, occ), false, false, unit);
+          if (grid[rr][cc] === 1 || grid[rr][cc] === 3) {
+            grid[rr][cc] = 0;
+            VfxEngine.spawnDebris(rr, cc);
           }
+          const occ = getUnitAt(rr, cc);
+          if (occ && occ.team === 'enemy') hitEnemies.push(occ);
         }
         renderGrid();
+        for (const occ of hitEnemies) {
+          if (occ.hp <= 0) continue;
+          primaryEnemy = occ;
+          VfxEngine.spawnSkyPillar(occ.r, occ.c, '#f0a45d', false);
+          await applyDamage(occ, calcDamage(stats.atk * 1.6, getEffectiveStats(occ).def, false, occ), false, false, unit);
+          await sleep(100);
+        }
       } else if (sk.type === 'ya_music_all') {
         const enemies = units.filter(e => e.team === 'enemy' && e.hp > 0);
         const bonus = Math.min(0.5, enemies.length * 0.08);
+        VfxEngine.spawnDomain(unit.r, unit.c, '#8ec9c2', 2.4, true);
         units.filter(p => p.team === 'player' && p.hp > 0).forEach(p => { p.yaAtkBonus = bonus; p.buffTurns = Math.max(p.buffTurns, 2); });
         for (const e of enemies) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c);
+          await sleep(160);
           primaryEnemy = e;
+          VfxEngine.spawnRipple(e.r, e.c, '#8ec9c2', 4, false);
+          AudioManager.play('guqin');
+          triggerCameraShake(4, 140);
           await applyDamage(e, calcDamage(stats.atk * 1.25, getEffectiveStats(e).def * 0.8, false, e), false, false, unit);
+          await sleep(110);
         }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'full_line_arrow') {
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c);
+        let lastR = unit.r, lastC = unit.c;
+        for (let st = 1; st <= GRID_SIZE; st++) {
+          const nr = unit.r + dr * st, nc = unit.c + dc * st;
+          if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+          lastR = nr; lastC = nc;
+        }
+        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(7, 260);
+        VfxEngine.spawnBeam(unit.r, unit.c, lastR, lastC, '#8ec9c2', 44);
         for (let st = 1; st <= GRID_SIZE; st++) {
           const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
           const occ = getUnitAt(nr, nc);
           if (occ && occ.team === 'enemy') {
+            focusCameraOn(nr, nc); await sleep(130);
             primaryEnemy = occ; occ.buffTurns = 0; occ.shield = 0;
+            VfxEngine.spawnCrossSlash(nr, nc, '#8ec9c2', false);
             await applyDamage(occ, calcDamage(stats.atk * 1.75, getEffectiveStats(occ).def * 0.5, true, occ), true, false, unit);
           }
         }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'nanzi_assassinate') {
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
+        const enemies = units.filter(x => x.team === 'enemy' && x.hp > 0);
+        for (const e of enemies) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c);
+          await sleep(165);
           primaryEnemy = e; e.shakenTurns = 2;
+          triggerImpactFrame(); triggerCameraShake(5, 160);
+          VfxEngine.spawnCrossSlash(e.r, e.c, '#e0827c', true);
           await applyDamage(e, calcDamage(stats.atk * 1.45, getEffectiveStats(e).def * 0.6, true, e), true, false, unit);
+          await sleep(110);
         }
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'three_tigers') {
+        focusCameraOn(tr, tc); await sleep(140);
         let totalSteal = 0;
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 1)) {
+        const targets = units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 1);
+        for (let w = 0; w < 3; w++) {
+          VfxEngine.spawnClaw(tr, tc, w % 2 === 0 ? '#c83e37' : '#9370a8');
+          triggerCameraShake(5, 120);
+          await sleep(90);
+        }
+        triggerImpactFrame();
+        for (const e of targets) {
+          if (e.hp <= 0) continue;
           primaryEnemy = e;
+          VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
           if (e.shield > 0) { totalSteal += e.shield; e.shield = 0; }
           if (e.buffTurns > 0) { totalSteal += 20; e.buffTurns = 0; }
           await applyDamage(e, calcDamage(stats.atk * 1.55, getEffectiveStats(e).def * 0.7, false, e), false, false, unit);
         }
+        focusCameraOn(unit.r, unit.c);
         const heal = Math.min(unit.maxHp - unit.hp, 25 + totalSteal);
-        unit.hp += heal; spawnFloatText(unit.r, unit.c, `吞噬+${heal}HP`, 'heal');
+        unit.hp += heal; VfxEngine.spawnRipple(unit.r, unit.c, '#79c997', 2, false);
+        spawnFloatText(unit.r, unit.c, `吞噬+${heal}HP`, 'heal');
       } else if (sk.type === 'agu_five_hits') {
         const targets = units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2);
+        let prevR = unit.r, prevC = unit.c;
         for (let i = 0; i < 5; i++) {
           const aliveT = targets.filter(t => t.hp > 0); if (!aliveT.length) break;
           const pick = aliveT[i % aliveT.length]; primaryEnemy = pick;
+          focusCameraOn(pick.r, pick.c);
+          VfxEngine.spawnDashTrail(prevR, prevC, pick.r, pick.c, '#8ec9c2');
+          VfxEngine.spawnSlash(pick.r, pick.c, (i * 1.1) - 1.2, '#8ec9c2', i === 4);
+          if (i === 4) triggerImpactFrame();
           pick.buffTurns = 0; pick.shield = 0;
           await applyDamage(pick, calcDamage(stats.atk * 0.65, getEffectiveStats(pick).def * 0.7, false, pick), false, false, unit);
+          prevR = pick.r; prevC = pick.c;
+          await sleep(95);
         }
+        VfxEngine.spawnDashTrail(prevR, prevC, unit.r, unit.c, '#8ec9c2');
+        focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'revive_aura') {
         if (fallenAllies.length > 0) {
           const fallen = fallenAllies.shift();
           const corpseEmpty = !getUnitAt(fallen.r, fallen.c) && grid[fallen.r]?.[fallen.c] !== 1 && grid[fallen.r]?.[fallen.c] !== 3;
           const spot = corpseEmpty ? { r: fallen.r, c: fallen.c } : (findEmptyAdjacent(fallen.r, fallen.c) || findEmptyAdjacent(unit.r, unit.c) || { r: unit.r, c: unit.c });
+          focusCameraOn(spot.r, spot.c); await sleep(150);
+          triggerImpactFrame();
+          VfxEngine.spawnSkyPillar(spot.r, spot.c, '#ecd29b', false);
+          VfxEngine.spawnDomain(spot.r, spot.c, '#79c997', 1.8, true);
           fallen.hp = Math.round(fallen.maxHp * 0.5); fallen.r = spot.r; fallen.c = spot.c;
           fallen.ap = 1; fallen.moved = false; fallen.acted = false;
           fallen.animState = 'idle'; fallen.animFrame = 0; fallen.animTimer = 0;
           clearUnitDebuffs(fallen);
           spawnFloatText(fallen.r, fallen.c, '英靈復活！', 'taiji');
         } else {
+          VfxEngine.spawnDomain(unit.r, unit.c, '#79c997', 3.4, true);
           units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
             const h = Math.min(p.maxHp - p.hp, Math.round(p.maxHp * 0.45)); p.hp += h;
+            VfxEngine.spawnSkyPillar(p.r, p.c, '#79c997', false);
             spawnFloatText(p.r, p.c, `庇佑+${h}`, 'heal');
           });
         }
@@ -4939,56 +5299,130 @@ async function executePlayerAction(unit, mode, tr, tc) {
       }
       addLog(`★ ${unit.name} 爆發大絕【${sk.name}】！`, 'ult');
     });
+    setUltSpotlight(false);
   } else if (mode === 'combo' && activeComboDef) {
     const cdef = activeComboDef; cdef.partners.forEach(p => { p.qi = 0; });
     AudioManager.play('ult');
+    setUltSpotlight(true);
     await playCutin(cdef.partners, cdef.name, '《論語》合體奧義', true);
     await playAnimWithHitSync(unit, 'cast', async () => {
-      triggerHitstop(70); triggerCameraShake(6, 260);
-      spawnVfx(tr, tc, true, '', 'domain', '#ecd29b');
       if (cdef.id === 'combo_trio') {
-        units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
+        triggerImpactFrame(); triggerCameraShake(6, 260);
+        for (const p of units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower)) {
           p.hp = Math.max(1, Math.round(p.maxHp * Math.max(0.15, 1 - p.hp / p.maxHp)));
           p.invincibleTurns = 3; p.lockHpTurns = 2;
-        });
+          VfxEngine.spawnSkyPillar(p.r, p.c, '#ecd29b', false);
+          VfxEngine.spawnTaiji(p.r, p.c);
+          spawnFloatText(p.r, p.c, '固窮逆轉！', 'taiji');
+        }
+        renderUnits();
       } else if (cdef.id === 'combo_kong_hui') {
-        const aliveCnt = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).length;
-        units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => { p.hp = p.maxHp; p.qi = 100; clearUnitDebuffs(p); });
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) await applyDamage(e, 50 + aliveCnt * 12, false, true, unit);
+        const aliveAllies = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower);
+        const aliveCnt = aliveAllies.length;
+        VfxEngine.spawnDomain(unit.r, unit.c, '#ecd29b', 2.8, true);
+        aliveAllies.forEach(p => {
+          p.hp = p.maxHp; p.qi = 100; clearUnitDebuffs(p);
+          VfxEngine.spawnRipple(p.r, p.c, '#79c997', 2, false);
+          spawnFloatText(p.r, p.c, '滿血滿氣！', 'heal');
+        });
+        renderUnits();
+        await sleep(220);
+        // 鏡頭逐一跟拍：每位敵軍頭頂依序劈下聖光審判柱
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c);
+          await sleep(165);
+          primaryEnemy = e;
+          triggerImpactFrame(); triggerHitstop(55); triggerCameraShake(6, 170);
+          VfxEngine.spawnSkyPillar(e.r, e.c, '#ecd29b', false);
+          await applyDamage(e, 50 + aliveCnt * 12, false, true, unit);
+          await sleep(120);
+        }
+        focusCameraOn(unit.r, unit.c);
       } else if (cdef.id === 'combo_kong_lu') {
         const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        const oldLuR = lu ? lu.r : unit.r, oldLuC = lu ? lu.c : unit.c;
+        focusCameraOn(enemy.r, enemy.c); await sleep(150);
+        VfxEngine.spawnDashTrail(oldLuR, oldLuC, enemy.r, enemy.c, '#f0a45d');
         const a1 = findEmptyAdjacent(enemy.r, enemy.c); if (a1 && lu) { lu.r = a1.r; lu.c = a1.c; }
         const a2 = findEmptyAdjacent(lu.r, lu.c); if (a2 && kong) { kong.r = a2.r; kong.c = a2.c; }
-        renderUnits(); await applyDamage(enemy, 115, true, false, lu); if (enemy.hp > 0) enemy.stunned = true;
+        renderUnits();
+        triggerImpactFrame(); triggerHitstop(70); triggerCameraShake(8, 280);
+        VfxEngine.spawnSkyPillar(enemy.r, enemy.c, '#f0a45d', true);
+        VfxEngine.spawnSlash(enemy.r, enemy.c, -0.4, '#ecd29b', true);
+        await applyDamage(enemy, 115, true, false, lu);
+        if (enemy.hp > 0) enemy.stunned = true;
       } else if (cdef.id === 'combo_gong_wo') {
         const enemy = getUnitAt(tr, tc); primaryEnemy = enemy;
+        focusCameraOn(enemy.r, enemy.c); await sleep(150);
+        triggerImpactFrame(); triggerCameraShake(6, 220);
+        VfxEngine.spawnDomain(enemy.r, enemy.c, '#6ea8a1', 1.8, false);
+        VfxEngine.spawnCrossSlash(enemy.r, enemy.c, '#ecd29b', false);
         const cut = Math.max(30, Math.round(enemy.hp * 0.5));
         enemy.doubtTurns = 3;
         await applyDamage(enemy, cut, false, true, unit);
         if (enemy.hp > 0) spawnFloatText(enemy.r, enemy.c, '懷疑人生3回合！', 'taiji');
       } else if (cdef.id === 'combo_ziyou_zixia') {
         const enemies = units.filter(x => x.team === 'enemy' && x.hp > 0);
+        focusCameraOn(4, 4); await sleep(160);
+        VfxEngine.spawnDomain(4, 4, '#8ec9c2', 3.4, false);
         for (const e of enemies) {
-          primaryEnemy = e;
           const pullR = e.r + Math.sign(4 - e.r), pullC = e.c + Math.sign(4 - e.c);
-          if (grid[pullR]?.[pullC] === 0 && !getUnitAt(pullR, pullC)) { e.r = pullR; e.c = pullC; }
-          await applyDamage(e, 95, true, false, unit);
+          if (grid[pullR]?.[pullC] === 0 && !getUnitAt(pullR, pullC)) {
+            VfxEngine.spawnDashTrail(e.r, e.c, pullR, pullC, '#8ec9c2');
+            e.r = pullR; e.c = pullC;
+          }
         }
         renderUnits();
-      } else if (cdef.id === 'combo_kong_nanzi') {
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
-          primaryEnemy = e; e.confusedTurns = 1;
-          await applyDamage(e, 105, true, false, unit);
-        }
-      } else if (cdef.id === 'combo_lu_taishan') {
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2)) {
+        await sleep(160);
+        VfxEngine.spawnArrowRain(4, 4, 36, '#8ec9c2');
+        await sleep(240);
+        // 逐一點名箭雨收割
+        for (const e of enemies) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c); await sleep(140);
           primaryEnemy = e;
+          triggerImpactFrame(); triggerCameraShake(5, 160);
+          VfxEngine.spawnCrossSlash(e.r, e.c, '#8ec9c2', false);
+          await applyDamage(e, 95, true, false, unit);
+          await sleep(100);
+        }
+        focusCameraOn(unit.r, unit.c);
+      } else if (cdef.id === 'combo_kong_nanzi') {
+        // 鏡頭逐一跟拍：每位敵軍頭頂依序劈下九天神雷
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c);
+          await sleep(165);
+          primaryEnemy = e; e.confusedTurns = 1;
+          triggerImpactFrame(); triggerHitstop(55); triggerCameraShake(7, 180);
+          VfxEngine.spawnSkyPillar(e.r, e.c, '#e0827c', true);
+          await applyDamage(e, 105, true, false, unit);
+          await sleep(120);
+        }
+        focusCameraOn(unit.r, unit.c);
+      } else if (cdef.id === 'combo_lu_taishan') {
+        focusCameraOn(tr, tc); await sleep(150);
+        for (let w = 0; w < 3; w++) {
+          VfxEngine.spawnClaw(tr, tc, w % 2 === 0 ? '#f0a45d' : '#c83e37');
+          triggerCameraShake(6, 130);
+          await sleep(95);
+        }
+        triggerImpactFrame();
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2)) {
+          if (e.hp <= 0) continue;
+          focusCameraOn(e.r, e.c); await sleep(130);
+          primaryEnemy = e;
+          VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
           await applyDamage(e, 95, false, true, unit);
           if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); }
+          await sleep(100);
         }
+        focusCameraOn(unit.r, unit.c);
       }
       addLog(`★★★ 合體奧義【${cdef.name}】發動！`, 'ult');
     });
+    setUltSpotlight(false);
     activeComboDef = null;
   }
 
