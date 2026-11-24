@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.2 — 9×9暗黑水墨・戰場倒地留屍版</title>
+<title>《論語戰棋》v1.3 — 9×9暗黑水墨・水墨特效強化版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1234,6 +1234,131 @@
   }
   .ink-dialog-actions .btn { flex: 1; }
 
+
+  /* v1.3 60fps 獨立水墨粒子特效畫布 */
+  .vfx-canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1152px;
+    height: 1152px;
+    pointer-events: none;
+    z-index: 56;
+  }
+
+  /* 指令窗：合體奧義未達標灰字提示按鈕 */
+  .cmd-btn.combo-locked {
+    background: rgba(20, 19, 17, 0.85);
+    border: 1px dashed #6b5a3c;
+    color: #9e9585;
+    opacity: 0.78;
+    cursor: not-allowed;
+  }
+  .cmd-btn.combo-locked .cmd-btn-top {
+    color: #b5a382;
+    font-size: 0.74rem;
+  }
+  .cmd-btn.combo-locked .cmd-btn-sub {
+    color: #8c8476;
+    font-size: 0.63rem;
+  }
+
+  /* 大絕招 / 合體奧義全屏水墨 Cut-in 演出 */
+  .cutin-backdrop {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 46%, rgba(18, 12, 10, 0.45) 0%, rgba(4, 4, 5, 0.84) 100%);
+    pointer-events: none;
+    z-index: 96;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: cutinFade 0.62s ease-out forwards;
+  }
+  .cutin-band {
+    width: 100%;
+    padding: 12px 14px;
+    background: linear-gradient(90deg, transparent 0%, rgba(16, 14, 12, 0.96) 10%, rgba(36, 18, 15, 0.98) 50%, rgba(16, 14, 12, 0.96) 90%, transparent 100%);
+    border-top: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+    box-shadow: 0 0 38px rgba(200, 62, 55, 0.48), inset 0 0 24px rgba(212, 175, 106, 0.14);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    transform: skewY(-2deg);
+    animation: cutinSlide 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .cutin-band.combo {
+    background: linear-gradient(90deg, transparent 0%, rgba(18, 15, 10, 0.96) 10%, rgba(56, 38, 14, 0.98) 50%, rgba(18, 15, 10, 0.96) 90%, transparent 100%);
+    border-top-color: var(--gold-bright);
+    border-bottom-color: var(--gold-bright);
+    box-shadow: 0 0 46px rgba(212, 175, 106, 0.55), inset 0 0 28px rgba(236, 210, 155, 0.2);
+  }
+  .cutin-portraits {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .cutin-portraits .sprite-avatar-frame.lg {
+    width: 64px;
+    height: 64px;
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 16px rgba(212, 175, 106, 0.45);
+  }
+  .cutin-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+  }
+  .cutin-sub {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #d6c8ad;
+  }
+  .cutin-title {
+    font-family: var(--font-serif);
+    font-size: 1.42rem;
+    font-weight: 900;
+    letter-spacing: 3px;
+    color: var(--gold-bright);
+    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.95), 0 0 12px rgba(200, 62, 55, 0.55);
+    white-space: nowrap;
+  }
+  .cutin-seal {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: rgba(152, 28, 24, 0.96);
+    border: 2px double #ecd29b;
+    color: #fdf4e3;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transform: rotate(-8deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
+  }
+  @keyframes cutinFade {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes cutinSlide {
+    0% { transform: skewY(-2deg) translateX(-40px) scaleY(0.8); opacity: 0; }
+    18% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
+    82% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
+    100% { transform: skewY(-2deg) translateX(30px) scaleY(0.95); opacity: 0; }
+  }
+
 </style>
 </head>
 <body>
@@ -1428,6 +1553,7 @@
               <div class="unit-layer" id="unitLayer"></div>
               <div class="hud-layer" id="hudLayer"></div>
               <div class="vfx-layer" id="vfxLayer"></div>
+              <canvas class="vfx-canvas" id="vfxCanvas" width="1152" height="1152"></canvas>
               <div class="fx-layer" id="fxLayer"></div>
             </div>
           </div>
@@ -3216,6 +3342,7 @@ function tickAnimations(ts) {
       }
     });
   }
+  if (currentScene === 'battle') VfxEngine.updateAndRender(dt);
   tickCameraMotion();
   requestAnimationFrame(tickAnimations);
 }
@@ -3239,14 +3366,459 @@ function triggerCameraShake(px = 4, ms = 200) {
   }
   requestAnimationFrame(step);
 }
-function spawnVfx(r, c, isUlt = false, stampText = '') {
-  const layer = document.getElementById('vfxLayer');
-  const slash = document.createElement('div');
-  slash.className = 'vfx-slash' + (isUlt ? ' ult' : '');
-  slash.style.left = `${c * TILE_PX + TILE_PX / 2}px`; slash.style.top = `${r * TILE_PX + TILE_PX / 2}px`;
-  layer.appendChild(slash); setTimeout(() => slash.remove(), 360);
+// ---- v1.3 60fps 獨立水墨粒子與筆觸特效引擎 ----
+const VfxEngine = {
+  effects: [],
+  particles: [],
+  hasDrawn: false,
+
+  tileCenter(r, c) {
+    return { x: c * TILE_PX + TILE_PX / 2, y: r * TILE_PX + TILE_PX / 2 };
+  },
+
+  clear() {
+    this.effects = [];
+    this.particles = [];
+    const cvs = document.getElementById('vfxCanvas');
+    if (cvs) cvs.getContext('2d').clearRect(0, 0, cvs.width, cvs.height);
+    this.hasDrawn = false;
+  },
+
+  addParticles(x, y, count, opts = {}) {
+    const colors = opts.colors || ['#0e0f10', '#d4af6a', '#c83e37', '#eae3d5'];
+    const baseAngle = opts.baseAngle !== undefined ? opts.baseAngle : null;
+    const spread = opts.spread || Math.PI * 2;
+    const speedMin = opts.speedMin || 70;
+    const speedMax = opts.speedMax || 260;
+    const sizeMin = opts.sizeMin || 3;
+    const sizeMax = opts.sizeMax || 8;
+    const life = opts.life || 0.38;
+    const gravity = opts.gravity || 0;
+    const shape = opts.shape || 'dot'; // 'dot' | 'petal' | 'shard'
+    for (let i = 0; i < count; i++) {
+      const ang = baseAngle !== null
+        ? (baseAngle + (Math.random() - 0.5) * spread)
+        : (Math.random() * Math.PI * 2);
+      const spd = speedMin + Math.random() * (speedMax - speedMin);
+      this.particles.push({
+        x: x + (Math.random() - 0.5) * 16,
+        y: y + (Math.random() - 0.5) * 16,
+        vx: Math.cos(ang) * spd,
+        vy: Math.sin(ang) * spd + (opts.vyBias || 0),
+        size: sizeMin + Math.random() * (sizeMax - sizeMin),
+        color: colors[Math.floor(Math.random() * colors.length)],
+        t: 0,
+        dur: life * (0.75 + Math.random() * 0.5),
+        gravity,
+        shape,
+        rot: Math.random() * Math.PI * 2,
+        vrot: (Math.random() - 0.5) * 8
+      });
+    }
+  },
+
+  spawnSlash(r, c, angle = 0, color = '#ecd29b', isUlt = false) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({
+      type: 'slash', x: p.x, y: p.y, angle, color,
+      radius: isUlt ? 96 : 64, t: 0, dur: isUlt ? 0.34 : 0.26
+    });
+    this.addParticles(p.x, p.y, isUlt ? 18 : 11, {
+      baseAngle: angle, spread: 1.5,
+      colors: ['#0c0d0e', '#1f1d1a', color, '#eae3d5'],
+      speedMin: 90, speedMax: isUlt ? 340 : 240, life: 0.36
+    });
+  },
+
+  spawnPierce(r1, c1, r2, c2, color = '#f0a45d') {
+    const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
+    const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+    this.effects.push({
+      type: 'pierce', x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+      angle, color, t: 0, dur: 0.28
+    });
+    this.addParticles(p2.x, p2.y, 14, {
+      baseAngle: angle, spread: 0.9,
+      colors: ['#0c0d0e', color, '#fff5dc', '#c83e37'],
+      speedMin: 120, speedMax: 320, life: 0.34
+    });
+  },
+
+  fireProjectile(r1, c1, r2, c2, style = 'arrow', color = '#ecd29b') {
+    return new Promise(resolve => {
+      const p1 = this.tileCenter(r1, c1), p2 = this.tileCenter(r2, c2);
+      const dist = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+      const dur = Math.max(0.14, Math.min(0.26, dist / 1700));
+      this.effects.push({
+        type: 'projectile', style, color,
+        x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+        angle: Math.atan2(p2.y - p1.y, p2.x - p1.x),
+        t: 0, dur, onArrive: () => {
+          if (style === 'arrow') {
+            this.spawnSlash(r2, c2, Math.atan2(p2.y - p1.y, p2.x - p1.x), color, false);
+          } else {
+            this.spawnRipple(r2, c2, color, 2, false);
+          }
+          resolve();
+        }
+      });
+    });
+  },
+
+  spawnRipple(r, c, color = '#ecd29b', rings = 3, isPetals = false) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({
+      type: 'ripple', x: p.x, y: p.y, color, rings,
+      maxR: 86, t: 0, dur: 0.44
+    });
+    this.addParticles(p.x, p.y, isPetals ? 16 : 10, {
+      colors: isPetals ? ['#c83e37', '#e0827c', '#ecd29b', '#1a1212'] : ['#0c0d0e', color, '#eae3d5'],
+      speedMin: 45, speedMax: 165, life: 0.48,
+      shape: isPetals ? 'petal' : 'dot', vyBias: isPetals ? -25 : 0
+    });
+  },
+
+  spawnClaw(r, c, color = '#c83e37') {
+    const p = this.tileCenter(r, c);
+    this.effects.push({ type: 'claw', x: p.x, y: p.y, color, t: 0, dur: 0.34 });
+    this.addParticles(p.x, p.y, 14, {
+      colors: ['#0c0d0e', color, '#7e22ce', '#ecd29b'],
+      speedMin: 80, speedMax: 240, life: 0.4
+    });
+  },
+
+  spawnDomain(r, c, color = '#79c997', radiusTiles = 1.6, rising = true) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({
+      type: 'domain', x: p.x, y: p.y, color,
+      maxR: radiusTiles * TILE_PX, t: 0, dur: 0.62
+    });
+    this.addParticles(p.x, p.y, 18, {
+      colors: [color, '#ecd29b', '#eae3d5'],
+      speedMin: 30, speedMax: 130, life: 0.56,
+      vyBias: rising ? -90 : 0, shape: color === '#8ec9c2' ? 'shard' : 'dot'
+    });
+  },
+
+  spawnTaiji(r, c) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({ type: 'taiji', x: p.x, y: p.y, t: 0, dur: 0.68 });
+    this.addParticles(p.x, p.y, 24, {
+      colors: ['#0b0c0d', '#f5efe2', '#ecd29b', '#d4af6a'],
+      speedMin: 90, speedMax: 290, life: 0.55
+    });
+  },
+
+  spawnHitSparks(r, c, isCrit = false) {
+    const p = this.tileCenter(r, c);
+    this.addParticles(p.x, p.y, isCrit ? 16 : 8, {
+      colors: isCrit ? ['#0c0d0e', '#f0a45d', '#ecd29b', '#c83e37'] : ['#0c0d0e', '#c83e37', '#eae3d5'],
+      speedMin: 70, speedMax: isCrit ? 310 : 190,
+      sizeMin: isCrit ? 4 : 3, sizeMax: isCrit ? 9 : 6, life: 0.34
+    });
+  },
+
+  updateAndRender(dt) {
+    const cvs = document.getElementById('vfxCanvas');
+    if (!cvs) return;
+    if (this.effects.length === 0 && this.particles.length === 0) {
+      if (this.hasDrawn) {
+        cvs.getContext('2d').clearRect(0, 0, cvs.width, cvs.height);
+        this.hasDrawn = false;
+      }
+      return;
+    }
+    const ctx = cvs.getContext('2d');
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    this.hasDrawn = true;
+
+    // 1. 更新並繪製特效主體
+    for (let i = this.effects.length - 1; i >= 0; i--) {
+      const e = this.effects[i];
+      e.t += dt;
+      const prog = Math.min(1, e.t / e.dur);
+
+      ctx.save();
+      if (e.type === 'slash') {
+        ctx.translate(e.x, e.y);
+        ctx.rotate(e.angle);
+        const alpha = 1 - prog * prog;
+        const startA = -1.25 + prog * 0.45;
+        const endA = 1.15 + prog * 0.35;
+        const rad = e.radius * (0.78 + prog * 0.34);
+        // 外層濃墨飛白
+        ctx.globalAlpha = alpha * 0.85;
+        ctx.strokeStyle = '#0a0b0c';
+        ctx.lineWidth = (1 - prog * 0.5) * 20;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.arc(-10, 0, rad, startA, endA);
+        ctx.stroke();
+        // 中層金／硃砂刀氣
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = (1 - prog * 0.55) * 11;
+        ctx.beginPath();
+        ctx.arc(-6, 0, rad - 2, startA + 0.08, endA - 0.06);
+        ctx.stroke();
+        // 內層鋒芒亮白
+        ctx.strokeStyle = '#fdf8ee';
+        ctx.lineWidth = (1 - prog * 0.7) * 4;
+        ctx.beginPath();
+        ctx.arc(-4, 0, rad - 3, startA + 0.16, endA - 0.14);
+        ctx.stroke();
+      } else if (e.type === 'pierce') {
+        const alpha = 1 - prog;
+        ctx.globalAlpha = alpha;
+        // 濃墨外線
+        ctx.strokeStyle = '#0b0c0d';
+        ctx.lineWidth = (1 - prog * 0.5) * 18;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(e.x1, e.y1);
+        ctx.lineTo(e.x2 + Math.cos(e.angle) * 28, e.y2 + Math.sin(e.angle) * 28);
+        ctx.stroke();
+        // 銳利槍芒
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = (1 - prog * 0.6) * 9;
+        ctx.beginPath();
+        ctx.moveTo(e.x1, e.y1);
+        ctx.lineTo(e.x2 + Math.cos(e.angle) * 34, e.y2 + Math.sin(e.angle) * 34);
+        ctx.stroke();
+        ctx.strokeStyle = '#fff9ec';
+        ctx.lineWidth = (1 - prog * 0.7) * 3.5;
+        ctx.beginPath();
+        ctx.moveTo(e.x1, e.y1);
+        ctx.lineTo(e.x2 + Math.cos(e.angle) * 36, e.y2 + Math.sin(e.angle) * 36);
+        ctx.stroke();
+      } else if (e.type === 'projectile') {
+        const cx = e.x1 + (e.x2 - e.x1) * prog;
+        const cy = e.y1 + (e.y2 - e.y1) * prog;
+        const tailP = Math.max(0, prog - 0.28);
+        const tx = e.x1 + (e.x2 - e.x1) * tailP;
+        const ty = e.y1 + (e.y2 - e.y1) * tailP;
+        if (e.style === 'arrow') {
+          // 墨羽拖尾
+          ctx.strokeStyle = 'rgba(14, 15, 16, 0.75)';
+          ctx.lineWidth = 8;
+          ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 3.5;
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+          // 箭簇
+          ctx.translate(cx, cy);
+          ctx.rotate(e.angle);
+          ctx.fillStyle = '#fdf8ee';
+          ctx.beginPath();
+          ctx.moveTo(14, 0); ctx.lineTo(-4, -6); ctx.lineTo(-4, 6); ctx.closePath();
+          ctx.fill();
+        } else {
+          // 咒符／文氣光球彈道
+          const grad = ctx.createLinearGradient(tx, ty, cx, cy);
+          grad.addColorStop(0, 'rgba(12, 13, 14, 0)');
+          grad.addColorStop(1, e.color);
+          ctx.strokeStyle = grad;
+          ctx.lineWidth = 10;
+          ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(cx, cy); ctx.stroke();
+          ctx.fillStyle = '#0c0d0e';
+          ctx.beginPath(); ctx.arc(cx, cy, 13, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = e.color;
+          ctx.beginPath(); ctx.arc(cx, cy, 9, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#fff9ec';
+          ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2); ctx.fill();
+        }
+      } else if (e.type === 'ripple') {
+        for (let k = 0; k < e.rings; k++) {
+          const rp = Math.max(0, Math.min(1, prog * 1.35 - k * 0.22));
+          if (rp <= 0 || rp >= 1) continue;
+          ctx.globalAlpha = (1 - rp) * 0.9;
+          ctx.strokeStyle = k % 2 === 0 ? e.color : '#141312';
+          ctx.lineWidth = (1 - rp) * 7 + 1.5;
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, 14 + rp * e.maxR, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      } else if (e.type === 'claw') {
+        const alpha = 1 - prog * prog;
+        ctx.translate(e.x, e.y);
+        ctx.rotate(-0.55);
+        for (let k = -1; k <= 1; k++) {
+          const offset = k * 22;
+          const len = 84 * Math.min(1, prog * 2.2);
+          ctx.globalAlpha = alpha * 0.9;
+          ctx.strokeStyle = '#0b0c0d';
+          ctx.lineWidth = 10 * (1 - prog * 0.4);
+          ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(-42, offset); ctx.lineTo(-42 + len, offset); ctx.stroke();
+          ctx.strokeStyle = e.color;
+          ctx.lineWidth = 4.5 * (1 - prog * 0.5);
+          ctx.beginPath(); ctx.moveTo(-42, offset); ctx.lineTo(-42 + len, offset); ctx.stroke();
+        }
+      } else if (e.type === 'domain') {
+        const alpha = prog < 0.2 ? prog / 0.2 : (1 - (prog - 0.2) / 0.8);
+        const rad = e.maxR * (0.45 + prog * 0.55);
+        ctx.translate(e.x, e.y);
+        ctx.rotate(prog * 1.6);
+        ctx.globalAlpha = alpha * 0.85;
+        ctx.strokeStyle = e.color;
+        ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([14, 10]);
+        ctx.strokeStyle = '#ecd29b';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, rad * 0.76, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+        // 八卦八方位墨線
+        for (let k = 0; k < 8; k++) {
+          const a = (Math.PI / 4) * k;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * rad * 0.78, Math.sin(a) * rad * 0.78);
+          ctx.lineTo(Math.cos(a) * rad * 0.98, Math.sin(a) * rad * 0.98);
+          ctx.stroke();
+        }
+      } else if (e.type === 'taiji') {
+        const alpha = prog < 0.15 ? prog / 0.15 : (1 - Math.pow((prog - 0.15) / 0.85, 1.4));
+        const rad = 32 + prog * 68;
+        ctx.translate(e.x, e.y);
+        ctx.rotate(prog * Math.PI * 3.2);
+        ctx.globalAlpha = alpha * 0.92;
+        // 外圈泥金環
+        ctx.strokeStyle = '#ecd29b';
+        ctx.lineWidth = 5;
+        ctx.beginPath(); ctx.arc(0, 0, rad, 0, Math.PI * 2); ctx.stroke();
+        // 太極陰（墨黑）與陽（宣紙白）
+        ctx.fillStyle = '#0e0f10';
+        ctx.beginPath(); ctx.arc(0, 0, rad - 2, -Math.PI / 2, Math.PI / 2); ctx.fill();
+        ctx.fillStyle = '#f2eadb';
+        ctx.beginPath(); ctx.arc(0, 0, rad - 2, Math.PI / 2, Math.PI * 1.5); ctx.fill();
+        ctx.fillStyle = '#0e0f10';
+        ctx.beginPath(); ctx.arc(0, -rad / 2, rad / 2, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#f2eadb';
+        ctx.beginPath(); ctx.arc(0, rad / 2, rad / 2, 0, Math.PI * 2); ctx.fill();
+        // 陰陽魚眼
+        ctx.fillStyle = '#f2eadb';
+        ctx.beginPath(); ctx.arc(0, -rad / 2, rad * 0.14, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#0e0f10';
+        ctx.beginPath(); ctx.arc(0, rad / 2, rad * 0.14, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+
+      if (e.t >= e.dur) {
+        this.effects.splice(i, 1);
+        if (e.onArrive) e.onArrive();
+      }
+    }
+
+    // 2. 更新並繪製水墨／火星／花瓣粒子
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.t += dt;
+      if (p.t >= p.dur) { this.particles.splice(i, 1); continue; }
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += p.gravity * dt;
+      p.vx *= 0.94;
+      p.vy *= 0.94;
+      p.rot += p.vrot * dt;
+      const alpha = 1 - p.t / p.dur;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      if (p.shape === 'petal') {
+        ctx.beginPath();
+        ctx.ellipse(0, 0, p.size * 1.3, p.size * 0.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (p.shape === 'shard') {
+        ctx.beginPath();
+        ctx.moveTo(0, -p.size); ctx.lineTo(p.size * 0.7, 0); ctx.lineTo(0, p.size); ctx.lineTo(-p.size * 0.7, 0);
+        ctx.closePath(); ctx.fill();
+      } else {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size * (0.5 + alpha * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+};
+
+function getAttackVfxSpec(attacker) {
+  const id = attacker.id || '';
+  const et = attacker.enemyType || '';
+  if (id === 'p_zixia' || et === 'archer' || attacker.isTower) return { kind: 'arrow', color: id === 'p_zixia' ? '#8ec9c2' : '#ecd29b' };
+  if (id === 'p_lu' || et === 'cavalry') return { kind: 'pierce', color: '#f0a45d' };
+  if (id === 'p_ziyou') return { kind: 'ripple', color: '#8ec9c2', petals: false };
+  if (id === 'p_nanzi') return { kind: 'ripple', color: '#e0827c', petals: true };
+  if (id === 'p_wo') return { kind: 'ripple', color: '#6ea8a1', petals: false };
+  if (id === 'p_taishan' || et === 'boss') return { kind: 'claw', color: et === 'boss' ? '#9370a8' : '#c83e37' };
+  if (id === 'p_hui' || id === 'p_gong' || id === 'p_yanzhengzai' || et === 'strategist') {
+    const col = id === 'p_gong' ? '#ecd29b' : (et === 'strategist' ? '#6ea8a1' : '#79c997');
+    return { kind: 'orb', color: col };
+  }
+  return { kind: 'slash', color: attacker.team === 'enemy' ? '#e0645c' : '#ecd29b' };
+}
+
+async function playAttackVfx(attacker, target) {
+  const spec = getAttackVfxSpec(attacker);
+  const ang = Math.atan2(target.r - attacker.r, target.c - attacker.c);
+  if (spec.kind === 'arrow' || spec.kind === 'orb') {
+    await VfxEngine.fireProjectile(attacker.r, attacker.c, target.r, target.c, spec.kind, spec.color);
+  } else if (spec.kind === 'pierce') {
+    VfxEngine.spawnPierce(attacker.r, attacker.c, target.r, target.c, spec.color);
+  } else if (spec.kind === 'ripple') {
+    VfxEngine.spawnRipple(target.r, target.c, spec.color, 3, spec.petals);
+  } else if (spec.kind === 'claw') {
+    VfxEngine.spawnClaw(target.r, target.c, spec.color);
+  } else {
+    VfxEngine.spawnSlash(target.r, target.c, ang, spec.color, false);
+  }
+}
+
+function playCutin(unitList, titleText, subText = '絕學奧義', isCombo = false) {
+  return new Promise(resolve => {
+    const sLayer = document.getElementById('screenVfxLayer');
+    if (!sLayer) { resolve(); return; }
+    sLayer.querySelectorAll('.cutin-backdrop').forEach(el => el.remove());
+    const avatars = unitList.slice(0, 3).map(u => buildAvatarHtml(u.tplKey || u.id, 'lg', false)).join('');
+    const wrap = document.createElement('div');
+    wrap.className = 'cutin-backdrop';
+    wrap.innerHTML = `
+      <div class="cutin-band ${isCombo ? 'combo' : ''}">
+        <div class="cutin-portraits">${avatars}</div>
+        <div class="cutin-text">
+          <div class="cutin-sub">${subText}</div>
+          <div class="cutin-title">${titleText}</div>
+        </div>
+        <span class="cutin-seal">${isCombo ? '合' : '絕'}</span>
+      </div>`;
+    sLayer.appendChild(wrap);
+    refreshAllSpriteCanvases();
+    setTimeout(() => {
+      wrap.remove();
+      resolve();
+    }, 620);
+  });
+}
+
+function spawnVfx(r, c, isUlt = false, stampText = '', vfxHint = 'slash', color = null) {
+  const col = color || (isUlt ? '#d4af6a' : '#ecd29b');
+  if (vfxHint === 'taiji') {
+    VfxEngine.spawnTaiji(r, c);
+  } else if (vfxHint === 'domain') {
+    VfxEngine.spawnDomain(r, c, col, isUlt ? 2.2 : 1.5, true);
+  } else if (vfxHint === 'ripple') {
+    VfxEngine.spawnRipple(r, c, col, isUlt ? 4 : 3, col === '#e0827c');
+  } else if (vfxHint === 'claw') {
+    VfxEngine.spawnClaw(r, c, col);
+  } else {
+    VfxEngine.spawnSlash(r, c, -0.35 + (Math.random() - 0.5) * 0.6, col, isUlt);
+  }
   if (stampText) {
-    const sLayer = document.getElementById('screenVfxLayer') || layer;
+    const sLayer = document.getElementById('screenVfxLayer') || document.getElementById('vfxLayer');
     const st = document.createElement('div'); st.className = 'vfx-stamp'; st.textContent = stampText;
     sLayer.appendChild(st); setTimeout(() => st.remove(), 920);
   }
@@ -3309,7 +3881,7 @@ function startSelectedStage() {
   });
 
   document.getElementById('logBox').innerHTML = ''; document.getElementById('unitLayer').innerHTML = '';
-  document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = '';
+  document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = ''; VfxEngine.clear();
   document.getElementById('forecastBar').style.display = 'none';
   addLog(`=== 出征：${activeStage.cityLabel}・${activeStage.name} ===`, 'hex');
   camZoomMode = 'closeup';
@@ -3451,6 +4023,64 @@ function getAvailableCombo(u) {
     return { id: 'combo_lu_taishan', name: '以直報怨', partners: [lu, taishan], needTarget: true, desc: '白額猛虎衝陣造成範圍真傷＋大範圍暈眩！' };
 
   return null;
+}
+
+
+function getLockedComboHints(u, readyComboId = null) {
+  if (!u || u.team !== 'player' || u.isTower) return [];
+  const defs = [
+    { bondId: 'kong_hui',    comboId: 'combo_kong_hui',    name: '吾與點也', ids: ['p_kong', 'p_hui'],   maxDist: 1, mode: 'qi' },
+    { bondId: 'kong_lu',     comboId: 'combo_kong_lu',     name: '死生有命', ids: ['p_kong', 'p_lu'],    maxDist: 1, mode: 'qi' },
+    { bondId: 'gong_wo',     comboId: 'combo_gong_wo',     name: '端木賜問', ids: ['p_gong', 'p_wo'],    maxDist: 2, mode: 'qi' },
+    { bondId: 'ziyou_zixia', comboId: 'combo_ziyou_zixia', name: '文學雙璧', ids: ['p_ziyou', 'p_zixia'],maxDist: 3, mode: 'qi' },
+    { bondId: 'trio',        comboId: 'combo_trio',        name: '君子固窮', ids: ['p_kong', 'p_lu', 'p_hui'], maxDist: 99, mode: 'lowhp' },
+    { bondId: 'kong_nanzi',  comboId: 'combo_kong_nanzi',  name: '天厭之！', ids: ['p_kong', 'p_nanzi'], maxDist: 1, mode: 'qi' },
+    { bondId: 'lu_taishan',  comboId: 'combo_lu_taishan',  name: '以直報怨', ids: ['p_lu', 'p_taishan'], maxDist: 1, mode: 'qi' }
+  ];
+
+  const hints = [];
+  for (const d of defs) {
+    if (!d.ids.includes(u.id)) continue;
+    if (readyComboId && d.comboId === readyComboId) continue;
+
+    const bondLv = saveData.bonds[d.bondId] || 1;
+    const otherIds = d.ids.filter(id => id !== u.id);
+    const otherUnits = otherIds.map(id => getUnitById(id));
+    const allPartnersAlive = otherUnits.every(Boolean);
+
+    let reason = '';
+    let priority = 0;
+
+    if (!allPartnersAlive) {
+      const missingNames = otherIds.filter(id => !getUnitById(id)).map(id => DATA_UNITS[id]?.name || id).join('、');
+      reason = `搭檔【${missingNames}】未在場`;
+      priority = 1;
+    } else if (bondLv < 2) {
+      reason = `需營地束脩羈絆 Lv.2（目前 Lv.${bondLv}）`;
+      priority = 2;
+    } else if (u.silenceTurns > 0 || u.doubtTurns > 0) {
+      reason = '沉默 / 懷疑中無法施放';
+      priority = 4;
+    } else if (d.mode === 'lowhp') {
+      const aliveP = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower);
+      const avgPct = Math.round((aliveP.reduce((s, p) => s + p.hp / p.maxHp, 0) / Math.max(1, aliveP.length)) * 100);
+      reason = `需全軍均血 < 25%（目前 ${avgPct}%）`;
+      priority = 3;
+    } else {
+      const partner = otherUnits[0];
+      const dist = manhattan(u.r, u.c, partner.r, partner.c);
+      if (dist > d.maxDist) {
+        reason = `需與【${partner.name}】距 ≤${d.maxDist} 格（目前 ${dist} 格）`;
+        priority = 4;
+      } else {
+        reason = `需雙人滿氣（${u.char}${u.qi} / ${partner.char}${partner.qi}）`;
+        priority = 5;
+      }
+    }
+    hints.push({ name: d.name, reason, priority });
+  }
+  hints.sort((a, b) => b.priority - a.priority);
+  return hints.slice(0, 2);
 }
 
 function computeReachable(unit) {
@@ -3916,7 +4546,7 @@ async function executePlayerCounter(defender, attacker, choice) {
       const critChance = hex.critRate + (defender.bonusCrit || 0) + (sk.extraCrit || 0) + (defender.hasteBuffTurns > 0 ? 0.2 : 0);
       const isCrit = Math.random() < critChance;
       const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(attacker).def * (1 - pen), isCrit, attacker);
-      spawnVfx(attacker.r, attacker.c, false); if (isCrit) triggerHitstop(60);
+      await playAttackVfx(defender, attacker); if (isCrit) triggerHitstop(60);
       await applyDamage(attacker, dmg, isCrit, false, null);
       if (hex.burnOnHit && attacker.hp > 0) attacker.burnTurns = 2;
 
@@ -3988,6 +4618,7 @@ async function executeEnemyCounter(enemy, playerUnit) {
   spawnFloatText(enemy.r, enemy.c, '敵軍反擊！', 'dmg');
   await playAnimWithHitSync(enemy, 'attack', async () => {
     await playLunge(enemy, playerUnit.r, playerUnit.c);
+    await playAttackVfx(enemy, playerUnit);
     const dmg = calcDamage(eStats.atk, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
     await applyDamage(playerUnit, dmg, isCrit, false, null);
     if (playerUnit.hp > 0 && enemy.enemyType === 'strategist') {
@@ -4028,7 +4659,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
       const critChance = hex.critRate + (unit.bonusCrit || 0) + (sk.extraCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0);
       const isCrit = Math.random() < critChance;
       const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
-      spawnVfx(enemy.r, enemy.c, false); if (isCrit) triggerHitstop(60);
+      await playAttackVfx(unit, enemy); if (isCrit) triggerHitstop(60);
       await applyDamage(enemy, dmg, isCrit, false, unit);
       if (hex.burnOnHit && enemy.hp > 0) enemy.burnTurns = 2;
 
@@ -4082,7 +4713,11 @@ async function executePlayerAction(unit, mode, tr, tc) {
     unit.qi = Math.max(0, unit.qi - getSkillQiCost(unit, sk.qiCost));
     if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
     await playAnimWithHitSync(unit, 'cast', async () => {
-      spawnVfx(tr, tc, false, sk.name + '！');
+      const skVfxHint = ['aoe_buff','heal_ap_aoe','link_guard','absorb_debuffs','fortress_stance','wucheng_buff','mother_shield','counter_stance'].includes(sk.type) ? 'domain'
+        : (['sleep','mark_vuln','stealth_charm'].includes(sk.type) ? 'ripple' : (sk.type === 'harsh_tax_curse' ? 'claw' : 'slash'));
+      const skVfxCol = ['aoe_buff','heal_ap_aoe','wucheng_buff','mother_shield'].includes(sk.type) ? '#79c997'
+        : (sk.type === 'stealth_charm' ? '#e0827c' : (sk.type === 'harsh_tax_curse' ? '#c83e37' : '#ecd29b'));
+      spawnVfx(tr, tc, false, sk.name + '！', skVfxHint, skVfxCol);
       if (sk.type === 'aoe_buff') {
         AudioManager.play('guqin');
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= sk.range).forEach(a => {
@@ -4178,8 +4813,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
     const sk = DATA_SKILLS[unit.ultId];
     unit.qi = Math.max(0, unit.qi - getSkillQiCost(unit, sk.qiCost));
     if (sk.goldCost) { saveData.gold -= sk.goldCost; persistSave(); }
+    AudioManager.play('ult');
+    await playCutin([unit], sk.name, `${unit.name}・無雙大絕`, false);
     await playAnimWithHitSync(unit, 'cast', async () => {
-      AudioManager.play('ult'); triggerHitstop(65); triggerCameraShake(5, 220); spawnVfx(tr, tc, true, sk.name);
+      triggerHitstop(65); triggerCameraShake(6, 240);
+      const uHint = ['domain','frost_domain','taunt_thorns','revive_aura'].includes(sk.type) ? 'domain'
+        : (['ya_music_all','nanzi_assassinate','infight'].includes(sk.type) ? 'ripple' : (sk.type === 'three_tigers' ? 'claw' : 'slash'));
+      const uCol = sk.type === 'frost_domain' ? '#8ec9c2' : (sk.type === 'domain' || sk.type === 'revive_aura' ? '#79c997' : (sk.type === 'nanzi_assassinate' ? '#e0827c' : '#d4af6a'));
+      spawnVfx(tr, tc, true, '', uHint, uCol);
       if (sk.type === 'line_true') {
         const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn);
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c); let killed = false;
@@ -4300,8 +4941,11 @@ async function executePlayerAction(unit, mode, tr, tc) {
     });
   } else if (mode === 'combo' && activeComboDef) {
     const cdef = activeComboDef; cdef.partners.forEach(p => { p.qi = 0; });
+    AudioManager.play('ult');
+    await playCutin(cdef.partners, cdef.name, '《論語》合體奧義', true);
     await playAnimWithHitSync(unit, 'cast', async () => {
-      AudioManager.play('ult'); triggerHitstop(70); triggerCameraShake(5, 240); spawnVfx(tr, tc, true, cdef.name);
+      triggerHitstop(70); triggerCameraShake(6, 260);
+      spawnVfx(tr, tc, true, '', 'domain', '#ecd29b');
       if (cdef.id === 'combo_trio') {
         units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
           p.hp = Math.max(1, Math.round(p.maxHp * Math.max(0.15, 1 - p.hp / p.maxHp)));
@@ -4384,7 +5028,7 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
     const curAtk = getEffectiveStats(currUnit).atk;
     const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
     const victim = (targetEnemy && targetEnemy.hp > 0) ? targetEnemy : units.filter(e => e.team === 'enemy' && e.hp > 0)[0];
-    if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！'); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
+    if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！', 'taiji', '#ecd29b'); triggerCameraShake(4, 180); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
     [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 12); u.qi = Math.min(100, u.qi + 15); });
     addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血+12、回氣+15！`, 'taiji');
   }
@@ -4401,9 +5045,20 @@ function calcDamage(atk, def, isCrit, target) {
 }
 
 async function playLunge(attacker, tr, tc) {
-  const box = document.querySelector(`[data-uid="${attacker.id}"] .unit-box`); if (!box) return;
-  box.style.transform = `translate(${Math.sign(tc - attacker.c) * 32}px,${Math.sign(tr - attacker.r) * 32}px) scale(1.08)`;
-  await sleep(90); box.style.transform = '';
+  const anc = document.querySelector(`[data-uid="${attacker.id}"]`); if (!anc) return;
+  const dx = Math.sign(tc - attacker.c), dy = Math.sign(tr - attacker.r);
+  const dist = manhattan(attacker.r, attacker.c, tr, tc);
+  const push = dist <= 1 ? 34 : 18;
+  // 蓄力後拉 -> 瞬衝突刺 -> 彈回原位（直接作用於 unit-anchor，精靈圖與白盒同步生效）
+  anc.style.transition = 'transform 0.05s ease-out';
+  anc.style.transform = `translate(${-dx * 9}px, ${-dy * 9}px)`;
+  await sleep(48);
+  anc.style.transition = 'transform 0.08s cubic-bezier(0.2, 0.9, 0.3, 1)';
+  anc.style.transform = `translate(${dx * push}px, ${dy * push}px) scale(1.07)`;
+  await sleep(92);
+  anc.style.transition = 'transform 0.12s ease-out';
+  anc.style.transform = '';
+  setTimeout(() => { if (anc) anc.style.transition = ''; }, 130);
 }
 
 async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null) {
@@ -4460,6 +5115,8 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
   else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '心齋抵死！', 'heal'); }
   else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit || woke) ? 'crit' : 'dmg'); }
+  VfxEngine.spawnHitSparks(target.r, target.c, isCrit || woke);
+  if (isCrit || woke) { triggerHitstop(60); triggerCameraShake(4, 150); }
   const anc = document.querySelector(`[data-uid="${target.id}"]`);
   if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
   renderUnits(); await sleep(180);
@@ -4491,7 +5148,7 @@ async function endPlayerTurn() {
     if (nearE) {
       focusCameraOn(tower.r, tower.c);
       await sleep(160);
-      spawnVfx(nearE.r, nearE.c, false);
+      await playAttackVfx(tower, nearE);
       const dmg = calcDamage(getEffectiveStats(tower).atk, getEffectiveStats(nearE).def, false, nearE);
       await applyDamage(nearE, dmg, false, false, tower);
       addLog(`瞭望箭塔自動射擊 ${nearE.name} 造成 ${dmg} 傷。`, 'player');
@@ -4613,7 +5270,7 @@ async function endPlayerTurn() {
           if (alliesNear.length >= 2) {
             usedSpecialSkill = true; enemy.skillCd = 2;
             await playAnimWithHitSync(enemy, 'cast', async () => {
-              AudioManager.play('ult'); spawnVfx(enemy.r, enemy.c, true, '督戰號令！');
+              AudioManager.play('ult'); spawnVfx(enemy.r, enemy.c, true, '督戰號令！', 'domain', '#d4af6a');
               alliesNear.forEach(a => { a.buffTurns = Math.max(a.buffTurns, 2); spawnFloatText(a.r, a.c, '攻防+20%', 'taiji'); });
               addLog(`⚠ ${enemy.name} 發動【督戰號令】！周圍敵軍全屬性提升 2 回合！`, 'enemy');
             });
@@ -4624,7 +5281,7 @@ async function endPlayerTurn() {
             usedSpecialSkill = true; enemy.skillCd = 2;
             await playAnimWithHitSync(enemy, 'cast', async () => {
               AudioManager.play('ult'); triggerCameraShake(5, 200);
-              spawnVfx(enemy.r, enemy.c, true, enemy.phase === 2 ? '心魔噬魂・極' : '心魔噬魂！');
+              spawnVfx(enemy.r, enemy.c, true, enemy.phase === 2 ? '心魔噬魂・極' : '心魔噬魂！', 'domain', '#9370a8'); VfxEngine.spawnClaw(enemy.r, enemy.c, '#9370a8');
               const mult = enemy.phase === 2 ? 1.35 : 1.15;
               for (const vt of aoeTargets) {
                 const dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(vt).def, false, vt);
@@ -4677,7 +5334,8 @@ async function endPlayerTurn() {
         const mult = isCrush ? 1.35 : 1.0;
         let dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(atkT).def, isCrit, atkT);
         if (counterChoice === 'defend') dmg = Math.max(1, Math.round(dmg * 0.7));
-        if (isCrush) { triggerCameraShake(4, 160); spawnVfx(atkT.r, atkT.c, true, '破陣重擊！'); }
+        if (isCrush) { triggerCameraShake(5, 180); spawnVfx(atkT.r, atkT.c, true, '破陣重擊！', 'slash', '#c83e37'); }
+        else { await playAttackVfx(enemy, atkT); }
         await applyDamage(atkT, dmg, isCrit, false, enemy);
         if (atkT.hp > 0 && (isCrush || enemy.enemyType === 'strategist')) {
           atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
@@ -5116,6 +5774,15 @@ function renderFloatingUi() {
         <div class="cmd-btn-top"><span>★ 合體・${cb.name}</span><span style="font-size:0.68rem;">奧義</span></div>
         <div class="cmd-btn-sub">${cb.desc.slice(0, 18)}…</div>
       </button>`;
+    }
+    if (canAct) {
+      const lockedCombos = getLockedComboHints(u, cb ? cb.id : null);
+      lockedCombos.forEach(lc => {
+        htmlStr += `<button class="cmd-btn combo-locked" disabled>
+          <div class="cmd-btn-top"><span>🔒 合體・${lc.name}</span><span style="font-size:0.64rem;">未達標</span></div>
+          <div class="cmd-btn-sub">${lc.reason}</div>
+        </button>`;
+      });
     }
 
     if (u.id === 'p_kong' && hexFlipRemaining > 0 && u.ap > 0) {
