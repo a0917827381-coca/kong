@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.0 — 9×9暗黑水墨・全站精靈立繪正式版</title>
+<title>《論語戰棋》v1.1 — 9×9暗黑水墨・精靈立繪正式版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1076,7 +1076,7 @@
   .sprite-avatar-frame.md {
     width: 52px;
     height: 52px;
-    margin-top: 6px;
+    margin-top: 14px;
   }
   .sprite-avatar-frame.sm {
     width: 40px;
@@ -1093,6 +1093,134 @@
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6), 0 0 8px rgba(212, 175, 106, 0.45);
   }
   .roster-tile { flex: 0 0 76px; }
+
+
+  /* 精美暗黑水墨自訂提示彈窗（取代瀏覽器原生 alert/confirm） */
+  .ink-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 4, 5, 0.84);
+    backdrop-filter: blur(3px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 320;
+  }
+  .ink-dialog-backdrop.show { display: flex; }
+  .ink-dialog-card {
+    width: 100%;
+    max-width: 390px;
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(212, 175, 106, 0.10) 0%, transparent 60%),
+      linear-gradient(180deg, #1e1c19 0%, #121213 100%);
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    padding: 16px 15px 14px;
+    box-shadow:
+      0 20px 48px rgba(0, 0, 0, 0.92),
+      inset 0 0 0 1px rgba(212, 175, 106, 0.22),
+      inset 0 0 28px rgba(0, 0, 0, 0.65);
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    position: relative;
+    animation: inkDialogPop 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  @keyframes inkDialogPop {
+    0% { opacity: 0; transform: scale(0.92) translateY(8px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .ink-dialog-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    border-bottom: 1px solid rgba(212, 175, 106, 0.28);
+    padding-bottom: 9px;
+  }
+  .ink-dialog-seal {
+    width: 34px;
+    height: 34px;
+    border-radius: 4px;
+    background: linear-gradient(135deg, #9e2a24, #6e1814);
+    border: 1.5px solid #ecd29b;
+    color: #fdf4e3;
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+    transform: rotate(-3deg);
+  }
+  .ink-dialog-seal.info {
+    background: linear-gradient(135deg, #1f4a46, #132e2c);
+    border-color: var(--accent);
+    color: #d8f3ef;
+  }
+  .ink-dialog-title {
+    font-family: var(--font-serif);
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    letter-spacing: 1.5px;
+    margin: 0;
+  }
+  .ink-dialog-body {
+    font-size: 0.8rem;
+    color: #dad2c3;
+    line-height: 1.6;
+  }
+  .ink-dialog-body strong { color: var(--gold-bright); }
+  .ink-swap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .ink-swap-btn {
+    background: linear-gradient(180deg, #1b1a18 0%, #121212 100%);
+    border: 1px solid #4d4334;
+    border-radius: 6px;
+    padding: 6px 7px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    text-align: left;
+    transition: border-color 0.12s, transform 0.08s;
+  }
+  .ink-swap-btn:active { transform: scale(0.97); border-color: var(--gold); }
+  .ink-swap-btn:hover { border-color: var(--gold); background: #241f16; }
+  .ink-swap-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .ink-swap-name {
+    font-family: var(--font-serif);
+    font-size: 0.78rem;
+    font-weight: 900;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ink-swap-sub {
+    font-size: 0.64rem;
+    color: #e0827c;
+    font-weight: 700;
+  }
+  .ink-dialog-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 2px;
+  }
+  .ink-dialog-actions .btn { flex: 1; }
 
 </style>
 </head>
@@ -1505,6 +1633,19 @@
     <div id="counterModalBody" style="display:flex; flex-direction:column; gap:8px;"></div>
   </div>
 </div>
+
+<!-- 彈窗：精美暗黑水墨通用提示／確認／換將視窗 -->
+<div class="ink-dialog-backdrop" id="inkDialogModal" onclick="if(event.target===this) closeInkDialog()">
+  <div class="ink-dialog-card">
+    <div class="ink-dialog-head">
+      <span class="ink-dialog-seal" id="inkDialogSeal">令</span>
+      <h4 class="ink-dialog-title" id="inkDialogTitle">軍令提示</h4>
+    </div>
+    <div class="ink-dialog-body" id="inkDialogBody"></div>
+    <div class="ink-dialog-actions" id="inkDialogActions"></div>
+  </div>
+</div>
+
 
 
 
@@ -2656,10 +2797,97 @@ function renderShopScene() {
   });
 }
 
+function closeInkDialog() {
+  const el = document.getElementById('inkDialogModal');
+  if (el) el.classList.remove('show');
+}
+
+function showInkDialog({ seal = '令', sealTone = 'warn', title = '軍令提示', bodyHtml = '', actions = null }) {
+  const sealEl = document.getElementById('inkDialogSeal');
+  sealEl.textContent = seal;
+  sealEl.className = 'ink-dialog-seal' + (sealTone === 'info' ? ' info' : '');
+  document.getElementById('inkDialogTitle').textContent = title;
+  document.getElementById('inkDialogBody').innerHTML = bodyHtml;
+  const actEl = document.getElementById('inkDialogActions');
+  actEl.innerHTML = '';
+  const list = actions && actions.length ? actions : [{ label: '知道了', cls: 'primary', onClick: closeInkDialog }];
+  list.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (a.cls || '');
+    btn.textContent = a.label;
+    btn.onclick = () => {
+      if (a.keepOpen !== true) closeInkDialog();
+      if (a.onClick) a.onClick();
+    };
+    actEl.appendChild(btn);
+  });
+  document.getElementById('inkDialogModal').classList.add('show');
+  refreshAllSpriteCanvases();
+}
+
+function swapDeployedUnit(outId, inId) {
+  const idx = saveData.deployedIds.indexOf(outId);
+  if (idx < 0 || saveData.deployedIds.includes(inId)) return;
+  saveData.deployedIds[idx] = inId;
+  AudioManager.play('guqin');
+  persistSave();
+  closeInkDialog();
+  renderCampScene();
+}
+
+function openDeployFullDialog(newId) {
+  const newTpl = DATA_UNITS[newId];
+  const newName = newTpl ? newTpl.name : '該弟子';
+  const swapCards = saveData.deployedIds.map((curId, i) => {
+    const tpl = DATA_UNITS[curId];
+    const prog = saveData.roster[curId];
+    if (!tpl) return '';
+    return `
+      <button class="ink-swap-btn" onclick="swapDeployedUnit('${curId}','${newId}')">
+        ${buildAvatarHtml(curId, 'sm', false)}
+        <div class="ink-swap-meta">
+          <span class="ink-swap-name">#${i + 1} ${tpl.name} <span style="color:#ecd29b; font-size:0.66rem;">Lv.${prog ? prog.lv : 1}</span></span>
+          <span class="ink-swap-sub">點擊撤下並替換 ⇄</span>
+        </div>
+      </button>`;
+  }).join('');
+
+  showInkDialog({
+    seal: '滿',
+    sealTone: 'warn',
+    title: '出戰編制已滿（上限 6 人）',
+    bodyHtml: `
+      <div>目前出戰陣容已達 <strong>6 / 6 人</strong>上限，無法直接加入<strong>【${newName}】</strong>。</div>
+      <div style="font-size:0.73rem; color:#9a9284; margin-top:4px;">請先撤下一位弟子，或直接點選下方出戰名單一鍵替換：</div>
+      <div class="ink-swap-grid">${swapCards}</div>`,
+    actions: [{ label: '暫不調整', cls: '', onClick: null }]
+  });
+}
+
 function toggleDeploy(id) {
   const idx = saveData.deployedIds.indexOf(id);
-  if (idx >= 0) { if (saveData.deployedIds.length <= 1) return; saveData.deployedIds.splice(idx, 1); }
-  else if (saveData.deployedIds.length < 6) saveData.deployedIds.push(id);
+  if (idx >= 0) {
+    if (saveData.deployedIds.length <= 1) {
+      showInkDialog({
+        seal: '警',
+        sealTone: 'warn',
+        title: '無法撤下最後一位弟子',
+        bodyHtml: '出戰編制至少需保留 <strong>1 位弟子</strong>方可帶隊出征。',
+        actions: [{ label: '明白了', cls: 'primary' }]
+      });
+      return;
+    }
+    saveData.deployedIds.splice(idx, 1);
+    AudioManager.play('undo');
+  } else {
+    if (saveData.deployedIds.length >= 6) {
+      AudioManager.play('bell');
+      openDeployFullDialog(id);
+      return;
+    }
+    saveData.deployedIds.push(id);
+    AudioManager.play('guqin');
+  }
   persistSave(); renderCampScene();
 }
 function moveDeployOrder(id, d) {
@@ -2683,18 +2911,26 @@ function upgradeTalent(ring, tid) {
 function giftSuxiu(bid) { if (saveData.items.suxiu <= 0) return; saveData.items.suxiu--; saveData.bonds[bid] = (saveData.bonds[bid]||1) + 1; AudioManager.play('guqin'); persistSave(); renderCampScene(); }
 
 function openSaveModal() { document.getElementById('saveCodeArea').value = JSON.stringify(saveData); document.getElementById('saveModal').classList.add('show'); }
-function copySaveCode() { const el = document.getElementById('saveCodeArea'); el.select(); document.execCommand('copy'); alert('已複製存檔碼！'); }
+function copySaveCode() { const el = document.getElementById('saveCodeArea'); el.select(); document.execCommand('copy'); showInkDialog({ seal: '存', sealTone: 'info', title: '存檔碼已複製', bodyHtml: '已將目前進度存檔碼複製到剪貼簿，可妥善保存備份。', actions: [{ label: '好的', cls: 'primary' }] }); }
 function importSaveCode() {
   try {
     const p = JSON.parse(document.getElementById('saveCodeArea').value.trim());
     if (!p.roster || !p.items) throw new Error();
     if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
-    saveData = p; persistSave(); closeModal('saveModal'); switchScene('map'); alert('存檔還原成功！');
-  } catch (e) { alert('存檔碼格式錯誤'); }
+    saveData = p; persistSave(); closeModal('saveModal'); switchScene('map'); showInkDialog({ seal: '載', sealTone: 'info', title: '存檔還原成功', bodyHtml: '已成功載入您的列國征程進度。', actions: [{ label: '繼續征程', cls: 'primary' }] });
+  } catch (e) { showInkDialog({ seal: '誤', sealTone: 'warn', title: '存檔碼格式錯誤', bodyHtml: '無法解析您貼上的內容，請確認是否完整複製 JSON 存檔碼。', actions: [{ label: '重新檢查', cls: 'primary' }] }); }
 }
 function resetSaveData() {
-  if (!confirm('確定重置存檔？')) return;
-  saveData = createDefaultSave(); persistSave(); closeModal('saveModal'); switchScene('map');
+  showInkDialog({
+    seal: '慎',
+    sealTone: 'warn',
+    title: '確定重置新遊戲？',
+    bodyHtml: '重置後將清除所有通關紀錄、已招募弟子、神兵裝備與軍資金，無法復原。',
+    actions: [
+      { label: '取消', cls: '' },
+      { label: '確定重置', cls: 'danger', onClick: () => { saveData = createDefaultSave(); persistSave(); closeModal('saveModal'); switchScene('map'); } }
+    ]
+  });
 }
 
 // ============================================================================
@@ -4559,7 +4795,7 @@ function useItem(type) {
     hexIndex = (hexIndex + 1 + Math.floor(Math.random()*(DATA_HEXAGRAMS.length-1))) % DATA_HEXAGRAMS.length;
     applyHexagramTerrain(); AudioManager.play('bell'); persistSave(); renderItemModal(); renderAll(); return;
   }
-  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player') { alert('請先點選棋盤上一名我方角色！'); return; }
+  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player') { showInkDialog({ seal: '令', sealTone: 'info', title: '尚未選取目標武將', bodyHtml: '請先點選棋盤上一名<strong>我方武將</strong>，再開啟補給欄使用回復道具。', actions: [{ label: '知道了', cls: 'primary' }] }); return; }
   if (type === 'potion' && !activeStage.modifiers.banNormalHeal && saveData.items.potion > 0) {
     saveData.items.potion--; u.hp = Math.min(u.maxHp, u.hp + 40); AudioManager.play('guqin'); spawnFloatText(u.r,u.c,'+40 HP','heal');
   } else if (type === 'bento' && saveData.items.bento > 0) {
