@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v0.9 — 9×9暗黑水墨・雙向反擊正式版</title>
+<title>《論語戰棋》v1.0 — 9×9暗黑水墨・全站精靈立繪正式版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1051,6 +1051,49 @@
     100% { opacity: 0; transform: translateY(-50%) scaleX(1.04); }
   }
 
+
+  /* 全站精靈圖頭像與動態立繪框 */
+  .sprite-avatar-frame {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 42%, #2b2720 0%, #151412 75%, #0c0c0b 100%);
+    border: 1.5px solid #7a643d;
+    border-radius: 6px;
+    overflow: hidden;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.7), 0 2px 6px rgba(0, 0, 0, 0.5);
+  }
+  .sprite-avatar-frame.lg {
+    width: 68px;
+    height: 68px;
+    border: 2px solid var(--gold);
+    border-radius: 8px;
+    background: radial-gradient(circle at 50% 45%, #362e22 0%, #181613 70%, #0d0d0d 100%);
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.78), 0 0 14px rgba(212, 175, 106, 0.22);
+  }
+  .sprite-avatar-frame.md {
+    width: 52px;
+    height: 52px;
+    margin-top: 6px;
+  }
+  .sprite-avatar-frame.sm {
+    width: 40px;
+    height: 40px;
+  }
+  .sprite-avatar-frame canvas {
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    display: block;
+  }
+  .roster-tile.selected .sprite-avatar-frame {
+    border-color: var(--gold-bright);
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.6), 0 0 8px rgba(212, 175, 106, 0.45);
+  }
+  .roster-tile { flex: 0 0 76px; }
+
 </style>
 </head>
 <body>
@@ -1298,8 +1341,8 @@
 <div class="modal-backdrop" id="charDetailModal" onclick="if(event.target===this) closeModal('charDetailModal')">
   <div class="modal-sheet">
     <div class="row-between">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <span class="char-chip" id="cdChip">孔</span>
+      <div style="display:flex; align-items:center; gap:9px;">
+        <span id="cdAvatarWrap"><span class="char-chip" id="cdChip">孔</span></span>
         <div>
           <h3 id="cdName" style="margin:0;">孔子 Lv.1</h3>
           <div style="font-size:0.74rem; color:#8ec9c2;" id="cdTags">陽/陰雙全｜本命卦：乾卦</div>
@@ -1942,7 +1985,9 @@ function preloadFolderSprites() {
     const img = new Image();
     img.onload = () => {
       autoLoadedSprites[tplKey] = processChromaKeyToCanvas(img);
-      if (currentScene === 'battle') renderUnits();
+      if (currentScene === 'battle') { renderUnits(); renderBottomCapsule(); }
+      if (currentScene === 'camp') renderCampScene();
+      refreshAllSpriteCanvases();
     };
     img.onerror = () => {
       // 找不到檔案時安靜退回白盒模式，絕不報錯當機
@@ -1951,6 +1996,56 @@ function preloadFolderSprites() {
     img.src = tpl.spriteSheetKey;
   });
 }
+
+
+// ---- 全站精靈圖頭像提取器 & 營地 4 幀待機呼吸動畫引擎 ----
+function getSpriteSheetFor(tplKey) {
+  return customSprites[tplKey] || autoLoadedSprites[tplKey] || null;
+}
+
+function drawSpriteFrameToCanvas(cvs, tplKey, frameIdx = 0) {
+  const sheet = getSpriteSheetFor(tplKey);
+  if (!sheet || !cvs) return false;
+  const ctx = cvs.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0, 0, cvs.width, cvs.height);
+  const sx = (frameIdx % 6) * 128;
+  const sy = Math.floor(frameIdx / 6) * 128;
+  // 適度居中裁切四周留白 (每格 128x128，取中間 104x104 放大呈現，頭身更飽滿清晰)
+  const cropPad = 12;
+  ctx.drawImage(sheet, sx + cropPad, sy + cropPad - 2, 128 - cropPad * 2, 128 - cropPad * 2, 0, 0, cvs.width, cvs.height);
+  return true;
+}
+
+function buildAvatarHtml(tplKey, sizeCls = 'sm', animated = false) {
+  const tpl = DATA_UNITS[tplKey];
+  if (!tpl) return '';
+  const sheet = getSpriteSheetFor(tplKey);
+  if (sheet) {
+    const px = sizeCls === 'lg' ? 68 : (sizeCls === 'md' ? 52 : 40);
+    return `<span class="sprite-avatar-frame ${sizeCls}"><canvas class="ui-sprite-cvs" data-tpl="${tplKey}" data-anim="${animated ? '1' : '0'}" width="${px}" height="${px}"></canvas></span>`;
+  }
+  const szStyle = sizeCls === 'lg'
+    ? 'width:58px; height:58px; font-size:1.55rem;'
+    : (sizeCls === 'md' ? 'width:44px; height:44px; font-size:1.2rem; margin-top:6px;' : 'width:38px; height:38px; font-size:1.05rem;');
+  return `<span class="char-chip" style="background:${tpl.color}; ${szStyle}">${tpl.char}</span>`;
+}
+
+let uiIdleFrame = 0;
+function refreshAllSpriteCanvases() {
+  document.querySelectorAll('canvas.ui-sprite-cvs').forEach(cvs => {
+    const tplKey = cvs.dataset.tpl;
+    const isAnim = cvs.dataset.anim === '1';
+    drawSpriteFrameToCanvas(cvs, tplKey, isAnim ? (uiIdleFrame % 4) : 0);
+  });
+}
+
+setInterval(() => {
+  uiIdleFrame = (uiIdleFrame + 1) % 4;
+  document.querySelectorAll('canvas.ui-sprite-cvs[data-anim="1"]').forEach(cvs => {
+    drawSpriteFrameToCanvas(cvs, cvs.dataset.tpl, uiIdleFrame);
+  });
+}, 170); // ~6fps，與戰鬥待機節奏一致
 
 // ============================================================================
 // 三、 存檔與裝備庫存管理
@@ -2219,8 +2314,8 @@ function openCharDetail(uid) {
   const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
   const effYY = prog.equip.book === 'lianshan' ? '陽/陰（連山易）' : tpl.yinYang;
 
-  const chip = document.getElementById('cdChip');
-  chip.style.backgroundColor = tpl.color; chip.textContent = tpl.char;
+  const avWrap = document.getElementById('cdAvatarWrap');
+  if (avWrap) avWrap.innerHTML = buildAvatarHtml(uid, 'md', true);
   document.getElementById('cdName').textContent = `${tpl.name} Lv.${prog.lv}（${tpl.role}）`;
   document.getElementById('cdTags').textContent = `陰陽：${effYY}｜本命卦：${trigramName}｜開局氣：${startQi}`;
 
@@ -2258,6 +2353,7 @@ function openCharDetail(uid) {
   }
   document.getElementById('cdSkillsList').innerHTML = skillsHtml.join('');
   document.getElementById('charDetailModal').classList.add('show');
+  refreshAllSpriteCanvases();
 }
 
 function openSelectedBattleUnitDetail() {
@@ -2415,7 +2511,7 @@ function renderCampScene() {
     tile.innerHTML = `
       ${deployed ? `<span class="roster-tile-order">#${depIdx + 1}</span>` : ''}
       <span class="roster-tile-lv">Lv${prog.lv}</span>
-      <span class="char-chip" style="background:${tpl.color}; margin-top:6px;">${tpl.char}</span>
+      ${buildAvatarHtml(id, 'md', false)}
       <span class="roster-tile-name">${tpl.name}</span>
       <div class="eq-dots-row">${dotsHtml}</div>`;
     carousel.appendChild(tile);
@@ -2442,7 +2538,7 @@ function renderCampScene() {
     document.getElementById('focusCharHeader').innerHTML = `
       <div class="row-between">
         <div style="display:flex; align-items:center; gap:9px; min-width:0;">
-          <span class="char-chip" style="background:${tpl.color}; width:42px; height:42px; font-size:1.25rem;">${tpl.char}</span>
+          ${buildAvatarHtml(uid, 'lg', true)}
           <div style="min-width:0;">
             <div style="font-size:0.95rem; font-weight:900; color:#fff;">
               ${tpl.name} <span style="color:#ecd29b; font-size:0.8rem;">Lv.${prog.lv}</span>
@@ -2527,6 +2623,7 @@ function renderCampScene() {
       <button class="btn sm gold" ${saveData.items.suxiu<=0||lv>=3?'disabled':''} onclick="giftSuxiu('${bp.id}')">贈送束脩 (+1級)</button>`;
     bList.appendChild(div);
   });
+  refreshAllSpriteCanvases();
 }
 
 function renderShopScene() {
@@ -3493,15 +3590,25 @@ function promptPlayerCounter(attacker, defender, isCrush = false) {
     body.innerHTML = `
       <div class="counter-matchup">
         <div class="counter-side">
-          <div style="font-size:0.7rem; color:#e86b64; font-weight:800;">進攻敵軍</div>
-          <div style="font-family:var(--font-serif); font-size:0.9rem; font-weight:900;">[${attacker.char}] ${attacker.name}</div>
-          <div style="font-size:0.7rem; color:#cfc7b8;">HP ${attacker.hp}/${attacker.maxHp}｜攻 ${eStats.atk}</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${buildAvatarHtml(attacker.tplKey || attacker.id, 'sm', true)}
+            <div>
+              <div style="font-size:0.68rem; color:#e86b64; font-weight:800;">進攻敵軍</div>
+              <div style="font-family:var(--font-serif); font-size:0.86rem; font-weight:900;">${attacker.name}</div>
+            </div>
+          </div>
+          <div style="font-size:0.69rem; color:#cfc7b8; margin-top:2px;">HP ${attacker.hp}/${attacker.maxHp}｜攻 ${eStats.atk}</div>
         </div>
         <div class="counter-vs">VS</div>
         <div class="counter-side right">
-          <div style="font-size:0.7rem; color:#8ec9c2; font-weight:800;">我方迎敵（距${dist}格）</div>
-          <div style="font-family:var(--font-serif); font-size:0.9rem; font-weight:900;">[${defender.char}] ${defender.name}</div>
-          <div style="font-size:0.7rem; color:#cfc7b8;">HP ${defender.hp}/${defender.maxHp}｜氣 ${defender.qi}</div>
+          <div style="display:flex; align-items:center; gap:6px; flex-direction:row-reverse;">
+            ${buildAvatarHtml(defender.tplKey || defender.id, 'sm', true)}
+            <div>
+              <div style="font-size:0.68rem; color:#8ec9c2; font-weight:800;">我方迎敵（距${dist}格）</div>
+              <div style="font-family:var(--font-serif); font-size:0.86rem; font-weight:900;">${defender.name}</div>
+            </div>
+          </div>
+          <div style="font-size:0.69rem; color:#cfc7b8; margin-top:2px;">HP ${defender.hp}/${defender.maxHp}｜氣 ${defender.qi}</div>
         </div>
       </div>
       <div class="counter-warn-box">
@@ -3528,6 +3635,7 @@ function promptPlayerCounter(attacker, defender, isCrush = false) {
         </button>
       </div>`;
     document.getElementById('counterModal').classList.add('show');
+    refreshAllSpriteCanvases();
   });
 }
 
@@ -4654,7 +4762,7 @@ function renderBottomCapsule() {
     ? `<button class="btn sm" style="min-height:26px; padding:2px 7px; font-size:0.68rem;" onclick="openCharDetail('${u.id}')">詳情</button>`
     : '';
   infoEl.innerHTML = `
-    <span class="char-chip" style="background:${u.color}; width:36px; height:36px; font-size:1.05rem;">${u.char}</span>
+    ${buildAvatarHtml(u.tplKey || u.id, 'sm', false)}
     <div class="capsule-bars">
       <div class="capsule-name-row">
         <span>${u.name}</span>
@@ -4667,6 +4775,7 @@ function renderBottomCapsule() {
         <span>攻${s.atk} 防${s.def}</span>
       </div>
     </div>`;
+  refreshAllSpriteCanvases();
 }
 
 // 螢幕浮動指令層：階段 1 原地浮標 / 階段 2 古風指令浮窗
