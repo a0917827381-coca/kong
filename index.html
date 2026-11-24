@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.1 — 9×9暗黑水墨・精靈立繪正式版</title>
+<title>《論語戰棋》v1.2 — 9×9暗黑水墨・戰場倒地留屍版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -633,6 +633,18 @@
   .unit-anchor.lockhp .unit-box { box-shadow: 0 0 20px 5px #c83e37; border-color: #f09c97; }
   .unit-anchor.sleeping .unit-box { filter: brightness(0.62) hue-rotate(25deg); }
   .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
+  .unit-anchor.dead {
+    opacity: 0.54;
+    transition: left 0.16s ease, top 0.16s ease, opacity 0.45s ease;
+  }
+  .unit-anchor.dead .sprite-canvas {
+    filter: saturate(0.45) brightness(0.84) drop-shadow(0 4px 6px rgba(0, 0, 0, 0.7));
+  }
+  .unit-anchor.dead .unit-box {
+    transform: translateY(20px) scaleY(0.55) rotate(-14deg);
+    filter: saturate(0.35) brightness(0.65);
+    border-color: rgba(154, 146, 132, 0.45);
+  }
 
   .art-guide {
     display: none; position: absolute; left: 0; top: -10px; width: 128px; height: 128px;
@@ -3187,7 +3199,11 @@ function tickAnimations(ts) {
   const dt = (ts - lastFrameTs) / 1000; lastFrameTs = ts;
   if (currentScene === 'battle' && ts >= hitstopUntil) {
     units.forEach(u => {
-      if (u.hp <= 0 && u.animState !== 'die') return;
+      if (u.hp <= 0) {
+        if (u.animState !== 'die') return;
+        const defDie = ANIM_DEFS.die;
+        if ((u.animFrame || 0) >= defDie.count - 1) return; // 已停在最後倒地幀，不再重複重繪
+      }
       const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
       u.animTimer = (u.animTimer || 0) + dt;
       if (u.animTimer >= 1 / def.fps) {
@@ -4264,9 +4280,11 @@ async function executePlayerAction(unit, mode, tr, tc) {
       } else if (sk.type === 'revive_aura') {
         if (fallenAllies.length > 0) {
           const fallen = fallenAllies.shift();
-          const spot = findEmptyAdjacent(unit.r, unit.c) || { r: unit.r, c: unit.c };
+          const corpseEmpty = !getUnitAt(fallen.r, fallen.c) && grid[fallen.r]?.[fallen.c] !== 1 && grid[fallen.r]?.[fallen.c] !== 3;
+          const spot = corpseEmpty ? { r: fallen.r, c: fallen.c } : (findEmptyAdjacent(fallen.r, fallen.c) || findEmptyAdjacent(unit.r, unit.c) || { r: unit.r, c: unit.c });
           fallen.hp = Math.round(fallen.maxHp * 0.5); fallen.r = spot.r; fallen.c = spot.c;
-          fallen.ap = 1; fallen.moved = false; fallen.acted = false; fallen.animState = 'idle';
+          fallen.ap = 1; fallen.moved = false; fallen.acted = false;
+          fallen.animState = 'idle'; fallen.animFrame = 0; fallen.animTimer = 0;
           clearUnitDebuffs(fallen);
           spawnFloatText(fallen.r, fallen.c, '英靈復活！', 'taiji');
         } else {
@@ -4430,7 +4448,7 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
       const refDmg = Math.max(10, Math.round(absorb * 0.7));
       spawnFloatText(attacker.r, attacker.c, `反傷-${refDmg}`, 'dmg');
       attacker.hp = Math.max(0, attacker.hp - refDmg);
-      if (attacker.hp <= 0) { attacker.animState = 'die'; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); }
+      if (attacker.hp <= 0) { attacker.animState = 'die'; attacker.animFrame = 0; attacker.animTimer = 0; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); }
     }
     if (finalDmg <= 0) { renderUnits(); return; }
   }
@@ -4448,11 +4466,14 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
   if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= target.maxHp * 0.5) { target.phase = 2; target.color = '#7e22ce'; spawnVfx(target.r, target.c, true, '心魔二階段！'); renderUnits(); }
   if (target.hp <= 0) {
-    target.animState = 'die';
+    target.animState = 'die'; target.animFrame = 0; target.animTimer = 0;
     if (target.team === 'player' && !target.isTower && saveData.roster[target.id] && !fallenAllies.includes(target)) {
       fallenAllies.push(target);
     }
-    spawnFloatText(target.r, target.c, '擊破！', 'info'); renderUnits(); return;
+    spawnFloatText(target.r, target.c, '擊破！', 'info');
+    renderUnits();
+    await sleep(260); // 完整呈現 2 格倒地動作再進入後續結算
+    return;
   }
   if (target.lockHpTurns > 0 && attacker && attacker.hp > 0 && attacker.team !== target.team) {
     const cd = calcDamage(getEffectiveStats(target).atk * 1.5, getEffectiveStats(attacker).def, false, attacker);
@@ -4891,11 +4912,17 @@ function renderGhost() {
 
 function renderUnits() {
   const uLayer = document.getElementById('unitLayer'), hLayer = document.getElementById('hudLayer');
+  const allIds = new Set(units.map(u => u.id));
   const aliveIds = new Set(units.filter(u => u.hp > 0).map(u => u.id));
-  Array.from(uLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.uid)) ch.remove(); });
+  Array.from(uLayer.children).forEach(ch => { if (!allIds.has(ch.dataset.uid)) ch.remove(); });
   Array.from(hLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.hudid)) ch.remove(); });
 
-  units.filter(u => u.hp > 0).forEach(u => {
+  units.forEach(u => {
+    const isDead = u.hp <= 0;
+    if (isDead && u.animState !== 'die') {
+      u.animState = 'die';
+      u.animFrame = ANIM_DEFS.die.count - 1;
+    }
     let anc = uLayer.querySelector(`[data-uid="${u.id}"]`);
     if (!anc) {
       anc = document.createElement('div'); anc.className = 'unit-anchor'; anc.dataset.uid = u.id;
@@ -4903,18 +4930,20 @@ function renderUnits() {
       uLayer.appendChild(anc);
     }
     anc.style.left = `${u.c * TILE_PX}px`; anc.style.top = `${u.r * TILE_PX}px`;
-    anc.style.zIndex = 10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0);
-    anc.classList.toggle('selected', u.id === selectedUnitId);
-    anc.classList.toggle('exhausted', u.team === 'player' && u.ap <= 0);
-    anc.classList.toggle('invincible', u.invincibleTurns > 0);
-    anc.classList.toggle('lockhp', u.lockHpTurns > 0);
-    anc.classList.toggle('sleeping', u.sleepTurns > 0);
-    anc.classList.toggle('stealth', u.stealthTurns > 0);
-    anc.classList.toggle('frozen', u.frozenTurns > 0);
-    anc.classList.toggle('fortress', u.fortressTurns > 0);
+    anc.style.zIndex = isDead ? 3 : (10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0));
+    anc.classList.toggle('dead', isDead);
+    anc.classList.toggle('selected', !isDead && u.id === selectedUnitId);
+    anc.classList.toggle('exhausted', !isDead && u.team === 'player' && u.ap <= 0);
+    anc.classList.toggle('invincible', !isDead && u.invincibleTurns > 0);
+    anc.classList.toggle('lockhp', !isDead && u.lockHpTurns > 0);
+    anc.classList.toggle('sleeping', !isDead && u.sleepTurns > 0);
+    anc.classList.toggle('stealth', !isDead && u.stealthTurns > 0);
+    anc.classList.toggle('frozen', !isDead && u.frozenTurns > 0);
+    anc.classList.toggle('fortress', !isDead && u.fortressTurns > 0);
     anc.classList.toggle('flip-left', u.facingLeft);
     updateUnitVisualFrame(u, anc);
 
+    if (isDead) return;
     let hud = hLayer.querySelector(`[data-hudid="${u.id}"]`);
     if (!hud) { hud = document.createElement('div'); hud.className = 'unit-hud'; hud.dataset.hudid = u.id; hLayer.appendChild(hud); }
     hud.style.left = `${u.c * TILE_PX}px`; hud.style.top = `${u.r * TILE_PX}px`;
