@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.5 — 暗黑水墨・極速效能與歸魯終章版</title>
+<title>《論語戰棋》v1.6 — 暗黑水墨・單畫布零重排極速版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -605,11 +605,15 @@
   }
   .move-ghost span { font-size: 16px; color: #b5ded8; margin-top: 6px; }
 
-  /* 單位圖層：128×128 1:1 無損呈現 */
-  .unit-layer { position: absolute; inset: 0; pointer-events: none; }
+  /* 單位圖層：128×128 1:1 無損呈現（v1.6 單畫布＋純GPU位移） */
+  .unit-layer { position: absolute; inset: 0; pointer-events: none; z-index: 10; }
+  .unit-canvas {
+    position: absolute; left: 0; top: 0; width: 1152px; height: 1152px;
+    image-rendering: pixelated; pointer-events: none; z-index: 14;
+  }
   .unit-anchor {
-    position: absolute; width: 128px; height: 128px;
-    transition: left 0.16s ease, top 0.16s ease; pointer-events: none;
+    position: absolute; left: 0; top: 0; width: 128px; height: 128px;
+    transition: transform 0.16s ease; will-change: transform; pointer-events: none;
   }
   .unit-box {
     position: absolute; left: 14px; top: 10px; width: 100px; height: 100px;
@@ -642,7 +646,7 @@
   .unit-anchor.flip-left .sprite-canvas { transform: scaleX(-1); }
   .unit-anchor.dead {
     opacity: 0.54;
-    transition: left 0.16s ease, top 0.16s ease, opacity 0.45s ease;
+    transition: transform 0.16s ease, opacity 0.45s ease;
   }
   .unit-anchor.dead .sprite-canvas {
     filter: saturate(0.45) brightness(0.84);
@@ -680,7 +684,7 @@
 
   /* 角色腳底 HUD */
   .hud-layer { position: absolute; inset: 0; pointer-events: none; z-index: 40; }
-  .unit-hud { position: absolute; width: 128px; height: 128px; transition: left 0.16s ease, top 0.16s ease; }
+  .unit-hud { position: absolute; left: 0; top: 0; width: 128px; height: 128px; transition: transform 0.16s ease; will-change: transform; }
   .hud-foot-badges {
     position: absolute; left: 6px; right: 6px; bottom: 18px;
     display: flex; justify-content: space-between; align-items: flex-end;
@@ -789,23 +793,22 @@
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.7);
     will-change: transform;
   }
-  .threat-pill:active { transform: scale(0.95); }
+  .threat-pill:active { opacity: 0.82; }
 
   /* 螢幕浮動 UI 層：暗墨竹簡指令浮窗 */
   .float-ui-layer { position: absolute; inset: 0; pointer-events: none; z-index: 85; }
   .quick-action-pill {
-    position: absolute; pointer-events: auto;
+    position: absolute; left: 0; top: 0; pointer-events: auto; will-change: transform;
     background: linear-gradient(180deg, rgba(34, 30, 25, 0.96), rgba(18, 16, 14, 0.96));
     color: var(--gold-bright); border: 1.5px solid var(--gold);
     border-radius: 4px; padding: 6px 13px;
     font-family: var(--font-serif); font-size: 0.78rem; font-weight: 900; letter-spacing: 1px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8); cursor: pointer; white-space: nowrap;
-    transform: translate(-50%, 0);
   }
-  .quick-action-pill:active { transform: translate(-50%, 0) scale(0.96); }
+  .quick-action-pill:active { opacity: 0.82; }
 
   .cmd-popover {
-    position: absolute; pointer-events: auto; width: 198px;
+    position: absolute; left: 0; top: 0; pointer-events: auto; width: 198px; will-change: transform;
     background: linear-gradient(180deg, rgba(26, 24, 21, 0.97) 0%, rgba(15, 14, 13, 0.97) 100%);
     color: var(--text); border: 1.5px solid #8c6d3b; border-radius: 6px; padding: 7px;
     display: flex; flex-direction: column; gap: 5px;
@@ -1765,6 +1768,7 @@
               <div class="grid-layer" id="gridLayer"></div>
               <div class="ghost-layer" id="ghostLayer"></div>
               <div class="unit-layer" id="unitLayer"></div>
+              <canvas class="unit-canvas" id="unitCanvas" width="1152" height="1152"></canvas>
               <div class="hud-layer" id="hudLayer"></div>
               <div class="vfx-layer" id="vfxLayer"></div>
               <canvas class="vfx-canvas" id="vfxCanvas" width="576" height="576"></canvas>
@@ -2569,7 +2573,7 @@ function preloadFolderSprites() {
     const img = new Image();
     img.onload = () => {
       autoLoadedSprites[tplKey] = processChromaKeyToCanvas(img);
-      if (currentScene === 'battle') { renderUnits(); renderBottomCapsule(); }
+      if (currentScene === 'battle') { unitCanvasDirty = true; renderUnits(); renderBottomCapsule(); }
       if (currentScene === 'camp') renderCampScene();
       refreshAllSpriteCanvases();
     };
@@ -3394,10 +3398,20 @@ let camPointerId = null, camStartClientX = 0, camStartClientY = 0, camLastClient
 let showCmdPopover = false;
 let pendingAction = null; // { unitId, mode, r, c }
 
-function getViewportSize() {
+let cachedVpW = 0, cachedVpH = 0;
+let cachedCamLayer = null, cachedThreatLayer = null;
+let cachedQuickPill = null, cachedCmdCard = null;
+
+function refreshViewportCache() {
   const vp = document.getElementById('boardViewport');
-  if (!vp) return { w: 400, h: 520 };
-  return { w: vp.clientWidth || 400, h: vp.clientHeight || 520 };
+  if (!vp) return;
+  cachedVpW = vp.clientWidth || 400;
+  cachedVpH = vp.clientHeight || 520;
+}
+
+function getViewportSize() {
+  if (cachedVpW <= 0 || cachedVpH <= 0) refreshViewportCache();
+  return { w: cachedVpW || 400, h: cachedVpH || 520 };
 }
 
 function computeCameraScale() {
@@ -3428,7 +3442,7 @@ function clampCamera(x, y) {
 }
 
 function applyCameraTransform() {
-  const cl = document.getElementById('cameraLayer');
+  const cl = cachedCamLayer || (cachedCamLayer = document.getElementById('cameraLayer'));
   if (!cl) return;
   cl.style.transform = `translate3d(${camX.toFixed(1)}px, ${camY.toFixed(1)}px, 0) scale(${camScale.toFixed(4)})`;
   renderThreatIndicators();
@@ -3483,6 +3497,7 @@ function toggleCameraZoom() {
 
 function resizeBoard() {
   if (currentScene !== 'battle') return;
+  refreshViewportCache();
   camScale = computeCameraScale();
   const clamped = clampCamera(camX, camY);
   camX = clamped.x; camY = clamped.y;
@@ -3619,6 +3634,7 @@ function undoPendingMove() {
   const u = getUnitById(pendingMove.unitId);
   if (!u) { pendingMove = null; showCmdPopover = false; pendingAction = null; renderAll(); return; }
   u.r = pendingMove.origR; u.c = pendingMove.origC; u.facingLeft = pendingMove.origFacingLeft;
+  u.visX = u.c * TILE_PX; u.visY = u.r * TILE_PX; unitCanvasDirty = true;
   u.moved = false; u.ap = pendingMove.prevAp; pendingMove = null;
   pendingAction = null; showCmdPopover = false;
   selectedUnitId = u.id; actionMode = 'move'; targetableTiles.clear(); reachableTiles = computeReachable(u);
@@ -3632,13 +3648,36 @@ let animLoopRunning = false, lastFrameTs = 0, hitstopUntil = 0;
 function startAnimLoop() { if (!animLoopRunning) { animLoopRunning = true; requestAnimationFrame(tickAnimations); } }
 function tickAnimations(ts) {
   if (!lastFrameTs) lastFrameTs = ts;
-  const dt = (ts - lastFrameTs) / 1000; lastFrameTs = ts;
-  if (currentScene === 'battle' && ts >= hitstopUntil) {
-    units.forEach(u => {
+  const dt = Math.min(0.05, (ts - lastFrameTs) / 1000); lastFrameTs = ts;
+  if (currentScene === 'battle') {
+    const moveLerp = 1 - Math.exp(-22 * dt);
+    const notFrozen = ts >= hitstopUntil;
+    for (let i = 0; i < units.length; i++) {
+      const u = units[i];
+      // 平滑同步精靈圖在統一畫布上的位移
+      const tx = u.c * TILE_PX, ty = u.r * TILE_PX;
+      if (u.visX === undefined) { u.visX = tx; u.visY = ty; }
+      const dx = tx - u.visX, dy = ty - u.visY;
+      if (Math.abs(dx) > 0.4 || Math.abs(dy) > 0.4) {
+        u.visX += dx * moveLerp;
+        u.visY += dy * moveLerp;
+        unitCanvasDirty = true;
+      } else if (u.visX !== tx || u.visY !== ty) {
+        u.visX = tx; u.visY = ty;
+        unitCanvasDirty = true;
+      }
+      if (u.hitFlashUntil > ts || u.shakeUntil > ts) {
+        unitCanvasDirty = true;
+      } else if ((u.hitFlashUntil > 0 && u.hitFlashUntil <= ts) || (u.shakeUntil > 0 && u.shakeUntil <= ts)) {
+        u.hitFlashUntil = 0; u.shakeUntil = 0;
+        unitCanvasDirty = true;
+      }
+
+      if (!notFrozen) continue;
       if (u.hp <= 0) {
-        if (u.animState !== 'die') return;
+        if (u.animState !== 'die') continue;
         const defDie = ANIM_DEFS.die;
-        if ((u.animFrame || 0) >= defDie.count - 1) return; // 已停在最後倒地幀，不再重複重繪
+        if ((u.animFrame || 0) >= defDie.count - 1) continue;
       }
       const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
       u.animTimer = (u.animTimer || 0) + dt;
@@ -3650,9 +3689,10 @@ function tickAnimations(ts) {
         }
         updateUnitVisualFrame(u);
       }
-    });
+    }
+    if (unitCanvasDirty) renderUnitCanvas(ts);
+    VfxEngine.updateAndRender(dt);
   }
-  if (currentScene === 'battle') VfxEngine.updateAndRender(dt);
   tickCameraMotion();
   requestAnimationFrame(tickAnimations);
 }
@@ -4397,6 +4437,7 @@ function startSelectedStage() {
 
   document.getElementById('logBox').innerHTML = ''; document.getElementById('unitLayer').innerHTML = '';
   document.getElementById('hudLayer').innerHTML = ''; document.getElementById('ghostLayer').innerHTML = '';
+  unitAncMap.clear(); unitHudMap.clear(); unitCanvasDirty = true;
   clearThreatPool(); VfxEngine.clear();
   document.getElementById('forecastBar').style.display = 'none';
   addLog(`=== 出征：${activeStage.cityLabel}・${activeStage.name} ===`, 'hex');
@@ -4456,7 +4497,10 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     invincibleTurns: 0, lockHpTurns: 0, fatalShield: false, phase: 1,
     equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
     spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
-    animState: 'idle', animFrame: 0, animTimer: 0
+    animState: 'idle', animFrame: 0, animTimer: 0,
+    visX: c * TILE_PX, visY: r * TILE_PX,
+    lungeX: 0, lungeY: 0, lungeScale: 1,
+    hitFlashUntil: 0, shakeUntil: 0
   };
 }
 function retreatToMap() { switchScene('map'); }
@@ -5776,20 +5820,23 @@ function calcDamage(atk, def, isCrit, target) {
 }
 
 async function playLunge(attacker, tr, tc) {
-  const anc = document.querySelector(`[data-uid="${attacker.id}"]`); if (!anc) return;
+  const anc = unitAncMap.get(attacker.id);
+  const box = anc ? anc._box : null;
   const dx = Math.sign(tc - attacker.c), dy = Math.sign(tr - attacker.r);
   const dist = manhattan(attacker.r, attacker.c, tr, tc);
   const push = dist <= 1 ? 34 : 18;
-  // 蓄力後拉 -> 瞬衝突刺 -> 彈回原位（直接作用於 unit-anchor，精靈圖與白盒同步生效）
-  anc.style.transition = 'transform 0.05s ease-out';
-  anc.style.transform = `translate(${-dx * 9}px, ${-dy * 9}px)`;
+  // 蓄力後拉 -> 瞬衝突刺 -> 彈回原位（單畫布精靈圖與白盒同步生效）
+  attacker.lungeX = -dx * 9; attacker.lungeY = -dy * 9; attacker.lungeScale = 1;
+  unitCanvasDirty = true;
+  if (box && box.style.display !== 'none') box.style.transform = `translate3d(${-dx * 9}px, ${-dy * 9}px, 0)`;
   await sleep(48);
-  anc.style.transition = 'transform 0.08s cubic-bezier(0.2, 0.9, 0.3, 1)';
-  anc.style.transform = `translate(${dx * push}px, ${dy * push}px) scale(1.07)`;
+  attacker.lungeX = dx * push; attacker.lungeY = dy * push; attacker.lungeScale = 1.07;
+  unitCanvasDirty = true;
+  if (box && box.style.display !== 'none') box.style.transform = `translate3d(${dx * push}px, ${dy * push}px, 0) scale(1.07)`;
   await sleep(92);
-  anc.style.transition = 'transform 0.12s ease-out';
-  anc.style.transform = '';
-  setTimeout(() => { if (anc) anc.style.transition = ''; }, 130);
+  attacker.lungeX = 0; attacker.lungeY = 0; attacker.lungeScale = 1;
+  unitCanvasDirty = true;
+  if (box && box.style.display !== 'none') box.style.transform = '';
 }
 
 async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null) {
@@ -5848,7 +5895,11 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit || woke) ? 'crit' : 'dmg'); }
   VfxEngine.spawnHitSparks(target.r, target.c, isCrit || woke);
   if (isCrit || woke) { triggerHitstop(60); triggerCameraShake(4, 150); }
-  const anc = document.querySelector(`[data-uid="${target.id}"]`);
+  const nowTs = performance.now();
+  target.hitFlashUntil = nowTs + 150;
+  target.shakeUntil = nowTs + 150;
+  unitCanvasDirty = true;
+  const anc = unitAncMap.get(target.id);
   if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
   renderUnits(); await sleep(180);
 
@@ -6343,12 +6394,81 @@ function renderGhost() {
   g.innerHTML = `${u.char}<span>原位</span>`; layer.appendChild(g);
 }
 
+const unitAncMap = new Map();
+const unitHudMap = new Map();
+let unitCanvasCtx = null;
+let unitCanvasDirty = true;
+
+function renderUnitCanvas(nowTs = performance.now()) {
+  if (!unitCanvasCtx) {
+    const cvs = document.getElementById('unitCanvas');
+    if (!cvs) return;
+    unitCanvasCtx = cvs.getContext('2d');
+  }
+  const ctx = unitCanvasCtx;
+  ctx.clearRect(0, 0, WORLD_PX, WORLD_PX);
+  ctx.imageSmoothingEnabled = false;
+  unitCanvasDirty = false;
+
+  // 排序：陣亡留屍在底層，存活單位依列數由上到下繪製，選中角色置頂
+  const drawList = [];
+  for (let i = 0; i < units.length; i++) {
+    const u = units[i];
+    const sheet = customSprites[u.tplKey] || customSprites[u.id] || autoLoadedSprites[u.tplKey] || autoLoadedSprites[u.id];
+    if (sheet) drawList.push({ u, sheet });
+  }
+  drawList.sort((a, b) => {
+    const da = a.u.hp <= 0 ? 0 : 1, db = b.u.hp <= 0 ? 0 : 1;
+    if (da !== db) return da - db;
+    if (a.u.r !== b.u.r) return a.u.r - b.u.r;
+    return (a.u.id === selectedUnitId ? 1 : 0) - (b.u.id === selectedUnitId ? 1 : 0);
+  });
+
+  for (let i = 0; i < drawList.length; i++) {
+    const { u, sheet } = drawList[i];
+    const isDead = u.hp <= 0;
+    const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
+    const frameIdx = def.start + (u.animFrame % def.count);
+    const sx = (frameIdx % 6) * 128;
+    const sy = Math.floor(frameIdx / 6) * 128;
+
+    const shakeDx = (u.shakeUntil > nowTs) ? Math.sin(nowTs * 0.14) * 9 : 0;
+    const drawX = (u.visX !== undefined ? u.visX : u.c * TILE_PX) + (u.lungeX || 0) + shakeDx;
+    const drawY = (u.visY !== undefined ? u.visY : u.r * TILE_PX) - 10 + (u.lungeY || 0);
+    const scale = u.lungeScale || 1;
+
+    ctx.save();
+    if (isDead) ctx.globalAlpha = 0.54;
+    else if (u.stealthTurns > 0) ctx.globalAlpha = 0.45;
+    else if (u.team === 'player' && u.ap <= 0) ctx.globalAlpha = 0.65;
+
+    ctx.translate(drawX + 64, drawY + 64);
+    if (u.facingLeft) ctx.scale(-scale, scale);
+    else if (scale !== 1) ctx.scale(scale, scale);
+
+    ctx.drawImage(sheet, sx, sy, 128, 128, -64, -64, 128, 128);
+
+    // 受擊白閃：使用純硬體加速 lighter 疊加，免除昂貴 CSS/Canvas filter
+    if (u.hitFlashUntil > nowTs) {
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.85;
+      ctx.drawImage(sheet, sx, sy, 128, 128, -64, -64, 128, 128);
+      ctx.drawImage(sheet, sx, sy, 128, 128, -64, -64, 128, 128);
+    }
+    ctx.restore();
+  }
+}
+
 function renderUnits() {
   const uLayer = document.getElementById('unitLayer'), hLayer = document.getElementById('hudLayer');
   const allIds = new Set(units.map(u => u.id));
   const aliveIds = new Set(units.filter(u => u.hp > 0).map(u => u.id));
-  Array.from(uLayer.children).forEach(ch => { if (!allIds.has(ch.dataset.uid)) ch.remove(); });
-  Array.from(hLayer.children).forEach(ch => { if (!aliveIds.has(ch.dataset.hudid)) ch.remove(); });
+  for (const [id, el] of unitAncMap.entries()) {
+    if (!allIds.has(id)) { el.remove(); unitAncMap.delete(id); }
+  }
+  for (const [id, el] of unitHudMap.entries()) {
+    if (!aliveIds.has(id)) { el.remove(); unitHudMap.delete(id); }
+  }
 
   units.forEach(u => {
     const isDead = u.hp <= 0;
@@ -6356,14 +6476,19 @@ function renderUnits() {
       u.animState = 'die';
       u.animFrame = ANIM_DEFS.die.count - 1;
     }
-    let anc = uLayer.querySelector(`[data-uid="${u.id}"]`);
+    let anc = unitAncMap.get(u.id);
     if (!anc) {
       anc = document.createElement('div'); anc.className = 'unit-anchor'; anc.dataset.uid = u.id;
-      anc.innerHTML = `<div class="art-guide"></div><div class="unit-box"></div><canvas class="sprite-canvas" width="128" height="128"></canvas><span class="anim-pill"></span>`;
+      anc.innerHTML = `<div class="art-guide"></div><div class="unit-box"></div><span class="anim-pill"></span>`;
+      anc._box = anc.querySelector('.unit-box');
+      anc._pill = anc.querySelector('.anim-pill');
       uLayer.appendChild(anc);
+      unitAncMap.set(u.id, anc);
     }
-    anc.style.left = `${u.c * TILE_PX}px`; anc.style.top = `${u.r * TILE_PX}px`;
-    anc.style.zIndex = isDead ? 3 : (10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0));
+    const tr = `translate3d(${u.c * TILE_PX}px, ${u.r * TILE_PX}px, 0)`;
+    if (anc._lastTr !== tr) { anc.style.transform = tr; anc._lastTr = tr; }
+    const zi = isDead ? '3' : String(10 + u.r * 2 + (u.id === selectedUnitId ? 1 : 0));
+    if (anc.style.zIndex !== zi) anc.style.zIndex = zi;
     anc.classList.toggle('dead', isDead);
     anc.classList.toggle('selected', !isDead && u.id === selectedUnitId);
     anc.classList.toggle('exhausted', !isDead && u.team === 'player' && u.ap <= 0);
@@ -6377,7 +6502,7 @@ function renderUnits() {
     updateUnitVisualFrame(u, anc);
 
     if (isDead) return;
-    let hud = hLayer.querySelector(`[data-hudid="${u.id}"]`);
+    let hud = unitHudMap.get(u.id);
     if (!hud) {
       hud = document.createElement('div');
       hud.className = 'unit-hud';
@@ -6404,8 +6529,9 @@ function renderUnits() {
         qiFill: hud.querySelector('.qi-bar-fill')
       };
       hLayer.appendChild(hud);
+      unitHudMap.set(u.id, hud);
     }
-    hud.style.left = `${u.c * TILE_PX}px`; hud.style.top = `${u.r * TILE_PX}px`;
+    if (hud._lastTr !== tr) { hud.style.transform = tr; hud._lastTr = tr; }
     const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
@@ -6460,30 +6586,27 @@ function renderUnits() {
       eH.qiBg.style.display = 'none';
     }
   });
+  unitCanvasDirty = true;
 }
 
 function updateUnitVisualFrame(u, ancEl = null) {
-  const anc = ancEl || document.querySelector(`[data-uid="${u.id}"]`); if (!anc) return;
-  const box = anc.querySelector('.unit-box'), cvs = anc.querySelector('.sprite-canvas'), pill = anc.querySelector('.anim-pill');
-  const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
-  const frameIdx = def.start + (u.animFrame % def.count);
-  const isHit = (u.animState === 'attack' && u.animFrame === def.hitOffset);
-  pill.textContent = `${u.animState}:${u.animFrame + 1}${isHit ? '*HIT' : ''}`;
-  pill.classList.toggle('hit', isHit);
+  const anc = ancEl || unitAncMap.get(u.id);
+  if (anc && showGuides && anc._pill) {
+    const def = ANIM_DEFS[u.animState] || ANIM_DEFS.idle;
+    const isHit = (u.animState === 'attack' && u.animFrame === def.hitOffset);
+    const pillTxt = `${u.animState}:${u.animFrame + 1}${isHit ? '*HIT' : ''}`;
+    if (anc._pill.textContent !== pillTxt) anc._pill.textContent = pillTxt;
+    anc._pill.classList.toggle('hit', isHit);
+  }
 
   const sheet = customSprites[u.tplKey] || customSprites[u.id] || autoLoadedSprites[u.tplKey] || autoLoadedSprites[u.id];
   if (sheet) {
-    box.style.display = 'none';
-    cvs.style.display = 'block';
-    const ctx = cvs.getContext('2d');
-    ctx.imageSmoothingEnabled = false;
-    ctx.clearRect(0, 0, 128, 128);
-    ctx.drawImage(sheet, (frameIdx % 6) * 128, Math.floor(frameIdx / 6) * 128, 128, 128, 0, 0, 128, 128);
-  } else {
-    cvs.style.display = 'none';
-    box.style.display = 'flex';
-    box.style.backgroundColor = u.color;
-    box.textContent = u.char;
+    if (anc && anc._box && anc._box.style.display !== 'none') anc._box.style.display = 'none';
+    unitCanvasDirty = true;
+  } else if (anc && anc._box) {
+    if (anc._box.style.display !== 'flex') anc._box.style.display = 'flex';
+    if (anc._box.style.backgroundColor !== u.color) anc._box.style.backgroundColor = u.color;
+    if (anc._box.textContent !== u.char) anc._box.textContent = u.char;
   }
 }
 
@@ -6527,6 +6650,8 @@ function renderFloatingUi() {
   const layer = document.getElementById('floatUiLayer');
   if (!layer) return;
   layer.innerHTML = '';
+  cachedQuickPill = null;
+  cachedCmdCard = null;
 
   if (gameState !== STATE.PLAYER_TURN || pendingAction || actionMode !== 'move') return;
   const u = getUnitById(selectedUnitId);
@@ -6540,6 +6665,7 @@ function renderFloatingUi() {
     pill.textContent = '⚔ 原地出招 / 待機';
     pill.onclick = e => { e.stopPropagation(); openInPlaceCmdMenu(); };
     layer.appendChild(pill);
+    cachedQuickPill = pill;
     updateFloatingUiPosition();
     return;
   }
@@ -6617,11 +6743,14 @@ function renderFloatingUi() {
 
     card.innerHTML = htmlStr;
     layer.appendChild(card);
+    card._cachedH = card.offsetHeight || 220;
+    cachedCmdCard = card;
     updateFloatingUiPosition();
   }
 }
 
 function updateFloatingUiPosition() {
+  if (!cachedQuickPill && !cachedCmdCard) return;
   const u = getUnitById(selectedUnitId);
   if (!u) return;
   const { w, h } = getViewportSize();
@@ -6629,21 +6758,18 @@ function updateFloatingUiPosition() {
   const unitTop = camY + u.r * TILE_PX * camScale;
   const unitSize = TILE_PX * camScale;
 
-  const pill = document.getElementById('quickActionPill');
-  if (pill) {
+  if (cachedQuickPill) {
     let px = unitLeft + unitSize / 2;
     let py = unitTop + unitSize + 6;
     if (py + 36 > h - 8) py = Math.max(8, unitTop - 40);
     px = Math.max(76, Math.min(w - 76, px));
-    pill.style.left = `${px}px`;
-    pill.style.top = `${py}px`;
+    cachedQuickPill.style.transform = `translate3d(${px.toFixed(0)}px, ${py.toFixed(0)}px, 0) translate(-50%, 0)`;
   }
 
-  const card = document.getElementById('cmdPopoverCard');
-  if (card) {
-    const cw = 196;
-    const ch = card.offsetHeight || 220;
-    // 自動偵測右、左、下、上空間，避免超出視窗
+  if (cachedCmdCard) {
+    const cw = 198;
+    const ch = cachedCmdCard._cachedH || 220;
+    // 自動偵測右、左、下、上空間，避免超出視窗（零排版讀取）
     let cx = unitLeft + unitSize + 8;
     let cy = unitTop + (unitSize - ch) / 2;
     if (cx + cw > w - 8) {
@@ -6654,8 +6780,7 @@ function updateFloatingUiPosition() {
       cy = (unitTop + unitSize + ch + 10 < h) ? (unitTop + unitSize + 6) : Math.max(8, unitTop - ch - 6);
     }
     cy = Math.max(8, Math.min(h - ch - 8, cy));
-    card.style.left = `${cx}px`;
-    card.style.top = `${cy}px`;
+    cachedCmdCard.style.transform = `translate3d(${cx.toFixed(0)}px, ${cy.toFixed(0)}px, 0)`;
   }
 }
 
@@ -6764,7 +6889,7 @@ function clearThreatPool() {
   threatNodePool.clear();
 }
 function renderThreatIndicators() {
-  const layer = document.getElementById('threatLayer');
+  const layer = cachedThreatLayer || (cachedThreatLayer = document.getElementById('threatLayer'));
   if (!layer) return;
   if (currentScene !== 'battle' || camZoomMode === 'overview') {
     threatNodePool.forEach(el => { if (el.style.display !== 'none') el.style.display = 'none'; });
