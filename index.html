@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.7 — 暗黑水墨・防死鎖安全網與韋編三絕重製版</title>
+<title>《論語戰棋》v1.12 — 暗黑水墨・吾與點也回氣與素材掉落修正版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -223,7 +223,7 @@
 
   /* ==================== 場景 2：孔門營地 & 場景 2.5：列國市集 ==================== */
   .camp-wrap, .shop-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
-  .camp-mode-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .camp-mode-bar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
   .camp-pane { display: none; flex-direction: column; gap: 8px; }
   .camp-pane.active { display: flex; }
 
@@ -1579,14 +1579,257 @@
     gap: 6px;
   }
 
+
+  /* ==================== v1.8 天道之塔 20 層與萬世師表稱號 ==================== */
+  .title-seal-badge {
+    display: none;
+    background: linear-gradient(135deg, #9e2a24, #631612);
+    border: 1px solid #ecd29b;
+    color: #fff3d6;
+    font-family: var(--font-serif);
+    font-size: 0.62rem;
+    font-weight: 900;
+    padding: 1px 5px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    margin-left: 4px;
+    vertical-align: middle;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  }
+  .title-seal-badge.show { display: inline-block; }
+
+  .tower-wrap {
+    flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px;
+  }
+  .tower-banner {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(212, 175, 106, 0.16) 0%, transparent 65%),
+      linear-gradient(180deg, #1d1a15 0%, #101012 100%);
+    border: 1.5px solid #8c6d3b;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .tower-realm-tabs {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: var(--panel-dark); padding: 4px; border-radius: 6px; border: 1px solid #3a352c;
+  }
+  .tower-realm-btn {
+    background: transparent; border: 1px solid transparent; color: var(--muted);
+    border-radius: 4px; padding: 6px 2px; font-family: var(--font-serif);
+    font-size: 0.72rem; font-weight: 900; cursor: pointer;
+  }
+  .tower-realm-btn.active {
+    background: linear-gradient(180deg, #8a241f 0%, #631714 100%);
+    border-color: #c95d56; color: #fdf5eb;
+  }
+  .tower-milestone-row {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+  }
+  .tower-ms-pill {
+    background: #131416; border: 1px solid #3c372f; border-radius: 4px;
+    padding: 4px 3px; text-align: center; font-size: 0.64rem; color: #9a9284; line-height: 1.25;
+  }
+  .tower-ms-pill.done {
+    background: #172b1f; border-color: #5e9c76; color: #b5e6c8;
+  }
+  .tower-floor-card {
+    background: linear-gradient(180deg, #1a1918 0%, #111112 100%);
+    border: 1.5px solid #3d362b; border-radius: 8px; padding: 10px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .tower-floor-card.cleared { border-color: #4c8260; background: linear-gradient(180deg, #132119 0%, #0d1510 100%); }
+  .tower-floor-card.boss-floor { border-color: #9e6b30; }
+  .tower-floor-card.locked { opacity: 0.52; }
+  .affix-chip-list { display: flex; flex-direction: column; gap: 4px; }
+  .affix-chip {
+    background: #131416; border: 1px solid #4a4031; border-left: 3px solid var(--gold);
+    border-radius: 4px; padding: 4px 7px; font-size: 0.72rem; color: #e6dfd1; line-height: 1.38;
+  }
+  .affix-chip strong { color: var(--gold-bright); font-family: var(--font-serif); }
+  .duty-row {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    background: #121d1c; border: 1px solid #2e5954; border-radius: 5px;
+    padding: 5px 7px; font-size: 0.7rem; color: #b5ded8;
+  }
+  .duty-unit-tag {
+    display: inline-flex; align-items: center; gap: 3px;
+    background: #1b3633; border: 1px solid #6ea8a1; color: #e4f7f5;
+    padding: 1px 6px; border-radius: 4px; font-family: var(--font-serif); font-weight: 800; font-size: 0.7rem;
+  }
+  .syn-tag.tower-btn {
+    display: none; cursor: pointer;
+    background: #331929; border: 1px solid #c792d4; color: #f2d9f7;
+  }
+  .syn-tag.tower-btn.on { display: inline-flex; }
+
+
+  /* ==================== v1.9 器作鍛造與專屬兵器階層標籤 ==================== */
+  .tier-badge {
+    font-size: 0.62rem; font-weight: 900; padding: 1px 6px; border-radius: 3px;
+    font-family: var(--font-serif); letter-spacing: 0.5px; display: inline-flex; align-items: center;
+  }
+  .tier-badge.base { background: #1c1d1f; border: 1px solid #59554d; color: #cfc7b8; }
+  .tier-badge.exclusive { background: #2e2010; border: 1px solid #d4af6a; color: #ffe7b3; }
+  .tier-badge.transcend { background: linear-gradient(135deg, #4b1526, #2b0c18); border: 1px solid #f0a45d; color: #fff2d6; }
+  .forge-card {
+    background: linear-gradient(180deg, #1b1a18 0%, #121213 100%);
+    border: 1.5px solid #453c2e; border-radius: 7px; padding: 10px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .forge-card.crafted { border-color: #4c8260; background: linear-gradient(180deg, #132119 0%, #0d1510 100%); }
+  .forge-card.ready { border-color: var(--gold); box-shadow: 0 0 12px rgba(212, 175, 106, 0.2); }
+  .forge-recipe-row {
+    display: flex; flex-wrap: wrap; gap: 5px; font-size: 0.7rem;
+  }
+  .forge-ing {
+    background: #121314; border: 1px solid #3c372f; border-radius: 4px;
+    padding: 2px 6px; color: #bdb5a6;
+  }
+  .forge-ing.ok { border-color: #4c8260; color: #9ed4b2; background: #102116; }
+  .forge-ing.miss { border-color: #7a2621; color: #e89c97; background: #24100f; }
+
+
+  /* ==================== v1.11 嚴禁社群內建瀏覽器（LINE / FB / IG / Threads） ==================== */
+  .iab-blocker {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 16px;
+    background:
+      radial-gradient(ellipse at 50% 15%, rgba(158, 42, 36, 0.22) 0%, transparent 58%),
+      radial-gradient(circle at 50% 85%, rgba(212, 175, 106, 0.10) 0%, transparent 60%),
+      #08090a;
+    overflow-y: auto;
+  }
+  .iab-blocker.show { display: flex; }
+  .iab-card {
+    width: 100%;
+    max-width: 400px;
+    background: linear-gradient(180deg, #1d1b18 0%, #111112 100%);
+    border: 2px solid var(--gold);
+    border-radius: 10px;
+    padding: 20px 16px 18px;
+    box-shadow: 0 24px 56px rgba(0, 0, 0, 0.94), inset 0 0 28px rgba(0, 0, 0, 0.7);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .iab-seal {
+    width: 52px;
+    height: 52px;
+    margin: 0 auto;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #a82822, #6b1511);
+    border: 2px double #ecd29b;
+    color: #fff4df;
+    font-family: var(--font-serif);
+    font-size: 1.55rem;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: rotate(-4deg);
+    box-shadow: 0 6px 18px rgba(168, 40, 34, 0.45);
+  }
+  .iab-title {
+    margin: 0;
+    font-family: var(--font-serif);
+    font-size: 1.18rem;
+    font-weight: 900;
+    color: var(--gold-bright);
+    letter-spacing: 2px;
+  }
+  .iab-app-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    padding: 3px 10px;
+    border-radius: 4px;
+    background: #2c100f;
+    border: 1px solid #a8322c;
+    color: #f5b4af;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+  .iab-desc {
+    font-size: 0.8rem;
+    color: #d6cebf;
+    line-height: 1.6;
+    margin: 0;
+  }
+  .iab-guide-box {
+    background: #101113;
+    border: 1px solid #4a4031;
+    border-left: 3px solid var(--gold);
+    border-radius: 6px;
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 0.78rem;
+    color: #eae3d5;
+    line-height: 1.65;
+  }
+  .iab-guide-box strong { color: var(--gold-bright); }
+  .iab-url-box {
+    background: #0a0b0c;
+    border: 1px dashed #594c38;
+    border-radius: 5px;
+    padding: 7px 9px;
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: #8ec9c2;
+    word-break: break-all;
+    user-select: text;
+    -webkit-user-select: text;
+    text-align: left;
+  }
+  .iab-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 2px;
+  }
+  .iab-copy-toast {
+    font-size: 0.76rem;
+    font-weight: 800;
+    color: #79c997;
+    min-height: 18px;
+  }
+
 </style>
 </head>
 <body>
 
+<!-- v1.11 嚴禁社群內建瀏覽器（LINE / Facebook / Instagram / Threads）阻擋層 -->
+<div class="iab-blocker" id="iabBlocker" role="dialog" aria-modal="true">
+  <div class="iab-card">
+    <div class="iab-seal">禁</div>
+    <h2 class="iab-title">請使用系統瀏覽器開啟</h2>
+    <div class="iab-app-badge" id="iabAppBadge">偵測到：社群內建瀏覽器</div>
+    <p class="iab-desc">
+      《論語戰棋・墨韻》為全螢幕戰棋並採用本地存檔。<br>
+      為避免<strong>進度存檔遺失</strong>與<strong>觸控排版異常</strong>，本遊戲嚴禁於 LINE、Facebook、Instagram、Threads（脆）內建瀏覽器直接遊玩。
+    </p>
+    <div class="iab-guide-box" id="iabGuideBox"></div>
+    <div class="iab-actions">
+      <button class="btn primary" id="btnIabExternal" style="display:none; width:100%;" onclick="tryOpenExternalBrowser()">🚀 嘗試喚醒系統瀏覽器</button>
+      <button class="btn gold" style="width:100%;" onclick="copyGameUrlForExternal()">📋 一鍵複製遊戲網址</button>
+    </div>
+    <div class="iab-copy-toast" id="iabCopyToast"></div>
+    <div class="iab-url-box" id="iabUrlBox"></div>
+  </div>
+</div>
+
+
 <div class="mobile-shell">
   <!-- 頂部共用狀態列 -->
   <div class="top-header">
-    <div class="brand-title">論語戰棋・墨韻</div>
+    <div class="brand-title">論語戰棋・墨韻<span class="title-seal-badge" id="grandTitleSeal">萬世師表</span></div>
     <div class="res-pills">
       <span class="pill gold" id="navGold">1000兩</span>
       <span class="pill" id="navSuxiu">束脩:2</span>
@@ -1601,6 +1844,7 @@
       <div class="map-frame">
         <div class="map-watermark">春秋列國輿圖</div>
         <div class="map-float-tools">
+          <button class="btn sm" id="btnOpenTower" onclick="openTowerEntry()">🗼 天道之塔</button>
           <button class="btn sm gold" onclick="openGuideModal()">📖 兵法手冊</button>
         </div>
         <svg class="china-svg" id="chinaMapSvg" viewBox="0 0 420 440" xmlns="http://www.w3.org/2000/svg">
@@ -1667,8 +1911,9 @@
     <div class="camp-wrap">
       <!-- 頂部主分頁：弟子養成 vs 束脩羈絆 -->
       <div class="camp-mode-bar">
-        <button class="btn sm active" id="campModeBtn_char" onclick="switchCampMode('char')">👥 弟子養成與編制</button>
-        <button class="btn sm" id="campModeBtn_bond" onclick="switchCampMode('bond')">🤝 束脩羈絆（合體奧義）</button>
+        <button class="btn sm active" id="campModeBtn_char" onclick="switchCampMode('char')">👥 弟子養成</button>
+        <button class="btn sm" id="campModeBtn_forge" onclick="switchCampMode('forge')">🔨 器作鍛造</button>
+        <button class="btn sm" id="campModeBtn_bond" onclick="switchCampMode('bond')">🤝 束脩羈絆</button>
       </div>
 
       <!-- 模式 A：弟子養成（橫向頭像列 + 單一弟子聚焦儀表板） -->
@@ -1721,6 +1966,16 @@
         </div>
       </div>
 
+
+      <!-- 模式 F：器作鍛造（15把武將專屬兵器） -->
+      <div class="camp-pane" id="campMode_forge">
+        <div style="font-size:0.73rem; color:#bdb5a6; line-height:1.45;">
+          收集各城池關卡掉落的<strong>專屬鍛造素材</strong>，搭配【基礎兵器胚體】＋ 300 兩即可鍛造改寫技能機制的<strong>專屬兵器</strong>。<br>
+          <span style="color:#ecd29b;">★ 支援「一鍵連買帶鍛」：若尚未買胚體，點按鈕將自動以 180 兩購入胚體並直接鍛造！</span>
+        </div>
+        <div id="campForgeList" style="display:flex; flex-direction:column; gap:7px;"></div>
+      </div>
+
       <!-- 模式 B：束脩羈絆 -->
       <div class="camp-pane" id="campMode_bond">
         <div style="font-size:0.74rem; color:#9a9284;">贈送束脩達 Lv.2 即正式解鎖戰鬥中的《論語》合體奧義；束脩可於【列國市集】購買。</div>
@@ -1739,6 +1994,35 @@
     </div>
   </div>
 
+
+  <!-- ==================== 場景 2.8：天道之塔（20 層終局爬塔） ==================== -->
+  <div class="scene" id="sceneTower">
+    <div class="tower-wrap">
+      <div class="tower-banner">
+        <div class="row-between">
+          <div>
+            <div style="font-family:var(--font-serif); font-size:1.05rem; font-weight:900; color:var(--gold-bright); letter-spacing:2px;">🗼 天道之塔・二十重試煉</div>
+            <div style="font-size:0.72rem; color:#bdb5a6;" id="towerProgressText">目前進度：0 / 20 層</div>
+          </div>
+          <div style="display:flex; gap:5px;">
+            <button class="btn sm gold" onclick="switchScene('camp')">🏕 營地換將</button>
+            <button class="btn sm" onclick="switchScene('map')">↩ 輿圖</button>
+          </div>
+        </div>
+        <div class="tower-milestone-row" id="towerMilestoneRow"></div>
+      </div>
+
+      <div class="tower-realm-tabs">
+        <button class="tower-realm-btn active" id="towerRealm_0" onclick="switchTowerRealm(0)">而立 1-5</button>
+        <button class="tower-realm-btn" id="towerRealm_1" onclick="switchTowerRealm(1)">不惑 6-10</button>
+        <button class="tower-realm-btn" id="towerRealm_2" onclick="switchTowerRealm(2)">知命 11-15</button>
+        <button class="tower-realm-btn" id="towerRealm_3" onclick="switchTowerRealm(3)">從心 16-20</button>
+      </div>
+
+      <div id="towerFloorList" style="display:flex; flex-direction:column; gap:8px;"></div>
+    </div>
+  </div>
+
   <!-- ==================== 場景 3：手機戰棋戰鬥 (v0.4 三層全屏沉浸版) ==================== -->
   <div class="scene" id="sceneBattle">
     <div class="battle-wrap">
@@ -1752,6 +2036,7 @@
               <span class="syn-tag" id="synEarthSky">地天泰</span>
               <span class="syn-tag" id="synXinzhai">心齋</span>
               <span class="syn-tag" id="comboHintTag">太極就緒</span>
+              <button class="syn-tag tower-btn" id="synTowerAffix" onclick="showTowerAffixDialog()">🗼天命</button>
             </div>
           </div>
           <div class="hex-desc-mini" id="hexDesc">天行健：攻擊+25%、暴擊+30%</div>
@@ -1795,9 +2080,10 @@
           <div class="overlay" id="endOverlay">
             <h2 id="endTitle">大獲全勝！</h2>
             <p id="endSubtitle"></p>
-            <div style="display:flex; gap:8px;">
-              <button class="btn primary" onclick="finishBattleAndReturn()">返回春秋輿圖</button>
-              <button class="btn" onclick="startSelectedStage()">重打本關</button>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;" id="endOverlayActions">
+              <button class="btn primary" id="btnEndReturn" onclick="finishBattleAndReturn()">返回春秋輿圖</button>
+              <button class="btn gold" id="btnEndNextTower" style="display:none;" onclick="startNextTowerFloor()">⚔ 挑戰下一層</button>
+              <button class="btn" id="btnEndRetry" onclick="retryActiveBattle()">重打本關</button>
             </div>
           </div>
         </div>
@@ -1934,7 +2220,7 @@
       </div>
       <div class="guide-block">
         <div class="g-head">二、行動點 (AP) 與浩然氣</div>
-        • 每位武將每回合擁有 <strong>2 點 AP</strong>（移動耗 1、出招耗 1）；若【待機】調息則立即回復 +20 浩然氣。<br>
+        • <strong>行動與調息二選一</strong>：移動後可選擇「出招」或「待機調息 (+20氣)」；若本回合<strong>未移動直接【原地調息】</strong>，回氣加倍為 <strong>+40 浩然氣</strong>！本回合已出招後即不可再調息。<br>
         • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
         • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
       </div>
@@ -2057,36 +2343,208 @@ const ANIM_DEFS = {
 };
 
 const SLOT_LABELS = { weapon: '兵器', ritual: '禮器', book: '典籍' };
+const DATA_MATERIALS = {
+  mat_kuang:    { id: 'mat_kuang',    name: '匡城金契',   stageId: 'lu_kuang',      stageName: '魯・匡城' },
+  mat_wei:      { id: 'mat_wei',      name: '晝寢沉香木', stageId: 'wei_nanzi',     stageName: '衛・帝丘' },
+  mat_song:     { id: 'mat_song',     name: '伐樹玄鐵',   stageId: 'song_huan',     stageName: '宋・商丘' },
+  mat_wucheng:  { id: 'mat_wucheng',  name: '武城焦尾弦', stageId: 'lu_wucheng',    stageName: '魯・武城' },
+  mat_xihe:     { id: 'mat_xihe',     name: '西河竹箋',   stageId: 'wei_xihe',      stageName: '衛西・西河' },
+  mat_chencai:  { id: 'mat_chencai',  name: '陳蔡焦木簞', stageId: 'chencai',       stageName: '陳蔡荒野' },
+  mat_chu:      { id: 'mat_chu',      name: '南牖寒玉',   stageId: 'chu_boss',      stageName: '楚・葉邑' },
+  mat_jiagu:    { id: 'mat_jiagu',    name: '萊夷玄銅',   stageId: 'qi_jiagu',      stageName: '齊魯・夾谷' },
+  mat_sandu:    { id: 'mat_sandu',    name: '三都古玉',   stageId: 'lu_sandu',      stageName: '魯・墮三都' },
+  mat_huolin:   { id: 'mat_huolin',   name: '西狩麟角',   stageId: 'taishan_huolin',stageName: '泰山・獲麟' },
+  mat_xingtan:  { id: 'mat_xingtan',  name: '蘆花寒絮',   stageId: 'ex_xingtan',    stageName: '曲阜・杏壇' },
+  mat_weimu:    { id: 'mat_weimu',    name: '衛宮明珠',   stageId: 'ex_weimu',      stageName: '衛宮・帷幕' },
+  mat_taishan:  { id: 'mat_taishan',  name: '白額虎骨',   stageId: 'ex_taishan',    stageName: '泰山之側' },
+  mat_feiyi:    { id: 'mat_feiyi',    name: '顓臾攻城木', stageId: 'ex_feiyi',      stageName: '魯・費邑' },
+  mat_agu:      { id: 'mat_agu',      name: '清流玉佩',   stageId: 'ex_agu',        stageName: '魯南・阿谷' }
+};
+
 const DATA_EQUIPS = {
+  // ---- 一階・基礎兵器胚體 (4件，市集 180 兩無限購，鍛造專武用) ----
+  base_sword: {
+    id: 'base_sword', slot: 'weapon', tier: 'base', name: '青銅長劍', atkBonus: 5,
+    shortDesc: '【基礎胚體】攻擊 +5（可鍛造統帥／近戰專屬兵器）',
+    fullDesc: '【一階・基礎兵器胚體】攻擊力 +5。可於【孔門營地 → 器作鍛造】搭配關卡專屬素材合成二階專屬神兵。',
+    sourceType: 'shop', price: 180, sourceLabel: '列國市集 180 兩購買'
+  },
+  base_halberd: {
+    id: 'base_halberd', slot: 'weapon', tier: 'base', name: '玄鐵長戟', atkBonus: 6,
+    shortDesc: '【基礎胚體】攻擊 +6（可鍛造先鋒／重裝專屬兵器）',
+    fullDesc: '【一階・基礎兵器胚體】攻擊力 +6。可於【孔門營地 → 器作鍛造】搭配關卡專屬素材合成二階專屬神兵。',
+    sourceType: 'shop', price: 180, sourceLabel: '列國市集 180 兩購買'
+  },
+  base_slip: {
+    id: 'base_slip', slot: 'weapon', tier: 'base', name: '素面竹簡', atkBonus: 4, startQiBonus: 10,
+    shortDesc: '【基礎胚體】攻擊 +4、開局氣 +10（法師／輔助胚體）',
+    fullDesc: '【一階・基礎兵器胚體】攻擊力 +4、開局浩然氣 +10。可於【孔門營地 → 器作鍛造】搭配關卡素材合成二階專屬神兵。',
+    sourceType: 'shop', price: 180, sourceLabel: '列國市集 180 兩購買'
+  },
+  base_bow: {
+    id: 'base_bow', slot: 'weapon', tier: 'base', name: '柘木長弓', atkBonus: 4, critBonus: 0.08,
+    shortDesc: '【基礎胚體】攻擊 +4、暴擊 +8%（遠程／暗殺胚體）',
+    fullDesc: '【一階・基礎兵器胚體】攻擊力 +4、暴擊率 +8%。可於【孔門營地 → 器作鍛造】搭配關卡素材合成二階專屬神兵。',
+    sourceType: 'shop', price: 180, sourceLabel: '列國市集 180 兩購買'
+  },
+
+  // ---- 通用戰術神兵與禮器／典籍 ----
   rooster_halberd: {
-    id: 'rooster_halberd', slot: 'weapon', name: '雄雞冠戟',
-    shortDesc: '子路普攻貫穿後對周圍1格敵軍橫掃(55%攻)',
-    fullDesc: '【規則改寫・兵器】裝備者施展貫穿型普攻（如子路長戟突刺）穿過敵人後，對落點周圍 1 格所有敵軍造成 55% 攻擊力的橫掃傷害。',
+    id: 'rooster_halberd', slot: 'weapon', tier: 'base', name: '雄雞冠戟', atkBonus: 8,
+    shortDesc: '攻+8｜子路普攻貫穿後對周圍1格敵軍橫掃(55%攻)',
+    fullDesc: '【通用戰術兵器】攻擊 +8。裝備者施展貫穿型普攻穿過敵人後，對落點周圍 1 格所有敵軍造成 55% 攻擊力的橫掃傷害。',
     sourceType: 'shop', price: 450, sourceLabel: '列國市集 450 兩購買'
   },
   bamboo_slip: {
-    id: 'bamboo_slip', slot: 'weapon', name: '陋巷竹簡',
-    shortDesc: '普攻命中時擴散破防(-30%防,2回合)至周圍1格',
-    fullDesc: '【規則改寫・兵器】普攻命中目標時，對目標及周圍 1 格內所有敵軍附加「破防」狀態（防禦 -30%，持續 2 回合）。',
+    id: 'bamboo_slip', slot: 'weapon', tier: 'base', name: '陋巷竹簡', atkBonus: 7,
+    shortDesc: '攻+7｜普攻命中時擴散破防(-30%防,2回合)至周圍1格',
+    fullDesc: '【通用戰術兵器】攻擊 +7。普攻命中目標時，對目標及周圍 1 格內所有敵軍附加「破防」狀態（防禦 -30%，持續 2 回合）。',
     sourceType: 'shop', price: 400, sourceLabel: '列國市集 400 兩購買'
   },
   zhou_jade: {
-    id: 'zhou_jade', slot: 'ritual', name: '周公玉圭',
+    id: 'zhou_jade', slot: 'ritual', tier: 'base', name: '周公玉圭',
     shortDesc: '與孔子相鄰時全屬性+15%且免疫控制',
     fullDesc: '【規則改寫・禮器】當裝備者與【孔子】相鄰（距離 1 格）時，攻擊與防禦即時 +15%，並免疫暈眩與睡眠控制效果。',
     sourceType: 'shop', price: 500, sourceLabel: '列國市集 500 兩購買'
   },
   qian_zaodu: {
-    id: 'qian_zaodu', slot: 'book', name: '《周易·乾鑿度》',
+    id: 'qian_zaodu', slot: 'book', tier: 'base', name: '《周易·乾鑿度》',
     shortDesc: '豁免坤卦移動-1與坎卦積水額外消耗',
     fullDesc: '【規則改寫・典籍】無視「坤卦」全場移動力 -1 的減速懲罰，且行經「坎卦」積水地形時移動消耗仍維持 1 點。',
     sourceType: 'stage', stageId: 'wei_nanzi', sourceLabel: '首通城池【衛・帝丘】獲得'
   },
   lianshan: {
-    id: 'lianshan', slot: 'book', name: '《連山易》',
+    id: 'lianshan', slot: 'book', tier: 'base', name: '《連山易》',
     shortDesc: '陰陽轉為「陽/陰雙全」，任意湊太極合擊',
     fullDesc: '【規則改寫・典籍】改寫裝備者的陰陽屬性為「陽/陰雙全」，讓純陰輔助（如顏回）也能與任意隊友互相觸發【太極合擊】。',
     sourceType: 'stage', stageId: 'song_huan', sourceLabel: '首通城池【宋・商丘】獲得'
+  },
+
+  // ---- 二階・15 位武將專屬兵器（基礎胚體 + 關卡素材 + 300兩鍛造） ----
+  ex_kong: {
+    id: 'ex_kong', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_kong', name: '承影儒劍', atkBonus: 15, critBonus: 0.08,
+    forgeRecipe: { baseId: 'base_sword', matId: 'mat_huolin', gold: 300 },
+    shortDesc: '【孔子專屬】攻+15 暴+8%｜普攻同時破防+沉默；韋編三絕變3次',
+    fullDesc: '【孔子專屬神兵】攻擊 +15、暴擊 +8%。普攻【六藝兼通】對任意敵軍同時附加破防與沉默；每場【韋編三絕】可用次數 +1（達 3 次）。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（青銅長劍＋西狩麟角）'
+  },
+  ex_lu: {
+    id: 'ex_lu', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_lu', name: '正冠長纓戟', atkBonus: 16,
+    forgeRecipe: { baseId: 'base_halberd', matId: 'mat_jiagu', gold: 300 },
+    shortDesc: '【子路專屬】攻+16｜貫穿普攻必暴；結纓而死門檻放寬至50%血',
+    fullDesc: '【子路專屬神兵】攻擊 +16。普攻【長纓突刺】必定暴擊；大絕【結纓而死】發動門檻由 HP<30% 放寬至 HP<50%！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（玄鐵長戟＋萊夷玄銅）'
+  },
+  ex_hui: {
+    id: 'ex_hui', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_hui', name: '簞瓢靈杖', atkBonus: 12, startQiBonus: 15,
+    forgeRecipe: { baseId: 'base_slip', matId: 'mat_chencai', gold: 300 },
+    shortDesc: '【顏回專屬】攻+12 氣+15｜一簞食補量+35%且淨化；開局帶抵死盾',
+    fullDesc: '【顏回專屬神兵】攻擊 +12、開局氣 +15。絕招【一簞食，一瓢飲】治療量 +35% 並清除目標負面狀態；開局自帶 1 次「抵擋致命傷」護盾。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（素面竹簡＋陳蔡焦木簞）'
+  },
+  ex_gong: {
+    id: 'ex_gong', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_gong', name: '端木金算盤', atkBonus: 13, critBonus: 0.10,
+    forgeRecipe: { baseId: 'base_slip', matId: 'mat_kuang', gold: 300 },
+    shortDesc: '【子貢專屬】攻+13 暴+10%｜普攻必得+150兩；千金散盡門檻放寬≤55%',
+    fullDesc: '【子貢專屬神兵】攻擊 +13、暴擊 +10%。普攻【億則屢中】100% 榨取 +150 兩軍資金；絕招【千金散盡】倒戈血線放寬至 ≤55%！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（素面竹簡＋匡城金契）'
+  },
+  ex_wo: {
+    id: 'ex_wo', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_wo', name: '朽木驚堂扇', atkBonus: 13, startQiBonus: 10,
+    forgeRecipe: { baseId: 'base_slip', matId: 'mat_wei', gold: 300 },
+    shortDesc: '【宰我專屬】攻+13 氣+10｜普攻70%混亂；朽木睡眠擴至周圍1格+破防',
+    fullDesc: '【宰我專屬神兵】攻擊 +13、開局氣 +10。普攻混亂機率提升至 70%；絕招【朽木不可雕也】改為範圍睡眠目標及周圍 1 格敵軍並附加破防！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（素面竹簡＋晝寢沉香木）'
+  },
+  ex_min: {
+    id: 'ex_min', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_min', name: '順母玄鐵盾', atkBonus: 12,
+    forgeRecipe: { baseId: 'base_halberd', matId: 'mat_xingtan', gold: 300 },
+    shortDesc: '【閔子騫專屬】攻+12｜分傷轉氣翻倍；蘆衣順母防禦不再歸零',
+    fullDesc: '【閔子騫專屬神兵】攻擊 +12。共患難分傷轉化的浩然氣翻倍；大絕【蘆衣順母】凍結周圍 3 格敵軍時，自身防禦不再歸零！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（玄鐵長戟＋蘆花寒絮）'
+  },
+  ex_boniu: {
+    id: 'ex_boniu', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_boniu', name: '問疾玄銀針', atkBonus: 14,
+    forgeRecipe: { baseId: 'base_sword', matId: 'mat_chu', gold: 300 },
+    shortDesc: '【冉伯牛專屬】攻+14｜吸狀態每個額外+15氣；天喪予範圍擴至4格',
+    fullDesc: '【冉伯牛專屬神兵】攻擊 +14。絕招每吸收 1 個友軍負面狀態額外回復 +15 氣；大絕【天喪予】厄運引爆反彈範圍擴大至 4 格！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（青銅長劍＋南牖寒玉）'
+  },
+  ex_zhonggong: {
+    id: 'ex_zhonggong', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_zhonggong', name: '南面玄鐵重劍', atkBonus: 15,
+    forgeRecipe: { baseId: 'base_halberd', matId: 'mat_song', gold: 300 },
+    shortDesc: '【仲弓專屬】攻+15｜未移普攻+50%傷；宗廟之器每回合回血15%',
+    fullDesc: '【仲弓專屬神兵】攻擊 +15。普攻【南面而立】未移動增傷由 +30% 提升至 +50%；處於【宗廟之器】狀態時每回合開始自動回復 15% HP。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（玄鐵長戟＋伐樹玄鐵）'
+  },
+  ex_ranyou: {
+    id: 'ex_ranyou', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_ranyou', name: '足民連弩戟', atkBonus: 14,
+    forgeRecipe: { baseId: 'base_halberd', matId: 'mat_feiyi', gold: 300 },
+    shortDesc: '【冉有專屬】攻+14｜箭塔射程+1且傷+30%；打帶跑後得25護盾',
+    fullDesc: '【冉有專屬神兵】攻擊 +14。所建【瞭望箭塔】射程提升至 4 格且攻擊 +30%；普攻【策馬奔襲】觸發打帶跑時自身立即獲得 25 點護盾。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（玄鐵長戟＋顓臾攻城木）'
+  },
+  ex_ziyou: {
+    id: 'ex_ziyou', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_ziyou', name: '牛刀雅樂琴', atkBonus: 13, startQiBonus: 10,
+    forgeRecipe: { baseId: 'base_bow', matId: 'mat_wucheng', gold: 300 },
+    shortDesc: '【子游專屬】攻+13 氣+10｜普攻濺射改為2格全體補血；武城弦歌+15氣',
+    fullDesc: '【子游專屬神兵】攻擊 +13、開局氣 +10。普攻【弦歌之聲】改為替目標周圍 2 格內「全體友軍」補血；【武城弦歌】額外全體回復 +15 氣。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（柘木長弓＋武城焦尾弦）'
+  },
+  ex_zixia: {
+    id: 'ex_zixia', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_zixia', name: '穿楊考據弓', atkBonus: 16, critBonus: 0.10,
+    forgeRecipe: { baseId: 'base_bow', matId: 'mat_xihe', gold: 300 },
+    shortDesc: '【子夏專屬】攻+16 暴+10%｜射程永久+1(達5格)；打易傷目標必暴',
+    fullDesc: '【子夏專屬神兵】攻擊 +16、暴擊 +10%。普攻射程永久 +1（高達 5 格超遠狙擊）；攻擊帶有【易傷】狀態的敵軍必定暴擊！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（柘木長弓＋西河竹箋）'
+  },
+  ex_nanzi: {
+    id: 'ex_nanzi', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_nanzi', name: '環佩飛刃', atkBonus: 15, critBonus: 0.10,
+    forgeRecipe: { baseId: 'base_bow', matId: 'mat_weimu', gold: 300 },
+    shortDesc: '【南子專屬】攻+15 暴+10%｜帷幕隱身延至2回合；隱身出手傷+40%',
+    fullDesc: '【南子專屬神兵】攻擊 +15、暴擊 +10%。絕招【帷幕之眼】隱身時間延長至 2 回合；隱身狀態下發動任何攻擊傷害提升 +40%！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（柘木長弓＋衛宮明珠）'
+  },
+  ex_taishan: {
+    id: 'ex_taishan', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_taishan', name: '泣血咒杖', atkBonus: 14,
+    forgeRecipe: { baseId: 'base_slip', matId: 'mat_taishan', gold: 300 },
+    shortDesc: '【泰山婦人專屬】攻+14｜苛政猛虎撕咬升至45真傷；咒殺敵軍+25氣',
+    fullDesc: '【泰山婦人專屬神兵】攻擊 +14。絕招【苛政猛於虎】的猛虎撕咬真傷提升至 45 點；若有敵軍死於苛政撕咬，泰山婦人立即回復 +25 氣。',
+    sourceType: 'forge', sourceLabel: '器作鍛造（素面竹簡＋白額虎骨）'
+  },
+  ex_agu: {
+    id: 'ex_agu', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_agu', name: '浣紗青鋒', atkBonus: 15,
+    forgeRecipe: { baseId: 'base_sword', matId: 'mat_agu', gold: 300 },
+    shortDesc: '【阿谷處女專屬】攻+15｜常駐閃避+20%；贈佩試心機鋒反擊160%傷',
+    fullDesc: '【阿谷處女專屬神兵】攻擊 +15。常駐獲得 +20% 閃避率；【贈佩試心】閃避觸發的機鋒反擊倍率由 120% 強化至 160%！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（青銅長劍＋清流玉佩）'
+  },
+  ex_yanzhengzai: {
+    id: 'ex_yanzhengzai', slot: 'weapon', tier: 'exclusive', exclusiveFor: 'p_yanzhengzai', name: '俎豆靈燈', atkBonus: 12, startQiBonus: 15,
+    forgeRecipe: { baseId: 'base_slip', matId: 'mat_sandu', gold: 300 },
+    shortDesc: '【顏徵在專屬】攻+12 氣+15｜慈母護盾升至95點；復活友軍滿血滿氣',
+    fullDesc: '【顏徵在專屬神兵】攻擊 +12、開局氣 +15。絕招【慈母教誨】護盾提升至 95 點；大絕【聖母庇佑】復活陣亡友軍直接 100% 滿血滿氣回歸！',
+    sourceType: 'forge', sourceLabel: '器作鍛造（素面竹簡＋三都古玉）'
+  },
+
+  // ---- 三階・天道之塔超越神兵（全員通用・全面凌駕專屬兵器） ----
+  chunqiu_pen: {
+    id: 'chunqiu_pen', slot: 'weapon', tier: 'transcend', name: '春秋筆・真', atkBonus: 24, critBonus: 0.12,
+    shortDesc: '【天道超越】攻+24 暴+12%｜絕招/大絕穿防50%+負面；擊殺+35氣並再動',
+    fullDesc: '【三階・天道超越兵器】全員通用。攻擊 +24、暴擊 +12%。絕招與大絕無視 50% 防禦並追加隨機負面狀態；每回合首次擊殺敵軍時立刻回復 +35 氣並獲得 1 次再動！',
+    sourceType: 'tower', sourceLabel: '首通【天道之塔・第 10 層】獲得'
+  },
+  xingtan_guqin: {
+    id: 'xingtan_guqin', slot: 'ritual', tier: 'transcend', name: '杏壇古琴・真',
+    shortDesc: '【天道超越】每回合開始周圍2格友軍+20氣並回血10%',
+    fullDesc: '【三階・天道超越禮器】全員通用，不佔兵器槽。每逢我方回合開始，自動為裝備者及周圍 2 格內所有友軍回復 20 浩然氣與 10% 最大生命！',
+    sourceType: 'tower', sourceLabel: '首通【天道之塔・第 15 層】獲得'
+  },
+  tai_chu_sword: {
+    id: 'tai_chu_sword', slot: 'weapon', tier: 'transcend', name: '太初・獲麟神劍', atkBonus: 32, critBonus: 0.25,
+    shortDesc: '【天道終極】攻+32 暴+25%｜追擊35%真傷＋陽陰雙全＋1次免死滿氣',
+    fullDesc: '【三階・天道終極兵器】全員通用。攻擊 +32、暴擊 +25%、轉化為「陽/陰雙全」；所有攻擊額外追加 35% 無視防禦真傷；每場戰鬥自帶 1 次「免疫致命傷並瞬間滿氣 100」！',
+    sourceType: 'tower', sourceLabel: '首通【天道之塔・第 20 層】獲得'
   }
 };
 
@@ -2231,7 +2689,7 @@ const TALENTS_OUTER = [
 
 // 全部 7 組跨角色羈絆合體奧義
 const BOND_PAIRS = [
-  { id: 'kong_hui',     name: '孔子 × 顏回',        comboName: '吾與點也', unlockLv: 2, desc: '相鄰滿氣：全軍滿血滿氣淨化＋全場聖光審判真傷' },
+  { id: 'kong_hui',     name: '孔子 × 顏回',        comboName: '吾與點也', unlockLv: 2, desc: '相鄰滿氣：全軍滿血淨化、其餘友軍滿氣＋全場聖光審判真傷' },
   { id: 'kong_lu',      name: '孔子 × 子路',        comboName: '死生有命', unlockLv: 2, desc: '相鄰滿氣：子路跨圖雷霆突貫115傷暈眩＋孔子瞬移' },
   { id: 'gong_wo',      name: '子貢 × 宰我',        comboName: '端木賜問', unlockLv: 2, desc: '夾擊或相鄰滿氣：強制扣目標50%現血＋懷疑人生3回合' },
   { id: 'ziyou_zixia',  name: '子游 × 子夏',        comboName: '文學雙璧', unlockLv: 2, desc: '距離≤3滿氣：天籟聚攏全敵＋萬箭齊發毀滅清場' },
@@ -2244,7 +2702,7 @@ const BOND_PAIRS = [
 const DATA_STAGES = [
   // ---- 主線 7 站 (9×9 硬核戰棋：階級縮放 + 多樣開局卦 + 菁英將領 + 功能兵種) ----
   {
-    id: 'lu_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
+    id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
     enemyScale: 1.0, startHex: 'qian',
     victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
@@ -2261,7 +2719,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_nanzi', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
+    id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
     enemyScale: 1.22, startHex: 'kun',
     victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
@@ -2278,7 +2736,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'song_huan', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
+    id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
     enemyScale: 1.42, startHex: 'li',
     victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
@@ -2296,7 +2754,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
+    id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
     enemyScale: 1.60, startHex: 'xun',
     victoryType: 'annihilate', rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
@@ -2314,7 +2772,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
+    id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
     enemyScale: 1.78, startHex: 'gen',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
@@ -2332,7 +2790,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
+    id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
     enemyScale: 1.95, startHex: 'kan',
     victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
@@ -2350,7 +2808,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chu_boss', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
+    id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     enemyScale: 2.15, startHex: 'li',
     victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_boniu',
@@ -2368,7 +2826,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'qi_jiagu', cityLabel: '齊魯・夾谷', x: 64, y: 306, req: 'chu_boss',
+    id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 64, y: 306, req: 'chu_boss',
     region: '主線第8站・歸魯終章', name: '夾谷會盟・萊夷伏兵',
     enemyScale: 2.35, startHex: 'zhen',
     victoryType: 'annihilate', rewardGold: 1300, rewardExp: 310, firstClearEquip: null, firstClearRecruit: null,
@@ -2389,7 +2847,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_sandu', cityLabel: '魯・墮三都', x: 68, y: 152, req: 'qi_jiagu',
+    id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 68, y: 152, req: 'qi_jiagu',
     region: '主線第9站・歸魯終章', name: '墮三都・三桓圍城',
     enemyScale: 2.55, startHex: 'gen',
     victoryType: 'annihilate', rewardGold: 1500, rewardExp: 350, firstClearEquip: null, firstClearRecruit: null,
@@ -2410,7 +2868,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'taishan_huolin', cityLabel: '泰山・獲麟', x: 242, y: 72, req: 'lu_sandu',
+    id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 242, y: 72, req: 'lu_sandu',
     region: '最終章・泰山之巔', name: '獲麟絕筆（真正最終戰）',
     enemyScale: 2.80, startHex: 'li',
     victoryType: 'annihilate', rewardGold: 2200, rewardExp: 450, firstClearEquip: null, firstClearRecruit: null,
@@ -2432,7 +2890,7 @@ const DATA_STAGES = [
 
   // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 硬核特化試煉) ----
   {
-    id: 'ex_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
+    id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
     enemyScale: 1.50, startHex: 'zhen',
     victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
@@ -2449,7 +2907,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
+    id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
     enemyScale: 1.48, startHex: 'dui',
     victoryType: 'annihilate', rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
@@ -2465,7 +2923,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
+    id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
     enemyScale: 1.65, startHex: 'zhen',
     victoryType: 'annihilate', rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
@@ -2482,7 +2940,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
     enemyScale: 1.85, startHex: 'gen',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
@@ -2499,7 +2957,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
     enemyScale: 1.90, startHex: 'kan',
     victoryType: 'annihilate', rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
@@ -2680,7 +3138,9 @@ function createDefaultSave() {
     version: '0.5.0-full-15-roster',
     gold: 1000,
     items: { yarrow: 3, potion: 3, bento: 2, suxiu: 2 },
-    equipInventory: { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 },
+    equipInventory: Object.fromEntries(Object.keys(DATA_EQUIPS).map(k => [k, 0])),
+    materials: {},
+    tower: { maxCleared: 0, claimedMilestones: [], titleUnlocked: false },
     clearedStages: [],
     seenStories: [],
     selectedStageId: 'lu_kuang',
@@ -2704,6 +3164,21 @@ function loadSaveData() {
         if (!p.equipInventory) p.equipInventory = { rooster_halberd: 0, bamboo_slip: 0, zhou_jade: 0, qian_zaodu: 0, lianshan: 0 };
         if (!p.bonds) p.bonds = {};
         if (!Array.isArray(p.seenStories)) p.seenStories = [];
+        Object.keys(DATA_EQUIPS).forEach(k => { if (p.equipInventory[k] === undefined) p.equipInventory[k] = 0; });
+        if (!p.materials) p.materials = {};
+        // 舊存檔已通關城池若尚未取得該關素材且尚未鍛出對應專武，自動補發 1 份素材
+        (p.clearedStages || []).forEach(sid => {
+          const stObj = DATA_STAGES.find(s => s.id === sid);
+          if (stObj && stObj.dropMaterial) {
+            const matId = stObj.dropMaterial;
+            const exEq = Object.values(DATA_EQUIPS).find(e => e.forgeRecipe && e.forgeRecipe.matId === matId);
+            const alreadyHas = (p.materials[matId] || 0) > 0 || (exEq && (p.equipInventory[exEq.id] || 0) > 0);
+            if (!alreadyHas) p.materials[matId] = 1;
+          }
+        });
+        if (!p.tower) p.tower = { maxCleared: 0, claimedMilestones: [], titleUnlocked: false };
+        if (p.tower.maxCleared >= 20 && (p.equipInventory.tai_chu_sword || 0) <= 0) p.equipInventory.tai_chu_sword = 1;
+        if (!Array.isArray(p.tower.claimedMilestones)) p.tower.claimedMilestones = [];
         BOND_PAIRS.forEach(b => { if (!p.bonds[b.id]) p.bonds[b.id] = 1; });
         return p;
       }
@@ -2761,8 +3236,9 @@ function toggleSound() {
 let currentScene = 'map';
 function switchScene(scene) {
   currentScene = scene;
-  ['map', 'camp', 'shop', 'battle'].forEach(s => {
-    document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1)).classList.toggle('active', s === scene);
+  ['map', 'camp', 'shop', 'tower', 'battle'].forEach(s => {
+    const el = document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1));
+    if (el) el.classList.toggle('active', s === scene);
   });
   const shell = document.querySelector('.mobile-shell');
   if (shell) shell.classList.toggle('in-battle', scene === 'battle');
@@ -2773,12 +3249,21 @@ function switchScene(scene) {
   if (scene === 'map') renderMapScene();
   if (scene === 'camp') renderCampScene();
   if (scene === 'shop') renderShopScene();
+  if (scene === 'tower') renderTowerScene();
   if (scene === 'battle') resizeBoard();
   updateGlobalNav();
 }
 function updateGlobalNav() {
   document.getElementById('navGold').textContent = `${saveData.gold}兩`;
   document.getElementById('navSuxiu').textContent = `束脩:${saveData.items.suxiu}`;
+  const seal = document.getElementById('grandTitleSeal');
+  if (seal) seal.classList.toggle('show', Boolean(saveData.tower && saveData.tower.titleUnlocked));
+  const tBtn = document.getElementById('btnOpenTower');
+  if (tBtn) {
+    const unlocked = isTowerUnlocked();
+    tBtn.className = 'btn sm ' + (unlocked ? 'primary' : '');
+    tBtn.textContent = unlocked ? `🗼 天道之塔 (${saveData.tower?.maxCleared || 0}/20)` : '🔒 天道之塔';
+  }
 }
 function isStageUnlocked(st) { return !st.req || saveData.clearedStages.includes(st.req); }
 
@@ -2869,6 +3354,13 @@ function renderMapScene() {
     const owned = (saveData.equipInventory[sel.firstClearEquip] || 0) > 0;
     dropLine += `<br><span style="color:#ecd29b;">🎁 首通掉落典籍：${eq.name}${owned ? '（已取得）' : '（未取得）'}</span>`;
   }
+  if (sel.dropMaterial && DATA_MATERIALS[sel.dropMaterial]) {
+    const mat = DATA_MATERIALS[sel.dropMaterial];
+    const matCnt = (saveData.materials && saveData.materials[mat.id]) || 0;
+    const exEq = Object.values(DATA_EQUIPS).find(e => e.forgeRecipe && e.forgeRecipe.matId === mat.id);
+    const crafted = exEq && (saveData.equipInventory[exEq.id] || 0) > 0;
+    dropLine += `<br><span style="color:#b5ded8;">🔨 通關素材：<strong>${mat.name}</strong>（合成${exEq ? `【${exEq.name}】` : '專武'}｜${crafted ? '已鍛造' : `持有:${matCnt}`}）</span>`;
+  }
   const startHexObj = DATA_HEXAGRAMS.find(h => h.id === (sel.modifiers.lockHexagram || sel.startHex || 'qian')) || DATA_HEXAGRAMS[0];
   const scalePct = Math.round((sel.enemyScale || 1) * 100);
   document.getElementById('briefMeta').innerHTML =
@@ -2891,6 +3383,26 @@ function switchGuideTab(tab) {
   });
 }
 
+function getEquipStatBonus(equipObj) {
+  let atk = 0, crit = 0, qi = 0;
+  if (!equipObj) return { atk, crit, qi };
+  ['weapon', 'ritual', 'book'].forEach(sl => {
+    const eq = DATA_EQUIPS[equipObj[sl]];
+    if (eq) {
+      if (eq.atkBonus) atk += eq.atkBonus;
+      if (eq.critBonus) crit += eq.critBonus;
+      if (eq.startQiBonus) qi += eq.startQiBonus;
+    }
+  });
+  return { atk, crit, qi };
+}
+function getTierBadgeHtml(eq) {
+  if (!eq) return '';
+  if (eq.tier === 'transcend') return '<span class="tier-badge transcend">天道超越</span>';
+  if (eq.tier === 'exclusive') return '<span class="tier-badge exclusive">專屬神兵</span>';
+  return '<span class="tier-badge base">基礎/通用</span>';
+}
+
 function openCharDetail(uid) {
   const tpl = DATA_UNITS[uid];
   const prog = saveData.roster[uid];
@@ -2898,18 +3410,19 @@ function openCharDetail(uid) {
 
   const lvB = prog.lv - 1;
   const inner = prog.inner || {};
+  const eqB = getEquipStatBonus(prog.equip);
   const hpBonus = lvB * 10 + (inner.li || 0) * 18;
-  const atkBonus = lvB * 3 + (inner.she || 0) * 5;
+  const atkBonus = lvB * 3 + (inner.she || 0) * 5 + eqB.atk;
   const defBonus = lvB * 2 + (inner.shu || 0) * 3;
   const moveBonus = (inner.yu || 0);
-  const startQi = Math.min(100, 50 + (inner.yue || 0) * 15);
-  const critBonus = Math.round((inner.num || 0) * 8);
+  const startQi = Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi);
+  const critBonus = Math.round(((inner.num || 0) * 0.08 + eqB.crit) * 100);
 
   const basicSk = DATA_SKILLS[tpl.basicId];
   const skillSk = tpl.skillId ? DATA_SKILLS[tpl.skillId] : null;
   const ultSk = tpl.ultId ? DATA_SKILLS[tpl.ultId] : null;
   const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
-  const effYY = prog.equip.book === 'lianshan' ? '陽/陰（連山易）' : tpl.yinYang;
+  const effYY = (prog.equip.book === 'lianshan' || prog.equip.weapon === 'tai_chu_sword') ? '陽/陰（神兵雙全）' : tpl.yinYang;
 
   const avWrap = document.getElementById('cdAvatarWrap');
   if (avWrap) avWrap.innerHTML = buildAvatarHtml(uid, 'md', true);
@@ -2977,7 +3490,11 @@ function openEquipDrawer(uid, slot) {
     list.appendChild(unBtn);
   }
 
-  Object.values(DATA_EQUIPS).filter(eq => eq.slot === slot).forEach(eq => {
+  const tierOrd = { transcend: 0, exclusive: 1, base: 2 };
+  Object.values(DATA_EQUIPS)
+    .filter(eq => eq.slot === slot && (!eq.exclusiveFor || eq.exclusiveFor === uid))
+    .sort((a, b) => (tierOrd[a.tier] ?? 2) - (tierOrd[b.tier] ?? 2))
+    .forEach(eq => {
     const ownedCount = saveData.equipInventory[eq.id] || 0;
     const wearers = getEquipWearers(eq.id);
     const isWearing = (currentEqId === eq.id);
@@ -3002,13 +3519,15 @@ function openEquipDrawer(uid, slot) {
       actionBtnHtml = `<button class="btn sm gold" onclick="equipItemTo('${uid}','${slot}','${eq.id}','${otherWearerId}')">從【${otherName}】轉移穿戴</button>`;
     } else if (eq.sourceType === 'shop') {
       actionBtnHtml = `<button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipAndWear('${uid}','${slot}','${eq.id}')">直接購買並穿戴 (${eq.price}兩)</button>`;
+    } else if (eq.sourceType === 'forge') {
+      actionBtnHtml = `<button class="btn sm gold" onclick="closeModal('equipDrawerModal'); switchCampMode('forge');">前往【器作鍛造】 ▸</button>`;
     } else {
-      actionBtnHtml = `<button class="btn sm" disabled>需首通關卡取得</button>`;
+      actionBtnHtml = `<button class="btn sm" disabled>${eq.sourceType === 'tower' ? '需通關天道之塔取得' : '需首通關卡取得'}</button>`;
     }
 
     const wearerTxt = wearers.length ? `穿戴者：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '無人穿戴';
     card.innerHTML = `
-      <div class="row-between"><strong>${eq.name}</strong>${statusBadge}</div>
+      <div class="row-between"><div style="display:flex; align-items:center; gap:5px;"><strong>${eq.name}</strong>${getTierBadgeHtml(eq)}</div>${statusBadge}</div>
       <div style="font-size:0.74rem; color:#e0d8c8; line-height:1.4;">${eq.fullDesc}</div>
       <div class="row-between" style="font-size:0.72rem; color:#9a9284; margin-top:2px;">
         <span>取得方式：<strong style="color:#ecd29b;">${eq.sourceLabel}</strong>${ownedCount > 0 ? `｜${wearerTxt}` : ''}</span>
@@ -3045,7 +3564,7 @@ let campRosterFilter = 'all'; // 'all' | 'deployed'
 
 function switchCampMode(mode) {
   campMode = mode;
-  ['char', 'bond'].forEach(m => {
+  ['char', 'forge', 'bond'].forEach(m => {
     document.getElementById('campModeBtn_' + m).classList.toggle('active', m === mode);
     document.getElementById('campMode_' + m).classList.toggle('active', m === mode);
   });
@@ -3120,17 +3639,18 @@ function renderCampScene() {
   if (tpl && prog) {
     const depIdx = saveData.deployedIds.indexOf(uid), deployed = depIdx >= 0;
     const lvB = prog.lv - 1, inner = prog.inner || {};
+    const eqB = getEquipStatBonus(prog.equip);
     const hpBonus = lvB * 10 + (inner.li || 0) * 18;
-    const atkBonus = lvB * 3 + (inner.she || 0) * 5;
+    const atkBonus = lvB * 3 + (inner.she || 0) * 5 + eqB.atk;
     const defBonus = lvB * 2 + (inner.shu || 0) * 3;
     const moveBonus = (inner.yu || 0);
-    const startQi = Math.min(100, 50 + (inner.yue || 0) * 15);
-    const critBonus = Math.round((inner.num || 0) * 8);
+    const startQi = Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi);
+    const critBonus = Math.round(((inner.num || 0) * 0.08 + eqB.crit) * 100);
     const basicSk = DATA_SKILLS[tpl.basicId];
     const skillSk = tpl.skillId ? DATA_SKILLS[tpl.skillId] : null;
     const ultSk = tpl.ultId ? DATA_SKILLS[tpl.ultId] : null;
     const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
-    const effYY = prog.equip.book === 'lianshan' ? '陽/陰（連山易）' : tpl.yinYang;
+    const effYY = (prog.equip.book === 'lianshan' || prog.equip.weapon === 'tai_chu_sword') ? '陽/陰（神兵雙全）' : tpl.yinYang;
 
     document.getElementById('focusCharHeader').innerHTML = `
       <div class="row-between">
@@ -3209,6 +3729,10 @@ function renderCampScene() {
     });
   }
 
+
+  // 2.5 器作鍛造清單
+  renderForgePane();
+
   // 3. 束脩羈絆
   const bList = document.getElementById('campBondList'); bList.innerHTML = '';
   BOND_PAIRS.forEach(bp => {
@@ -3221,6 +3745,125 @@ function renderCampScene() {
     bList.appendChild(div);
   });
   refreshAllSpriteCanvases();
+}
+
+
+function renderForgePane() {
+  const fList = document.getElementById('campForgeList');
+  if (!fList) return;
+  fList.innerHTML = '';
+  const exclusives = Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'forge');
+  // 排序：可立刻鍛造 > 已持有素材 > 未取得 > 已鍛造
+  exclusives.sort((a, b) => {
+    const score = eq => {
+      if ((saveData.equipInventory[eq.id] || 0) > 0) return 3;
+      const matOk = ((saveData.materials && saveData.materials[eq.forgeRecipe.matId]) || 0) > 0;
+      const recruited = Boolean(saveData.roster[eq.exclusiveFor]);
+      if (matOk && recruited) return 0;
+      if (matOk) return 1;
+      return 2;
+    };
+    return score(a) - score(b);
+  });
+
+  exclusives.forEach(eq => {
+    const rec = eq.forgeRecipe;
+    const baseEq = DATA_EQUIPS[rec.baseId];
+    const mat = DATA_MATERIALS[rec.matId];
+    const ownerTpl = DATA_UNITS[eq.exclusiveFor];
+    const recruited = Boolean(saveData.roster[eq.exclusiveFor]);
+    const crafted = (saveData.equipInventory[eq.id] || 0) > 0;
+    const matCnt = (saveData.materials && saveData.materials[rec.matId]) || 0;
+    const baseOwned = saveData.equipInventory[rec.baseId] || 0;
+    const baseFree = Math.max(0, baseOwned - getEquipWearers(rec.baseId).length);
+
+    const needBuyBase = baseFree <= 0;
+    const totalGoldNeed = rec.gold + (needBuyBase ? baseEq.price : 0);
+    const canForge = !crafted && matCnt > 0 && saveData.gold >= totalGoldNeed;
+
+    const card = document.createElement('div');
+    card.className = 'forge-card' + (crafted ? ' crafted' : (canForge ? ' ready' : ''));
+
+    let btnHtml = '';
+    if (crafted) {
+      const isWearing = recruited && saveData.roster[eq.exclusiveFor].equip.weapon === eq.id;
+      btnHtml = recruited
+        ? (isWearing ? '<span class="pill gold">已裝備中</span>' : `<button class="btn sm primary" onclick="equipItemTo('${eq.exclusiveFor}','weapon','${eq.id}',null)">為【${ownerTpl.name}】穿戴</button>`)
+        : '<span class="pill green">已鍛造入庫</span>';
+    } else if (matCnt <= 0) {
+      btnHtml = `<button class="btn sm" disabled>缺素材（${mat.stageName}）</button>`;
+    } else if (needBuyBase) {
+      btnHtml = `<button class="btn sm gold" ${canForge ? '' : 'disabled'} onclick="forgeExclusiveWeapon('${eq.id}', true)">🔨 連買帶鍛 (${totalGoldNeed}兩)</button>`;
+    } else {
+      btnHtml = `<button class="btn sm primary" ${canForge ? '' : 'disabled'} onclick="forgeExclusiveWeapon('${eq.id}', false)">🔨 鍛造神兵 (${rec.gold}兩)</button>`;
+    }
+
+    card.innerHTML = `
+      <div class="row-between">
+        <div style="display:flex; align-items:center; gap:7px; min-width:0;">
+          ${buildAvatarHtml(eq.exclusiveFor, 'sm', false)}
+          <div style="min-width:0;">
+            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+              <strong style="font-family:var(--font-serif); font-size:0.88rem; color:#fff;">${eq.name}</strong>
+              <span class="tier-badge exclusive">${ownerTpl.name}專屬</span>
+            </div>
+            <div style="font-size:0.7rem; color:#ecd29b;">${eq.shortDesc.replace(/^【[^】]+】/, '')}</div>
+          </div>
+        </div>
+      </div>
+      <div class="forge-recipe-row">
+        <span class="forge-ing ${baseFree > 0 ? 'ok' : ''}">胚體：${baseEq.name} (閒置:${baseFree})</span>
+        <span class="forge-ing ${matCnt > 0 ? 'ok' : 'miss'}">素材：${mat.name} (${matCnt > 0 ? '已取得' : `掉落:${mat.stageName}`})</span>
+        <span class="forge-ing ${saveData.gold >= totalGoldNeed ? 'ok' : 'miss'}">費用：${totalGoldNeed}兩</span>
+      </div>
+      <div class="row-between" style="margin-top:2px;">
+        <span style="font-size:0.68rem; color:#9a9284;">${recruited ? `【${ownerTpl.name}】已在孔門` : `尚未招募【${ownerTpl.name}】（仍可先鍛造）`}</span>
+        ${btnHtml}
+      </div>`;
+    fList.appendChild(card);
+  });
+}
+
+function forgeExclusiveWeapon(eqId, autoBuyBase) {
+  const eq = DATA_EQUIPS[eqId];
+  if (!eq || !eq.forgeRecipe) return;
+  if ((saveData.equipInventory[eqId] || 0) > 0) return;
+  const rec = eq.forgeRecipe;
+  const baseEq = DATA_EQUIPS[rec.baseId];
+  const matCnt = (saveData.materials && saveData.materials[rec.matId]) || 0;
+  if (matCnt <= 0) return;
+
+  const baseOwned = saveData.equipInventory[rec.baseId] || 0;
+  const baseFree = Math.max(0, baseOwned - getEquipWearers(rec.baseId).length);
+  const needBuy = autoBuyBase || baseFree <= 0;
+  const totalGold = rec.gold + (needBuy ? baseEq.price : 0);
+  if (saveData.gold < totalGold) return;
+
+  saveData.gold -= totalGold;
+  if (!needBuy) saveData.equipInventory[rec.baseId] = Math.max(0, saveData.equipInventory[rec.baseId] - 1);
+  saveData.materials[rec.matId] = Math.max(0, matCnt - 1);
+  saveData.equipInventory[eqId] = (saveData.equipInventory[eqId] || 0) + 1;
+
+  // 若對應武將已在隊且目前沒穿天道超越兵器，自動幫他換上剛鍛好的專武
+  const owner = saveData.roster[eq.exclusiveFor];
+  let autoWorn = false;
+  if (owner) {
+    const curW = DATA_EQUIPS[owner.equip.weapon];
+    if (!curW || curW.tier !== 'transcend') {
+      owner.equip.weapon = eqId;
+      autoWorn = true;
+    }
+  }
+  AudioManager.play('ult');
+  persistSave();
+  renderCampScene();
+  showInkDialog({
+    seal: '鍛',
+    sealTone: 'info',
+    title: `神兵鍛成・【${eq.name}】！`,
+    bodyHtml: `<div>${eq.fullDesc}</div>${autoWorn ? `<div style="margin-top:6px; color:#8ec9a4;">✓ 已自動為<strong>【${DATA_UNITS[eq.exclusiveFor].name}】</strong>裝備此專屬神兵！</div>` : ''}`,
+    actions: [{ label: '太棒了', cls: 'primary' }]
+  });
 }
 
 function renderShopScene() {
@@ -3639,7 +4282,7 @@ function undoPendingMove() {
   if (!u) { pendingMove = null; showCmdPopover = false; pendingAction = null; renderAll(); return; }
   u.r = pendingMove.origR; u.c = pendingMove.origC; u.facingLeft = pendingMove.origFacingLeft;
   u.visX = u.c * TILE_PX; u.visY = u.r * TILE_PX; unitCanvasDirty = true;
-  u.moved = false; u.ap = pendingMove.prevAp; pendingMove = null;
+  u.moved = false; u.moveDistThisTurn = 0; u.ap = pendingMove.prevAp; pendingMove = null;
   pendingAction = null; showCmdPopover = false;
   selectedUnitId = u.id; actionMode = 'move'; targetableTiles.clear(); reachableTiles = computeReachable(u);
   AudioManager.play('undo'); spawnFloatText(u.r, u.c, '↩ 悔步歸位', 'info');
@@ -4429,23 +5072,40 @@ function toggleArtGuides() { showGuides = !showGuides; const vp = document.getEl
 function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
 function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
 
+function hasActiveAffix(affixId) {
+  return Boolean(activeStage && activeStage.affixes && activeStage.affixes.includes(affixId));
+}
+
 function startSelectedStage() {
-  activeStage = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  const st = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  launchStage(st);
+}
+
+function retryActiveBattle() {
+  if (activeStage) launchStage(activeStage);
+  else startSelectedStage();
+}
+
+function launchStage(stageObj) {
+  activeStage = stageObj;
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
-  turnNumber = 1; hexFlipRemaining = 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
-  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null;
+  turnNumber = 1; hexFlipRemaining = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
+  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false;
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
-  if (activeStage.modifiers.lockHexagram) { hexIndex = DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.modifiers.lockHexagram); hexLockedByStage = true; hexCountdown = 99; }
-  else {
+  if (activeStage.modifiers && activeStage.modifiers.lockHexagram) {
+    hexIndex = DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.modifiers.lockHexagram);
+    hexLockedByStage = true; hexCountdown = 99;
+  } else {
     const startIdx = activeStage.startHex ? DATA_HEXAGRAMS.findIndex(h => h.id === activeStage.startHex) : 0;
     hexIndex = startIdx >= 0 ? startIdx : 0;
-    hexLockedByStage = false; hexCountdown = 2;
+    hexLockedByStage = false;
+    hexCountdown = hasActiveAffix('time_flows') ? 1 : 2;
   }
 
   grid = Array.from({ length: GRID_SIZE }, () => Array(GRID_SIZE).fill(0));
-  activeStage.obstacles.forEach(([r, c]) => { grid[r][c] = 1; });
+  (activeStage.obstacles || []).forEach(([r, c]) => { grid[r][c] = 1; });
   applyHexagramTerrain();
 
   units = []; fallenAllies = [];
@@ -4455,8 +5115,10 @@ function startSelectedStage() {
   });
   const stageScale = activeStage.enemyScale || 1.0;
   activeStage.enemySpawns.forEach((sp, idx) => {
-    const u = instantiateUnit(DATA_UNITS[sp.tpl], sp.r, sp.c, `e_${sp.tpl}_${idx}`, null, stageScale, sp.eliteSkill || null);
-    if (sp.name) u.name = sp.name; units.push(u);
+    const u = instantiateUnit(DATA_UNITS[sp.tpl], sp.r, sp.c, `e_${sp.tpl}_${idx}`, null, stageScale, sp.eliteSkill || null, sp.mirrorTpl || null);
+    if (sp.name) u.name = sp.name;
+    if (hasActiveAffix('hollow_fierce')) u.shield = (u.shield || 0) + 30;
+    units.push(u);
   });
 
   document.getElementById('logBox').innerHTML = ''; document.getElementById('unitLayer').innerHTML = '';
@@ -4486,29 +5148,34 @@ function startSelectedStage() {
   })();
 }
 
-function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null) {
+function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null, mirrorTplKey = null) {
   const inner = prog ? prog.inner : { li:0, yue:0, she:0, yu:0, shu:0, num:0 };
   const outer = prog ? prog.outer : { taiji_amp:0, hex_adapt:0, qi_flow:0 };
   const lvB = prog ? (prog.lv - 1) : 0;
   const isEnemy = tpl.team === 'enemy';
   const sc = isEnemy ? enemyScale : 1.0;
-  const maxHp = isEnemy ? Math.round(tpl.maxHp * sc) : (tpl.maxHp + lvB * 10 + (inner.li || 0) * 18);
-  const scaledAtk = isEnemy ? Math.round(tpl.baseAtk * (1 + (sc - 1) * 0.72)) : (tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5);
-  const scaledDef = isEnemy ? Math.round(tpl.baseDef * (1 + (sc - 1) * 0.58)) : (tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3);
+  const isDutyBlessed = !isEnemy && Boolean(activeStage && activeStage.dutyUnits && activeStage.dutyUnits.includes(customId || tpl.id));
+  const dutyMult = isDutyBlessed ? 1.25 : 1.0;
+  const eqB = (!isEnemy && prog) ? getEquipStatBonus(prog.equip) : { atk: 0, crit: 0, qi: 0 };
+  const maxHp = isEnemy ? Math.round(tpl.maxHp * sc) : Math.round((tpl.maxHp + lvB * 10 + (inner.li || 0) * 18) * dutyMult);
+  const scaledAtk = isEnemy ? Math.round(tpl.baseAtk * (1 + (sc - 1) * 0.72)) : Math.round((tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5 + eqB.atk) * dutyMult);
+  const scaledDef = isEnemy ? Math.round(tpl.baseDef * (1 + (sc - 1) * 0.58)) : Math.round((tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3) * dutyMult);
+  const initQi = tpl.team === 'player' ? (isDutyBlessed ? 100 : Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi)) : 0;
+  const mirrorTpl = mirrorTplKey ? DATA_UNITS[mirrorTplKey] : null;
   return {
-    id: customId || tpl.id, tplKey: tpl.id || tpl.enemyType || 'chariot',
-    char: tpl.char, name: tpl.name, team: tpl.team, enemyType: tpl.enemyType || null,
+    id: customId || tpl.id, tplKey: mirrorTplKey || tpl.id || tpl.enemyType || 'chariot',
+    char: mirrorTpl ? mirrorTpl.char : tpl.char, name: tpl.name, team: tpl.team, enemyType: tpl.enemyType || null,
     eliteSkill: eliteSkill || null, skillCd: (tpl.enemyType === 'elite' || tpl.enemyType === 'boss') ? 1 : 0,
     color: tpl.color, yinYang: tpl.yinYang, trigram: tpl.trigram || 'qian',
     r, c, facingLeft: false, maxHp, hp: maxHp,
-    qi: tpl.team === 'player' ? Math.min(100, 50 + (inner.yue || 0) * 15) : 0, maxQi: 100,
+    qi: initQi, maxQi: 100, dutyBlessed: isDutyBlessed, moveDistThisTurn: 0,
     baseAtk: scaledAtk,
     baseDef: scaledDef,
     baseMove: tpl.baseMove + (inner.yu || 0),
-    bonusCrit: (inner.num || 0) * 0.08, outerTalents: { ...outer },
+    bonusCrit: (inner.num || 0) * 0.08 + eqB.crit, outerTalents: { ...outer },
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
     basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
-    ap: 2, maxAp: 2, moved: false, acted: false,
+    ap: 2, maxAp: 2, moved: false, acted: false, hasActedThisTurn: false, chunqiuPendingExtra: false,
     isTower: Boolean(tpl.isTower),
     stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
     internalBleedTurns: 0, vulnerableTurns: 0, confusedTurns: 0, frozenTurns: 0,
@@ -4518,7 +5185,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     tauntTurns: 0, dodgeTurns: 0, dodgeCounterTurns: 0, stealthTurns: 0,
     linkGuardianId: null, linkTurns: 0,
     shield: 0, thornsShield: 0,
-    invincibleTurns: 0, lockHpTurns: 0, fatalShield: false, phase: 1,
+    invincibleTurns: 0, lockHpTurns: 0, fatalShield: Boolean(prog && prog.equip && prog.equip.weapon === 'ex_hui'), taiChuFatalReady: Boolean(prog && prog.equip && prog.equip.weapon === 'tai_chu_sword'), chunqiuExtraUsed: false, phase: 1,
     equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
     spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
     animState: 'idle', animFrame: 0, animTimer: 0,
@@ -4529,7 +5196,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
 }
 function retreatToMap() { switchScene('map'); }
 
-function getEffectiveYinYang(u) { return (u.equip && u.equip.book === 'lianshan') ? '陽/陰' : u.yinYang; }
+function getEffectiveYinYang(u) { return (u.equip && (u.equip.book === 'lianshan' || u.equip.weapon === 'tai_chu_sword')) ? '陽/陰' : u.yinYang; }
 function getActiveSynergies() {
   const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), hui = getUnitById('p_hui'), gong = getUnitById('p_gong');
   const waterFire = Boolean(lu && hui && manhattan(lu.r, lu.c, hui.r, hui.c) === 1);
@@ -4546,7 +5213,11 @@ function hasZhouJadeBonus(u) {
   const kong = getUnitById('p_kong');
   return Boolean(kong && kong.id !== u.id && manhattan(u.r, u.c, kong.r, kong.c) === 1);
 }
-function getSkillQiCost(u, baseCost) { return (getActiveSynergies().waterFire && (u.id==='p_lu'||u.id==='p_hui')) ? Math.floor(baseCost*0.5) : baseCost; }
+function getSkillQiCost(u, baseCost) {
+  let c = (getActiveSynergies().waterFire && (u.id === 'p_lu' || u.id === 'p_hui')) ? Math.floor(baseCost * 0.5) : baseCost;
+  if (c > 0 && hasActiveAffix('harmony_diff')) c = Math.min(100, Math.round(c * 1.2));
+  return c;
+}
 function getEffectiveStats(u) {
   const hex = getHex();
   const buffM = u.buffTurns > 0 ? 1.2 : 1;
@@ -4557,20 +5228,25 @@ function getEffectiveStats(u) {
   const frozenAtkM = u.frozenTurns > 0 ? 0.7 : 1;
   const doubtM = u.doubtTurns > 0 ? 0.5 : 1;
 
-  const defB = u.defBreakTurns > 0 ? 0.7 : 1;
+  const defB = u.defBreakTurns > 0 ? ((u.team === 'enemy' && hasActiveAffix('stoic_wood')) ? 0.4 : 0.7) : 1;
   const shakenM = u.shakenTurns > 0 ? 0.6 : 1;
   const fortM = u.fortressTurns > 0 ? 1.8 : 1;
   const armorZeroM = u.armorBrokenTurns > 0 ? 0 : 1;
 
+  const vigorAtkM = hasActiveAffix('blood_vigor') ? 1.2 : 1;
+  const vigorDefM = hasActiveAffix('blood_vigor') ? 0.75 : 1;
+  const vigorMoveB = hasActiveAffix('blood_vigor') ? 2 : 0;
+  const hastePenM = (u.team === 'player' && hasActiveAffix('no_haste') && (u.moveDistThisTurn || 0) > 2) ? 0.85 : 1;
+
   const hexT = 1 + ((u.outerTalents && u.outerTalents.hex_adapt) ? u.outerTalents.hex_adapt * 0.1 : 0);
   let mMod = hex.moveMod; if (mMod < 0 && u.equip && u.equip.book === 'qian_zaodu') mMod = 0;
 
-  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM * yaM * frozenAtkM * doubtM);
-  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB * shakenM * fortM * armorZeroM * doubtM);
-  let move = Math.max(1, u.baseMove + mMod + (u.buffTurns > 0 ? 1 : 0) + (u.hasteBuffTurns > 0 ? 2 : 0));
+  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM * yaM * frozenAtkM * doubtM * vigorAtkM * hastePenM);
+  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB * shakenM * fortM * armorZeroM * doubtM * vigorDefM);
+  let move = Math.max(1, u.baseMove + mMod + vigorMoveB + (u.buffTurns > 0 ? 1 : 0) + (u.hasteBuffTurns > 0 ? 2 : 0));
   if (u.isTower || u.frozenTurns > 0 || u.fortressTurns > 0) move = 0;
   return {
-    atk, def, move, range: u.range + hex.rangeMod,
+    atk, def, move, range: u.range + hex.rangeMod + (u.equip && u.equip.weapon === 'ex_zixia' ? 1 : 0),
     atkBuffed: atk > u.baseAtk, defBuffed: def > u.baseDef, defDebuffed: def < u.baseDef,
     moveBuffed: move > u.baseMove, moveDebuffed: move < u.baseMove
   };
@@ -4592,7 +5268,7 @@ function getAvailableCombo(u) {
 
   // 1. 吾與點也 (孔+回)
   if ((saveData.bonds.kong_hui || 1) >= 2 && kong && hui && manhattan(kong.r, kong.c, hui.r, hui.c) === 1 && kong.qi >= 100 && hui.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_hui'))
-    return { id: 'combo_kong_hui', name: '吾與點也', partners: [kong, hui], needTarget: false, desc: '全軍滿血滿氣淨化＋全場聖光審判真傷！' };
+    return { id: 'combo_kong_hui', name: '吾與點也', partners: [kong, hui], needTarget: false, desc: '全軍滿血淨化、其餘友軍滿氣＋全場聖光審判真傷！' };
 
   // 2. 死生有命 (孔+路)
   if ((saveData.bonds.kong_lu || 1) >= 2 && kong && lu && manhattan(kong.r, kong.c, lu.r, lu.c) === 1 && kong.qi >= 100 && lu.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_lu'))
@@ -4741,7 +5417,8 @@ function computeTargetable(unit, mode) {
     units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && (sk.type !== 'link_guard' || a.id !== unit.id) && manhattan(unit.r, unit.c, a.r, a.c) <= sk.range + rBonus)
       .forEach(a => targets.add(keyOf(a.r, a.c)));
   } else if (sk.type === 'bribe') {
-    units.filter(e => e.team === 'enemy' && e.hp > 0 && e.enemyType !== 'boss' && (e.hp / e.maxHp) <= 0.4 && manhattan(unit.r, unit.c, e.r, e.c) <= sk.range + rBonus)
+    const bribeCap = (unit.equip && unit.equip.weapon === 'ex_gong') ? 0.55 : 0.4;
+    units.filter(e => e.team === 'enemy' && e.hp > 0 && e.enemyType !== 'boss' && (e.hp / e.maxHp) <= bribeCap && manhattan(unit.r, unit.c, e.r, e.c) <= sk.range + rBonus)
       .forEach(e => targets.add(keyOf(e.r, e.c)));
   } else if (['sleep', 'infight', 'mark_vuln', 'stealth_charm', 'three_tigers', 'agu_five_hits'].includes(sk.type)) {
     units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= sk.range + rBonus)
@@ -4889,7 +5566,8 @@ function selectMode(mode) {
     }
   } else if (mode === 'ult') {
     const sk = DATA_SKILLS[u.ultId];
-    if (!sk || u.silenceTurns > 0 || u.doubtTurns > 0 || u.qi < getSkillQiCost(u, sk.qiCost) || (sk.hpBelowPct && (u.hp/u.maxHp)>=sk.hpBelowPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
+    const reqHpPct = (sk.hpBelowPct && u.equip && u.equip.weapon === 'ex_lu') ? 0.50 : sk.hpBelowPct;
+    if (!sk || u.silenceTurns > 0 || u.doubtTurns > 0 || u.qi < getSkillQiCost(u, sk.qiCost) || (reqHpPct && (u.hp/u.maxHp)>=reqHpPct) || (sk.goldCost && saveData.gold<sk.goldCost)) return;
     if (['self_berserk','domain','taunt_thorns','frost_domain','detonate_debuffs','ya_music_all','nanzi_assassinate','revive_aura'].includes(sk.type)) {
       actionMode = 'ult';
       targetableTiles = new Set([keyOf(u.r, u.c)]);
@@ -4922,11 +5600,17 @@ function selectMode(mode) {
 
 function doWait() {
   if (gameState !== STATE.PLAYER_TURN) return;
-  const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player' || u.ap <= 0) return;
+  const u = getUnitById(selectedUnitId);
+  if (!u || u.team !== 'player' || u.ap <= 0 || u.acted || u.hasActedThisTurn) return;
   pendingMove = null; pendingAction = null; showCmdPopover = false;
-  const gain = 20 + (getHex().bonusQi || 0);
-  u.ap = 0; u.moved = true; u.acted = true; u.qi = Math.min(100, u.qi + gain);
-  spawnFloatText(u.r, u.c, `待機 +${gain}氣`, 'info');
+  const isInPlace = !u.moved;
+  const baseGain = isInPlace ? 40 : 20;
+  const gain = baseGain + (getHex().bonusQi || 0);
+  u.ap = 0; u.moved = true; u.acted = true; u.hasActedThisTurn = true;
+  u.qi = Math.min(100, u.qi + gain);
+  AudioManager.play('guqin');
+  spawnFloatText(u.r, u.c, isInPlace ? `原地調息 +${gain}氣` : `待機調息 +${gain}氣`, isInPlace ? 'taiji' : 'info');
+  addLog(`${u.name} ${isInPlace ? '原地專注調息（加倍）' : '移動後待機調息'}，回復 +${gain} 浩然氣。`, 'player');
   reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
 }
 
@@ -4947,8 +5631,16 @@ async function moveUnitSmooth(unit, path, isPlayer) {
   unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit);
   if (isPlayer) {
     unit.moved = true;
-    unit.ap = Math.max(0, unit.ap - 1);
-    showCmdPopover = true;
+    unit.moveDistThisTurn = (unit.moveDistThisTurn || 0) + path.length;
+    if (unit.acted) {
+      // 打帶跑純撤退位移完成，直接結束行動，不開啟指令窗亦不可調息
+      unit.ap = 0;
+      pendingMove = null;
+      showCmdPopover = false;
+    } else {
+      unit.ap = Math.max(0, unit.ap - 1);
+      showCmdPopover = true;
+    }
     focusCameraOn(unit.r, unit.c);
     setState(STATE.PLAYER_TURN);
     renderAll();
@@ -5142,7 +5834,8 @@ async function executePlayerCounter(defender, attacker, choice) {
       }
       const critChance = hex.critRate + (defender.bonusCrit || 0) + (sk.extraCrit || 0) + (defender.hasteBuffTurns > 0 ? 0.2 : 0);
       const isCrit = Math.random() < critChance;
-      const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(attacker).def * (1 - pen), isCrit, attacker);
+      let dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(attacker).def * (1 - pen), isCrit, attacker);
+      if (hasActiveAffix('no_impose')) dmg = Math.round(dmg * 1.3);
       await playAttackVfx(defender, attacker); if (isCrit) triggerHitstop(60);
       await applyDamage(attacker, dmg, isCrit, false, null);
       if (hex.burnOnHit && attacker.hp > 0) attacker.burnTurns = 2;
@@ -5227,11 +5920,16 @@ async function executeEnemyCounter(enemy, playerUnit) {
   await playAnimWithHitSync(enemy, 'attack', async () => {
     await playLunge(enemy, playerUnit.r, playerUnit.c);
     await playAttackVfx(enemy, playerUnit);
-    const dmg = calcDamage(eStats.atk, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
+    let dmg = calcDamage(eStats.atk, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
+    if (hasActiveAffix('no_impose')) dmg = Math.round(dmg * 1.3);
     await applyDamage(playerUnit, dmg, isCrit, false, null);
     if (playerUnit.hp > 0 && enemy.enemyType === 'strategist') {
       playerUnit.defBreakTurns = Math.max(playerUnit.defBreakTurns, 2);
       spawnFloatText(playerUnit.r, playerUnit.c, '破防！', 'info');
+    }
+    if (playerUnit.hp > 0 && hasActiveAffix('inner_trouble') && Math.random() < 0.5) {
+      if (Math.random() < 0.5) { playerUnit.internalBleedTurns = Math.max(playerUnit.internalBleedTurns, 2); spawnFloatText(playerUnit.r, playerUnit.c, '蕭牆・內傷', 'info'); }
+      else { playerUnit.defBreakTurns = Math.max(playerUnit.defBreakTurns, 2); spawnFloatText(playerUnit.r, playerUnit.c, '蕭牆・破防', 'info'); }
     }
     addLog(`⚠ ${enemy.name} 反擊 ${playerUnit.name}，造成 ${dmg} 傷${isCrit ? '（暴擊！）' : ''}！`, 'enemy');
   });
@@ -5255,6 +5953,11 @@ async function executePlayerAction(unit, mode, tr, tc) {
   let grantPostMove = false;
 
   try {
+  activeSkillPen40 = Boolean((mode === 'skill' || mode === 'ult') && unit.equip && unit.equip.weapon === 'chunqiu_pen');
+  if (hasActiveAffix('no_haste') && !unit.moved) {
+    unit.qi = Math.min(100, unit.qi + 20);
+    spawnFloatText(unit.r, unit.c, '欲速不達+20氣', 'info');
+  }
   if (mode === 'basic') {
     const enemy = getUnitAt(tr, tc);
     if (!enemy) return;
@@ -5268,14 +5971,16 @@ async function executePlayerAction(unit, mode, tr, tc) {
       let pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
       if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
       let mult = sk.mult || 1.0;
-      if (sk.type === 'zhong_still' && !unit.moved) mult *= 1.3;
+      if (sk.type === 'zhong_still' && !unit.moved) mult *= (unit.equip && unit.equip.weapon === 'ex_zhonggong' ? 1.5 : 1.3);
+      if (unit.stealthTurns > 0 && unit.equip && unit.equip.weapon === 'ex_nanzi') mult *= 1.4;
       if (sk.type === 'yan_purify' && enemy.enemyType === 'boss') mult *= 2.0;
       if (sk.type === 'taishan_wail') {
         const stacks = (enemy.buffTurns > 0 ? 1 : 0) + (enemy.shield > 0 ? 1 : 0) + countUnitDebuffs(enemy);
         mult *= (1 + stacks * 0.25);
       }
       const critChance = hex.critRate + (unit.bonusCrit || 0) + (sk.extraCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0);
-      const isCrit = Math.random() < critChance;
+      const forceCrit = Boolean((unit.equip && unit.equip.weapon === 'ex_lu' && sk.type === 'pierce') || (unit.equip && unit.equip.weapon === 'ex_zixia' && enemy.vulnerableTurns > 0));
+      const isCrit = forceCrit || (Math.random() < critChance);
       const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
       await playAttackVfx(unit, enemy); if (isCrit) triggerHitstop(60);
       await applyDamage(enemy, dmg, isCrit, false, unit);
@@ -5283,15 +5988,22 @@ async function executePlayerAction(unit, mode, tr, tc) {
 
       // 各武將普攻專屬效果
       if (sk.type === 'kong_adaptive' && enemy.hp > 0) {
-        if (enemy.enemyType === 'soldier') { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '數・破防', 'info'); }
+        if (unit.equip && unit.equip.weapon === 'ex_kong') {
+          enemy.defBreakTurns = 2; enemy.silenceTurns = 1;
+          spawnFloatText(enemy.r, enemy.c, '承影・破防+沉默', 'taiji');
+        } else if (enemy.enemyType === 'soldier') { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '數・破防', 'info'); }
         else { enemy.silenceTurns = 1; spawnFloatText(enemy.r, enemy.c, '禮・沉默', 'info'); }
       }
       if (sk.type === 'hui_echo' && enemy.hp > 0 && countUnitDebuffs(enemy) > 0) {
         spawnFloatText(enemy.r, enemy.c, '聞一知十！', 'taiji');
         await applyDamage(enemy, dmg, false, false, unit);
       }
-      if (sk.type === 'damage_gold' && Math.random() < 0.5) {
-        saveData.gold += 120; persistSave(); spawnFloatText(unit.r, unit.c, '+120兩', 'taiji');
+      if (sk.type === 'damage_gold') {
+        if (unit.equip && unit.equip.weapon === 'ex_gong') {
+          saveData.gold += 150; persistSave(); spawnFloatText(unit.r, unit.c, '金算盤+150兩', 'taiji');
+        } else if (Math.random() < 0.5) {
+          saveData.gold += 120; persistSave(); spawnFloatText(unit.r, unit.c, '+120兩', 'taiji');
+        }
       }
       if (sk.type === 'min_guard') { unit.defStanceTurns = 1; spawnFloatText(unit.r, unit.c, '防禦姿態', 'info'); }
       if (sk.type === 'boniu_bleed' && enemy.hp > 0) { enemy.internalBleedTurns = 3; spawnFloatText(enemy.r, enemy.c, '內傷！', 'info'); }
@@ -5301,11 +6013,12 @@ async function executePlayerAction(unit, mode, tr, tc) {
           enemy.r = kr; enemy.c = kc; renderUnits(); spawnFloatText(enemy.r, enemy.c, '擊退！', 'info');
         }
       }
-      if (sk.type === 'hit_and_run') grantPostMove = true;
-      if (sk.type === 'wo_confuse' && enemy.hp > 0 && Math.random() < 0.4) { enemy.confusedTurns = 1; spawnFloatText(enemy.r, enemy.c, '混亂！', 'info'); }
+      if (sk.type === 'hit_and_run') { grantPostMove = true; if (unit.equip && unit.equip.weapon === 'ex_ranyou') { unit.shield = (unit.shield || 0) + 25; spawnFloatText(unit.r, unit.c, '連弩盾+25', 'heal'); } }
+      if (sk.type === 'wo_confuse' && enemy.hp > 0 && Math.random() < (unit.equip && unit.equip.weapon === 'ex_wo' ? 0.7 : 0.4)) { enemy.confusedTurns = 1; spawnFloatText(enemy.r, enemy.c, '混亂！', 'info'); }
       if (sk.type === 'ziyou_song') {
-        const needy = units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(a.r, a.c, enemy.r, enemy.c) <= 2).sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp))[0];
-        if (needy) { const h = Math.min(needy.maxHp - needy.hp, Math.round(18 * hex.healMult)); needy.hp += h; spawnFloatText(needy.r, needy.c, `弦歌+${h}`, 'heal'); }
+        const nearAllies = units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(a.r, a.c, enemy.r, enemy.c) <= 2).sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
+        const targetsToHeal = (unit.equip && unit.equip.weapon === 'ex_ziyou') ? nearAllies : nearAllies.slice(0, 1);
+        targetsToHeal.forEach(a => { const h = Math.min(a.maxHp - a.hp, Math.round(18 * hex.healMult)); a.hp += h; spawnFloatText(a.r, a.c, `弦歌+${h}`, 'heal'); });
       }
       if (sk.type === 'nanzi_chime' && enemy.hp > 0) { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '心神失守', 'info'); }
       if (sk.type === 'agu_dodge') { unit.dodgeTurns = 1; spawnFloatText(unit.r, unit.c, '閃避+30%', 'info'); }
@@ -5346,10 +6059,12 @@ async function executePlayerAction(unit, mode, tr, tc) {
       } else if (sk.type === 'heal_ap_aoe') {
         AudioManager.play('guqin');
         const multStarve = activeStage.modifiers.starvationPct > 0 ? 2 : 1;
+        const huiEx = Boolean(unit.equip && unit.equip.weapon === 'ex_hui');
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(tr, tc, a.r, a.c) <= 1).forEach(a => {
-          const h = Math.min(a.maxHp - a.hp, Math.round(45 * multStarve * hex.yinBoost * hex.healMult));
+          if (huiEx) clearUnitDebuffs(a);
+          const h = Math.min(a.maxHp - a.hp, Math.round(45 * (huiEx ? 1.35 : 1) * multStarve * hex.yinBoost * hex.healMult));
           a.hp += h; a.ap = Math.min(a.maxAp, a.ap + 1); a.acted = false;
-          spawnFloatText(a.r, a.c, `+${h}HP/+1AP`, 'heal');
+          spawnFloatText(a.r, a.c, `${huiEx ? '淨化' : ''}+${h}HP/+1AP`, 'heal');
         });
       } else if (sk.type === 'charge_stun') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e;
@@ -5358,14 +6073,22 @@ async function executePlayerAction(unit, mode, tr, tc) {
         if (stopR >= 0 && stopR < GRID_SIZE && stopC >= 0 && stopC < GRID_SIZE && !getUnitAt(stopR, stopC)) { unit.r = stopR; unit.c = stopC; }
         unit.defBreakTurns = 2; renderUnits(); triggerCameraShake(5, 180);
         await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def, Math.random() < (hex.critRate + 0.1), e), false, false, unit);
-        if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); }
+        if (e.hp > 0) { if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); } }
       } else if (sk.type === 'bribe') {
         const e = getUnitAt(tr, tc); if (!e) return; AudioManager.play('taiji');
         e.team = 'player'; e.color = '#0d9488'; e.ap = 2; e.moved = false; e.acted = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
         spawnFloatText(e.r, e.c, '千金倒戈！', 'taiji'); renderUnits();
       } else if (sk.type === 'sleep') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
-        e.sleepTurns = 2; spawnFloatText(e.r, e.c, '晝寢2回合', 'info'); renderUnits();
+        const sleepTargets = (unit.equip && unit.equip.weapon === 'ex_wo')
+          ? units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(e.r, e.c, x.r, x.c) <= 1)
+          : [e];
+        sleepTargets.forEach(t => {
+          if (unit.equip && unit.equip.weapon === 'ex_wo') t.defBreakTurns = Math.max(t.defBreakTurns, 2);
+          if (hasActiveAffix('stoic_wood')) spawnFloatText(t.r, t.c, '剛毅免疫！', 'info');
+          else { t.sleepTurns = 2; spawnFloatText(t.r, t.c, '晝寢2回合', 'info'); }
+        });
+        renderUnits();
       } else if (sk.type === 'link_guard') {
         const a = getUnitAt(tr, tc); if (!a) return; AudioManager.play('guqin');
         a.linkGuardianId = unit.id; a.linkTurns = 2;
@@ -5386,7 +6109,13 @@ async function executePlayerAction(unit, mode, tr, tc) {
         });
         if (absorbed > 0) {
           const heal = Math.min(unit.maxHp - unit.hp, Math.round(unit.maxHp * 0.15 * absorbed));
-          unit.hp += heal; spawnFloatText(unit.r, unit.c, `吸${absorbed}疾 +${heal}`, 'heal');
+          unit.hp += heal;
+          if (unit.equip && unit.equip.weapon === 'ex_boniu') {
+            unit.qi = Math.min(100, unit.qi + absorbed * 15);
+            spawnFloatText(unit.r, unit.c, `吸${absorbed}疾 +${heal}/+${absorbed * 15}氣`, 'heal');
+          } else {
+            spawnFloatText(unit.r, unit.c, `吸${absorbed}疾 +${heal}`, 'heal');
+          }
         } else {
           unit.internalBleedTurns = 2;
           const heal = Math.min(unit.maxHp - unit.hp, Math.round(unit.maxHp * 0.15));
@@ -5397,23 +6126,29 @@ async function executePlayerAction(unit, mode, tr, tc) {
         spawnFloatText(unit.r, unit.c, '宗廟之器 防+80%', 'taiji');
       } else if (sk.type === 'build_tower') {
         AudioManager.play('bell');
-        units.push(instantiateUnit(DATA_UNITS.arrow_tower, tr, tc, `p_tower_${summonCounter++}`, null));
+        const tw = instantiateUnit(DATA_UNITS.arrow_tower, tr, tc, `p_tower_${summonCounter++}`, null);
+        if (unit.equip && unit.equip.weapon === 'ex_ranyou') {
+          tw.range = 4; tw.baseAtk = Math.round(tw.baseAtk * 1.3);
+        }
+        units.push(tw);
         const adj = findEmptyAdjacent(tr, tc);
         if (adj && grid[adj.r][adj.c] === 0) grid[adj.r][adj.c] = 3;
         renderGrid(); renderUnits(); spawnFloatText(tr, tc, '箭塔＋柵欄！', 'taiji');
       } else if (sk.type === 'wucheng_buff') {
         AudioManager.play('guqin');
+        const ziyouEx = Boolean(unit.equip && unit.equip.weapon === 'ex_ziyou');
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= 3).forEach(a => {
           a.hasteBuffTurns = 2; a.confusedTurns = 0; a.stunned = false;
-          spawnFloatText(a.r, a.c, '移+2 暴+20%', 'heal');
+          if (ziyouEx) a.qi = Math.min(100, a.qi + 15);
+          spawnFloatText(a.r, a.c, ziyouEx ? '移+2 暴+20% +15氣' : '移+2 暴+20%', 'heal');
         });
       } else if (sk.type === 'mark_vuln') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
         e.vulnerableTurns = 2; spawnFloatText(e.r, e.c, '易傷+35%！', 'info');
       } else if (sk.type === 'stealth_charm') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('guqin');
-        unit.stealthTurns = 1; e.confusedTurns = 1;
-        spawnFloatText(unit.r, unit.c, '隱身！', 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
+        unit.stealthTurns = (unit.equip && unit.equip.weapon === 'ex_nanzi') ? 2 : 1; e.confusedTurns = 1;
+        spawnFloatText(unit.r, unit.c, `隱身${unit.stealthTurns}回合！`, 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
       } else if (sk.type === 'harsh_tax_curse') {
         AudioManager.play('bell');
         const curseTargets = units.filter(e => e.team === 'enemy' && e.hp > 0);
@@ -5433,8 +6168,9 @@ async function executePlayerAction(unit, mode, tr, tc) {
         spawnFloatText(unit.r, unit.c, '80%閃避反擊！', 'taiji');
       } else if (sk.type === 'mother_shield') {
         const a = getUnitAt(tr, tc); if (!a) return; AudioManager.play('guqin');
-        clearUnitDebuffs(a); a.shield = (a.shield || 0) + 65;
-        spawnFloatText(a.r, a.c, '禮容護盾+65', 'heal');
+        const shAmt = (unit.equip && unit.equip.weapon === 'ex_yanzhengzai') ? 95 : 65;
+        clearUnitDebuffs(a); a.shield = (a.shield || 0) + shAmt;
+        spawnFloatText(a.r, a.c, `禮容護盾+${shAmt}`, 'heal');
       }
       addLog(`${unit.name} 施展【${sk.name}】！`, 'player');
     });
@@ -5507,7 +6243,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
           await applyDamage(others[0], calcDamage(getEffectiveStats(v).atk * 1.15, getEffectiveStats(others[0]).def, false, others[0]), false, false, null);
         }
       } else if (sk.type === 'frost_domain') {
-        unit.armorBrokenTurns = 1;
+        if (!(unit.equip && unit.equip.weapon === 'ex_min')) unit.armorBrokenTurns = 1;
         triggerImpactFrame(); triggerCameraShake(5, 220);
         VfxEngine.spawnDomain(unit.r, unit.c, '#8ec9c2', 3.2, false);
         for (const e of units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(unit.r, unit.c, e.r, e.c) <= 3)) {
@@ -5525,7 +6261,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
         unit.hp = Math.min(unit.maxHp, unit.hp + Math.round(unit.maxHp * 0.25));
         triggerImpactFrame(); triggerCameraShake(6, 240);
         VfxEngine.spawnDomain(unit.r, unit.c, '#9370a8', 3.0, true);
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(unit.r, unit.c, x.r, x.c) <= 3)) {
+        const detRange = (unit.equip && unit.equip.weapon === 'ex_boniu') ? 4 : 3;
+        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(unit.r, unit.c, x.r, x.c) <= detRange)) {
           focusCameraOn(e.r, e.c); await sleep(140);
           primaryEnemy = e; e.internalBleedTurns = 2; e.defBreakTurns = 2;
           VfxEngine.spawnCurseChain(unit.r, unit.c, e.r, e.c, '#9370a8');
@@ -5661,7 +6398,10 @@ async function executePlayerAction(unit, mode, tr, tc) {
           triggerImpactFrame();
           VfxEngine.spawnSkyPillar(spot.r, spot.c, '#ecd29b', false);
           VfxEngine.spawnDomain(spot.r, spot.c, '#79c997', 1.8, true);
-          fallen.hp = Math.round(fallen.maxHp * 0.5); fallen.r = spot.r; fallen.c = spot.c;
+          const fullRev = Boolean(unit.equip && unit.equip.weapon === 'ex_yanzhengzai');
+          fallen.hp = fullRev ? fallen.maxHp : Math.round(fallen.maxHp * 0.5);
+          if (fullRev) fallen.qi = 100;
+          fallen.r = spot.r; fallen.c = spot.c;
           fallen.ap = 1; fallen.moved = false; fallen.acted = false;
           fallen.animState = 'idle'; fallen.animFrame = 0; fallen.animTimer = 0;
           clearUnitDebuffs(fallen);
@@ -5701,9 +6441,12 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const aliveCnt = aliveAllies.length;
         VfxEngine.spawnDomain(unit.r, unit.c, '#ecd29b', 2.8, true);
         aliveAllies.forEach(p => {
-          p.hp = p.maxHp; p.qi = 100; clearUnitDebuffs(p);
+          const isCaster = cdef.partners.includes(p);
+          p.hp = p.maxHp;
+          if (!isCaster) p.qi = 100;
+          clearUnitDebuffs(p);
           VfxEngine.spawnRipple(p.r, p.c, '#79c997', 2, false);
-          spawnFloatText(p.r, p.c, '滿血滿氣！', 'heal');
+          spawnFloatText(p.r, p.c, isCaster ? '滿血淨化！' : '滿血滿氣！', 'heal');
         });
         renderUnits();
         await sleep(220);
@@ -5795,7 +6538,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
           primaryEnemy = e;
           VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
           await applyDamage(e, 95, false, true, unit);
-          if (e.hp > 0) { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); }
+          if (e.hp > 0) { if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); } }
           await sleep(100);
         }
         focusCameraOn(unit.r, unit.c);
@@ -5810,14 +6553,24 @@ async function executePlayerAction(unit, mode, tr, tc) {
   if ((mode === 'basic' || mode === 'skill') && primaryEnemy && primaryEnemy.hp > 0 && primaryEnemy.team === 'enemy' && unit.hp > 0) {
     await executeEnemyCounter(primaryEnemy, unit);
   }
-  unit.acted = true;
-  if (grantPostMove && unit.hp > 0) {
-    // 冉有【策馬奔襲】打帶跑：攻擊後保留 1 次移動機會
-    unit.moved = false; unit.ap = Math.max(1, unit.ap);
+  unit.hasActedThisTurn = true;
+  if (unit.chunqiuPendingExtra && unit.hp > 0) {
+    // 【春秋筆・真】擊殺再動：可再次出招（不可待機洗氣）
+    unit.chunqiuPendingExtra = false;
+    unit.acted = false;
+    unit.ap = Math.max(1, unit.ap);
+  } else if (grantPostMove && unit.hp > 0) {
+    // 冉有【策馬奔襲】打帶跑：攻擊後僅保留 1 次純移動撤退機會，不可再調息
+    unit.acted = true;
+    unit.moved = false;
+    unit.ap = 1;
     reachableTiles = computeReachable(unit);
     spawnFloatText(unit.r, unit.c, '打帶跑！可再移動', 'taiji');
   } else {
-    unit.ap = Math.max(0, unit.ap - 1);
+    // 正常出招後（無論原地或移動後）直接結束本回合行動，絕不殘留 AP
+    unit.acted = true;
+    unit.moved = true;
+    unit.ap = 0;
   }
   actionMode = 'move';
   lastPlayerAction = { unitId: unit.id, name: unit.name, yinYang: getEffectiveYinYang(unit) };
@@ -5826,6 +6579,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
     addLog(`⚠ 行動執行異常已自動恢復：${err?.message || err}`, 'enemy');
   } finally {
     actionLockBusy = false;
+    activeSkillPen40 = false;
     setUltSpotlight(false);
     activeComboDef = null;
     actionMode = 'move';
@@ -5852,7 +6606,7 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
   if (manhattan(prev.r, prev.c, currUnit.r, currUnit.c) === 1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
     AudioManager.play('taiji'); triggerHitstop(60);
     const curAtk = getEffectiveStats(currUnit).atk;
-    const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
+    const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + (hasActiveAffix('harmony_diff') ? 45 : 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
     const victim = (targetEnemy && targetEnemy.hp > 0) ? targetEnemy : units.filter(e => e.team === 'enemy' && e.hp > 0)[0];
     if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！', 'taiji', '#ecd29b'); triggerCameraShake(4, 180); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
     [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 12); u.qi = Math.min(100, u.qi + 15); });
@@ -5860,13 +6614,18 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
   }
 }
 
+let activeSkillPen40 = false;
 function calcDamage(atk, def, isCrit, target) {
-  let raw = Math.max(8, Math.round(atk - def * 0.55));
+  const effDef = (activeSkillPen40 && target && target.team === 'enemy') ? def * 0.5 : def;
+  let raw = Math.max(8, Math.round(atk - effDef * 0.55));
   if (isCrit) raw = Math.round(raw * 1.5);
   if (getHex().stillDmgRed && target && !target.moved) raw = Math.round(raw * (1 - getHex().stillDmgRed));
   if (target && target.id === 'p_gong' && getActiveSynergies().earthSky) raw = Math.round(raw * 0.6);
   if (target && target.defStanceTurns > 0) raw = Math.round(raw * 0.75);
-  if (target && target.vulnerableTurns > 0) raw = Math.round(raw * 1.35);
+  if (target && target.vulnerableTurns > 0) {
+    const vMult = (target.team === 'enemy' && hasActiveAffix('stoic_wood')) ? 1.70 : 1.35;
+    raw = Math.round(raw * vMult);
+  }
   return Math.max(1, raw);
 }
 
@@ -5895,11 +6654,13 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
   // 阿谷處女閃避與機鋒反擊判定（易傷狀態下無法閃避）
   if (!isTrue && attacker && target.vulnerableTurns <= 0) {
-    const dodgeChance = target.dodgeCounterTurns > 0 ? 0.80 : (target.dodgeTurns > 0 ? 0.30 : 0);
+    const aguPassive = (target.equip && target.equip.weapon === 'ex_agu') ? 0.20 : 0;
+    const dodgeChance = Math.min(0.95, (target.dodgeCounterTurns > 0 ? 0.80 : (target.dodgeTurns > 0 ? 0.30 : 0)) + aguPassive);
     if (dodgeChance > 0 && Math.random() < dodgeChance) {
       spawnFloatText(target.r, target.c, '閃避！', 'taiji');
       if (target.dodgeCounterTurns > 0 && attacker.hp > 0 && attacker.team !== target.team) {
-        const cd = calcDamage(getEffectiveStats(target).atk * 1.2, getEffectiveStats(attacker).def, false, attacker);
+        const aguMult = (target.equip && target.equip.weapon === 'ex_agu') ? 1.6 : 1.2;
+        const cd = calcDamage(getEffectiveStats(target).atk * aguMult, getEffectiveStats(attacker).def, false, attacker);
         spawnFloatText(target.r, target.c, '機鋒反擊！', 'taiji');
         await playLunge(target, attacker.r, attacker.c);
         await applyDamage(attacker, cd, false, false, null);
@@ -5910,6 +6671,10 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
   let finalDmg = dmg, woke = false;
   if (target.sleepTurns > 0) { target.sleepTurns = 0; finalDmg = Math.round(dmg * 1.5); woke = true; }
+  // 【太初・獲麟神劍】所有攻擊額外追加 35% 無視防禦真實傷害
+  if (!isTrue && attacker && attacker.equip && attacker.equip.weapon === 'tai_chu_sword') {
+    finalDmg += Math.max(12, Math.round(finalDmg * 0.35));
+  }
 
   // 閔子騫【孝感動天】共患難分傷 70% -> 轉化為浩然氣
   if (target.linkTurns > 0 && target.linkGuardianId) {
@@ -5917,7 +6682,8 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     if (guardian && guardian.hp > 0 && guardian.id !== target.id) {
       const share = Math.round(finalDmg * 0.7);
       finalDmg -= share;
-      guardian.qi = Math.min(100, guardian.qi + Math.min(40, Math.round(share * 0.8)));
+      const minQiMult = (guardian.equip && guardian.equip.weapon === 'ex_min') ? 1.6 : 0.8;
+      guardian.qi = Math.min(100, guardian.qi + Math.min(60, Math.round(share * minQiMult)));
       spawnFloatText(guardian.r, guardian.c, `代傷-${share}`, 'info');
       await applyDamage(guardian, share, false, true, null);
     }
@@ -5942,7 +6708,8 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
   const nextHp = target.hp - finalDmg;
   if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
-  else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '心齋抵死！', 'heal'); }
+  else if (nextHp <= 0 && target.taiChuFatalReady) { target.taiChuFatalReady = false; target.hp = Math.round(target.maxHp * 0.45); target.qi = 100; spawnFloatText(target.r, target.c, '獲麟免死・滿氣！', 'taiji'); }
+  else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '抵死護盾！', 'heal'); }
   else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit || woke) ? 'crit' : 'dmg'); }
   VfxEngine.spawnHitSparks(target.r, target.c, isCrit || woke);
   if (isCrit || woke) { triggerHitstop(60); triggerCameraShake(4, 150); }
@@ -5960,12 +6727,40 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     const stMid = DATA_STORIES[activeStage?.id]?.midBattle?.bossPhase2;
     if (stMid) await StoryEngine.play(stMid, `${activeStage.id}_bossP2`, false);
   }
+  // 【春秋筆】絕招／大絕命中存活敵軍時追加 1 種隨機負面狀態
+  if (target.hp > 0 && target.team === 'enemy' && activeSkillPen40 && attacker && attacker.equip && attacker.equip.weapon === 'chunqiu_pen') {
+    const pool = [
+      { k: 'defBreakTurns', label: '破防' },
+      { k: 'vulnerableTurns', label: '易傷' },
+      { k: 'internalBleedTurns', label: '內傷' },
+      { k: 'silenceTurns', label: '沉默' }
+    ];
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    target[pick.k] = Math.max(target[pick.k] || 0, 2);
+    spawnFloatText(target.r, target.c, `春秋筆・${pick.label}！`, 'taiji');
+  }
   if (target.hp <= 0) {
     target.animState = 'die'; target.animFrame = 0; target.animTimer = 0;
     if (target.team === 'player' && !target.isTower && saveData.roster[target.id] && !fallenAllies.includes(target)) {
       fallenAllies.push(target);
     }
     spawnFloatText(target.r, target.c, '擊破！', 'info');
+    // 【春秋筆・真】每回合首次擊殺敵軍立刻 +35 氣並獲得 1 次再動
+    if (target.team === 'enemy' && attacker && attacker.team === 'player' && attacker.hp > 0 && attacker.equip && attacker.equip.weapon === 'chunqiu_pen' && !attacker.chunqiuExtraUsed) {
+      attacker.chunqiuExtraUsed = true;
+      attacker.chunqiuPendingExtra = true;
+      attacker.qi = Math.min(100, attacker.qi + 35);
+      spawnFloatText(attacker.r, attacker.c, '春秋筆+35氣/再動！', 'taiji');
+    }
+    // 【德不孤，必有鄰】敵軍陣亡時，周圍 2 格存活敵軍回血 20% 並攻防 +20%(1回合)
+    if (target.team === 'enemy' && hasActiveAffix('not_alone')) {
+      units.filter(e => e.team === 'enemy' && e.hp > 0 && e.id !== target.id && manhattan(e.r, e.c, target.r, target.c) <= 2).forEach(nb => {
+        const healAmt = Math.min(nb.maxHp - nb.hp, Math.round(nb.maxHp * 0.2));
+        nb.hp += healAmt;
+        nb.buffTurns = Math.max(nb.buffTurns, 1);
+        spawnFloatText(nb.r, nb.c, `必有鄰+${healAmt}`, 'heal');
+      });
+    }
     renderUnits();
     await sleep(260); // 完整呈現 2 格倒地動作再進入後續結算
     return;
@@ -5985,7 +6780,8 @@ async function endPlayerTurn() {
 
   // 冉有【瞭望箭塔】於玩家回合結束自動射擊 3 格內敵軍
   for (const tower of units.filter(u => u.team === 'player' && u.isTower && u.hp > 0)) {
-    const nearE = units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(tower.r, tower.c, e.r, e.c) <= 3).sort((a, b) => a.hp - b.hp)[0];
+    const twRange = tower.range || 3;
+    const nearE = units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(tower.r, tower.c, e.r, e.c) <= twRange).sort((a, b) => a.hp - b.hp)[0];
     if (nearE) {
       focusCameraOn(tower.r, tower.c);
       await sleep(160);
@@ -6006,8 +6802,14 @@ async function endPlayerTurn() {
 
     // 泰山婦人【苛政猛於虎】敵軍行動時觸發猛虎撕咬
     if (enemy.harshTaxTurns > 0) {
+      const tsUnit = getUnitById('p_taishan');
+      const tsEx = Boolean(tsUnit && tsUnit.equip && tsUnit.equip.weapon === 'ex_taishan');
       spawnFloatText(enemy.r, enemy.c, '猛虎撕咬！', 'dmg');
-      await applyDamage(enemy, 28, false, true, null);
+      await applyDamage(enemy, tsEx ? 45 : 28, false, true, null);
+      if (enemy.hp <= 0 && tsEx && tsUnit && tsUnit.hp > 0) {
+        tsUnit.qi = Math.min(100, tsUnit.qi + 25);
+        spawnFloatText(tsUnit.r, tsUnit.c, '泣血+25氣', 'taiji');
+      }
       if (checkVictoryOrDefeat() || enemy.hp <= 0) continue;
     }
 
@@ -6182,6 +6984,10 @@ async function endPlayerTurn() {
           atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
           spawnFloatText(atkT.r, atkT.c, '破防！', 'info');
         }
+        if (atkT.hp > 0 && hasActiveAffix('inner_trouble') && Math.random() < 0.5) {
+          if (Math.random() < 0.5) { atkT.internalBleedTurns = Math.max(atkT.internalBleedTurns, 2); spawnFloatText(atkT.r, atkT.c, '蕭牆・內傷', 'info'); }
+          else { atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2); spawnFloatText(atkT.r, atkT.c, '蕭牆・破防', 'info'); }
+        }
         addLog(`${enemy.name}${isCrush ? '【破陣重擊】' : ''} 攻擊 ${atkT.name} 造成 ${dmg} 傷${counterChoice === 'defend' ? '（防禦減傷）' : ''}${isCrit ? '（暴擊！）' : ''}。`, 'enemy');
       });
 
@@ -6207,12 +7013,17 @@ async function endPlayerTurn() {
 
   if (!hexLockedByStage) {
     hexCountdown--;
-    if (hexCountdown <= 0) { hexIndex = (hexIndex + 1) % DATA_HEXAGRAMS.length; hexCountdown = 2; applyHexagramTerrain(); AudioManager.play('bell'); addLog(`⚡ 天時變卦為【${getHex().name}】`, 'hex'); }
+    if (hexCountdown <= 0) {
+      hexIndex = (hexIndex + 1) % DATA_HEXAGRAMS.length;
+      hexCountdown = hasActiveAffix('time_flows') ? 1 : 2;
+      applyHexagramTerrain(); AudioManager.play('bell');
+      addLog(`⚡ 天時變卦為【${getHex().name}】${hasActiveAffix('time_flows') ? '（逝者如斯）' : ''}`, 'hex');
+    }
   }
   lastPlayerAction = null;
   units.forEach(u => {
     if (u.hp <= 0) return;
-    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false;
+    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false;
     ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
       if (u[k] > 0) u[k]--;
     });
@@ -6220,12 +7031,40 @@ async function endPlayerTurn() {
     if (u.buffTurns <= 0) u.yaAtkBonus = 0;
     if (u.shield <= 0) u.thornsShield = 0;
   });
-  if (activeStage.modifiers.starvationPct > 0) {
+  if (activeStage.modifiers && activeStage.modifiers.starvationPct > 0) {
     units.filter(u => u.team === 'player' && u.hp > 0 && !u.isTower).forEach(u => {
       const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct);
       u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg');
     });
   }
+  // 【食無求飽】每回合我方損失 8% 最大生命
+  if (hasActiveAffix('no_full_belly')) {
+    units.filter(u => u.team === 'player' && u.hp > 0 && !u.isTower).forEach(u => {
+      const loss = Math.max(5, Math.round(u.maxHp * 0.08));
+      u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `食無求飽-${loss}`, 'dmg');
+    });
+  }
+  // 【色厲內荏】每回合開始敵軍獲得 30 護盾
+  if (hasActiveAffix('hollow_fierce')) {
+    units.filter(e => e.team === 'enemy' && e.hp > 0).forEach(e => {
+      e.shield = (e.shield || 0) + 30;
+      spawnFloatText(e.r, e.c, '色厲+30盾', 'info');
+    });
+  }
+  // 【杏壇古琴・真】每回合開始為自身與周圍 2 格我方回復 +20 氣與 10% HP
+  units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower && p.equip && p.equip.ritual === 'xingtan_guqin').forEach(holder => {
+    units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(holder.r, holder.c, a.r, a.c) <= 2).forEach(a => {
+      const hh = Math.min(a.maxHp - a.hp, Math.round(a.maxHp * 0.10));
+      a.hp += hh;
+      a.qi = Math.min(100, a.qi + 20);
+      spawnFloatText(a.r, a.c, `古琴+${hh}HP/+20氣`, 'heal');
+    });
+  });
+  // 【南面玄鐵重劍】仲弓宗廟之器狀態每回合回血 15%
+  units.filter(p => p.team === 'player' && p.hp > 0 && p.fortressTurns > 0 && p.equip && p.equip.weapon === 'ex_zhonggong').forEach(zg => {
+    const hh = Math.min(zg.maxHp - zg.hp, Math.round(zg.maxHp * 0.15));
+    if (hh > 0) { zg.hp += hh; spawnFloatText(zg.r, zg.c, `重劍回血+${hh}`, 'heal'); }
+  });
   const firstP = units.find(u => u.team === 'player' && u.hp > 0 && !u.isTower);
   if (firstP) focusCameraOn(firstP.r, firstP.c);
   const turnStory = DATA_STORIES[activeStage?.id]?.midBattle?.[`turn${turnNumber}`];
@@ -6263,8 +7102,13 @@ function checkVictoryOrDefeat() {
   if (eAlive === 0) { triggerBattleVictory(); return true; }
   if (pAlive === 0) {
     setState(STATE.GAME_OVER);
+    const isTw = Boolean(activeStage && activeStage.isTowerFloor);
+    const btnRet = document.getElementById('btnEndReturn');
+    const btnNxt = document.getElementById('btnEndNextTower');
+    if (btnRet) btnRet.textContent = isTw ? '返回天道之塔' : '返回春秋輿圖';
+    if (btnNxt) btnNxt.style.display = 'none';
     document.getElementById('endTitle').textContent = '全軍覆沒';
-    document.getElementById('endSubtitle').innerHTML = '可回營地點亮天賦、購買裝備後再戰！';
+    document.getElementById('endSubtitle').innerHTML = isTw ? '可回營地針對本層【天命詞條】與【值日生】調整陣容再戰！' : '可回營地點亮天賦、購買裝備後再戰！';
     document.getElementById('endOverlay').classList.add('show');
     return true;
   }
@@ -6273,12 +7117,20 @@ function checkVictoryOrDefeat() {
 
 async function triggerBattleVictory() {
   setState(STATE.GAME_OVER);
-  const isFirstClear = !saveData.clearedStages.includes(activeStage.id);
-  if (isFirstClear) saveData.clearedStages.push(activeStage.id);
+  const isTower = Boolean(activeStage && activeStage.isTowerFloor);
+  let isFirstClear = false;
+  if (isTower) {
+    if (!saveData.tower) saveData.tower = { maxCleared: 0, claimedMilestones: [], titleUnlocked: false };
+    isFirstClear = activeStage.floor > (saveData.tower.maxCleared || 0);
+    if (isFirstClear) saveData.tower.maxCleared = activeStage.floor;
+  } else {
+    isFirstClear = !saveData.clearedStages.includes(activeStage.id);
+    if (isFirstClear) saveData.clearedStages.push(activeStage.id);
+  }
   saveData.gold += activeStage.rewardGold;
 
   let recruitBanner = '';
-  if (activeStage.firstClearRecruit && recruitUnitToRoster(activeStage.firstClearRecruit)) {
+  if (!isTower && activeStage.firstClearRecruit && recruitUnitToRoster(activeStage.firstClearRecruit)) {
     const rec = DATA_UNITS[activeStage.firstClearRecruit];
     recruitBanner = `<div class="recruit-callout">🎉 【列國收徒】新名將 <strong>${rec.name}</strong>（${rec.role}）正式拜入孔門！</div>`;
   }
@@ -6287,7 +7139,17 @@ async function triggerBattleVictory() {
   if (isFirstClear && activeStage.firstClearEquip) {
     const eid = activeStage.firstClearEquip;
     saveData.equipInventory[eid] = (saveData.equipInventory[eid] || 0) + 1;
-    dropMsg += ` 🎁 首通獲得典籍【${DATA_EQUIPS[eid].name}】！`;
+    dropMsg += ` 🎁 首通獲得【${DATA_EQUIPS[eid].name}】！`;
+  }
+  if (!isTower && activeStage.dropMaterial && DATA_MATERIALS[activeStage.dropMaterial]) {
+    const mid = activeStage.dropMaterial;
+    if (!saveData.materials) saveData.materials = {};
+    const exEq = Object.values(DATA_EQUIPS).find(e => e.forgeRecipe && e.forgeRecipe.matId === mid);
+    const alreadyDone = exEq && (saveData.equipInventory[exEq.id] || 0) > 0;
+    if (!alreadyDone && (saveData.materials[mid] || 0) === 0) {
+      saveData.materials[mid] = 1;
+      dropMsg += ` 🔨 獲得鍛造素材【${DATA_MATERIALS[mid].name}】！`;
+    }
   }
   if (isFirstClear && activeStage.firstClearBonusItems) {
     const bNames = { suxiu: '束脩', bento: '簞食瓢飲', yarrow: '蓍草', potion: '一般傷藥' };
@@ -6297,6 +7159,26 @@ async function triggerBattleVictory() {
       parts.push(`${bNames[k] || k}×${cnt}`);
     });
     if (parts.length) dropMsg += ` 🎁 首通補給：${parts.join('、')}！`;
+  }
+
+  // 天道之塔每 5 層里程碑首通突破獎勵
+  if (isTower && activeStage.milestone && !saveData.tower.claimedMilestones.includes(activeStage.floor)) {
+    saveData.tower.claimedMilestones.push(activeStage.floor);
+    if (activeStage.floor === 5) {
+      Object.values(saveData.roster).forEach(r => { r.liuyiPts = (r.liuyiPts || 0) + 2; });
+      saveData.items.suxiu = (saveData.items.suxiu || 0) + 3;
+      recruitBanner = `<div class="recruit-callout">🏆 【而立境突破】全軍永久 +2 點六藝天賦點 ＋ 束脩 ×3！</div>`;
+    } else if (activeStage.floor === 10) {
+      saveData.equipInventory.chunqiu_pen = (saveData.equipInventory.chunqiu_pen || 0) + 1;
+      recruitBanner = `<div class="recruit-callout">🏆 【不惑境突破】獲得超越神兵【春秋筆・真】（攻+24、穿防50%、擊殺+35氣並再動）！</div>`;
+    } else if (activeStage.floor === 15) {
+      saveData.equipInventory.xingtan_guqin = (saveData.equipInventory.xingtan_guqin || 0) + 1;
+      recruitBanner = `<div class="recruit-callout">🏆 【知命境突破】獲得超越禮器【杏壇古琴・真】（每回合周圍2格+20氣並回血10%）！</div>`;
+    } else if (activeStage.floor === 20) {
+      saveData.tower.titleUnlocked = true;
+      saveData.equipInventory.tai_chu_sword = (saveData.equipInventory.tai_chu_sword || 0) + 1;
+      recruitBanner = `<div class="recruit-callout">👑 【從心境登頂】獲得終極神兵【太初・獲麟神劍】（攻+32、暴+25%、追擊35%真傷＋免死滿氣）並加冕【萬世師表】！</div>`;
+    }
   }
 
   // 出戰弟子獲得 100% EXP，板凳弟子「孔門共修」同步獲得 50% EXP
@@ -6315,13 +7197,28 @@ async function triggerBattleVictory() {
   }
 
   const isGrandFinale = activeStage.id === 'taishan_huolin';
-  document.getElementById('endTitle').textContent = isGrandFinale ? '🏆 獲麟絕筆・青史留名！' : '🚩 攻克城池！';
+  const btnReturn = document.getElementById('btnEndReturn');
+  const btnNextTw = document.getElementById('btnEndNextTower');
+  if (isTower) {
+    document.getElementById('endTitle').textContent = activeStage.floor === 20 ? '👑 萬世師表・登頂天道！' : `🗼 突破第 ${activeStage.floor} 層！`;
+    if (btnReturn) btnReturn.textContent = '返回天道之塔';
+    if (btnNextTw) btnNextTw.style.display = activeStage.floor < 20 ? 'inline-flex' : 'none';
+  } else {
+    document.getElementById('endTitle').textContent = isGrandFinale ? '🏆 獲麟絕筆・解鎖天道之塔！' : '🚩 攻克城池！';
+    if (btnReturn) btnReturn.textContent = '返回春秋輿圖';
+    if (btnNextTw) btnNextTw.style.display = 'none';
+  }
+
   document.getElementById('endSubtitle').innerHTML =
     `${recruitBanner}<div style="margin-top:6px;">獲得 ${activeStage.rewardGold} 兩與 ${activeStage.rewardExp} EXP（板凳共修 50%）。${dropMsg}` +
+    (isGrandFinale ? '<br><strong style="color:#ecd29b;">🗼 春秋輿圖右上角已正式解鎖【天道之塔（20層）】！</strong>' : '') +
     (lvUps.length ? `<br>升級：${lvUps.join('、')}` : '') + `</div>`;
   document.getElementById('endOverlay').classList.add('show');
 }
-function finishBattleAndReturn() { switchScene('map'); }
+function finishBattleAndReturn() {
+  if (activeStage && activeStage.isTowerFloor) switchScene('tower');
+  else switchScene('map');
+}
 
 function applyHexagramTerrain() {
   for (let r=0;r<GRID_SIZE;r++) for (let c=0;c<GRID_SIZE;c++) if (grid[r][c]===2) grid[r][c]=0;
@@ -6333,8 +7230,9 @@ function renderItemModal() {
   document.getElementById('cntPotion').textContent = saveData.items.potion;
   document.getElementById('cntBento').textContent = saveData.items.bento;
   document.getElementById('btnItemYarrow').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.yarrow<=0);
-  document.getElementById('btnItemPotion').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.potion<=0 || activeStage.modifiers.banNormalHeal);
-  document.getElementById('btnItemBento').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.bento<=0);
+  const banAllHealItems = hasActiveAffix('no_full_belly');
+  document.getElementById('btnItemPotion').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.potion<=0 || (activeStage.modifiers && activeStage.modifiers.banNormalHeal) || banAllHealItems);
+  document.getElementById('btnItemBento').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.bento<=0 || banAllHealItems);
   const bar = document.getElementById('forecastBar');
   if (forecastVisible) {
     if (hexLockedByStage) bar.textContent = `蓍草預告：本關鎖定【${getHex().name}】`;
@@ -6357,7 +7255,8 @@ function useItem(type) {
     applyHexagramTerrain(); AudioManager.play('bell'); persistSave(); renderItemModal(); renderAll(); return;
   }
   const u = getUnitById(selectedUnitId); if (!u || u.team !== 'player') { showInkDialog({ seal: '令', sealTone: 'info', title: '尚未選取目標武將', bodyHtml: '請先點選棋盤上一名<strong>我方武將</strong>，再開啟補給欄使用回復道具。', actions: [{ label: '知道了', cls: 'primary' }] }); return; }
-  if (type === 'potion' && !activeStage.modifiers.banNormalHeal && saveData.items.potion > 0) {
+  if (hasActiveAffix('no_full_belly')) return;
+  if (type === 'potion' && !(activeStage.modifiers && activeStage.modifiers.banNormalHeal) && saveData.items.potion > 0) {
     saveData.items.potion--; u.hp = Math.min(u.maxHp, u.hp + 40); AudioManager.play('guqin'); spawnFloatText(u.r,u.c,'+40 HP','heal');
   } else if (type === 'bento' && saveData.items.bento > 0) {
     saveData.items.bento--; u.hp = Math.min(u.maxHp, u.hp + 50); u.qi = Math.min(100, u.qi + 20); AudioManager.play('guqin'); spawnFloatText(u.r,u.c,'+50HP/+20氣','heal');
@@ -6436,8 +7335,8 @@ async function executeWeibianSanzhuo(idx) {
         spawnFloatText(p.r, p.c, '移+2 暴+20%', 'taiji');
       });
       enemies.filter(e => manhattan(kong.r, kong.c, e.r, e.c) <= 3).forEach(e => {
-        e.stunned = true;
-        spawnFloatText(e.r, e.c, '驚雷暈眩！', 'info');
+        if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info');
+        else { e.stunned = true; spawnFloatText(e.r, e.c, '驚雷暈眩！', 'info'); }
       });
     } else if (hex.id === 'xun') {
       allies.forEach(p => {
@@ -6518,6 +7417,12 @@ function renderBattleTop() {
   const taijiReady = Boolean(lastPlayerAction && lastPlayerAction.yinYang.includes('陽'));
   cTag.textContent = taijiReady ? `太極就緒(${lastPlayerAction.name})` : '';
   cTag.className = 'syn-tag' + (taijiReady ? ' taiji-ready' : '');
+  const twTag = document.getElementById('synTowerAffix');
+  if (twTag) {
+    const isTw = Boolean(activeStage && activeStage.isTowerFloor);
+    twTag.className = 'syn-tag tower-btn' + (isTw ? ' on' : '');
+    if (isTw) twTag.textContent = `🗼${activeStage.floor}F天命`;
+  }
 }
 
 let tileDomPool = null;
@@ -6831,12 +7736,12 @@ function renderFloatingUi() {
   const u = getUnitById(selectedUnitId);
   if (!u || u.team !== 'player' || u.isTower || u.stunned || u.sleepTurns > 0 || (u.ap <= 0 && !canKongHexFlip(u))) return;
 
-  // 階段 1：尚未移動、未展開指令窗 -> 腳邊顯示【原地出招 / 待機】快捷浮標
-  if (!showCmdPopover && !u.moved && u.ap > 0) {
+  // 階段 1：尚未移動、尚未出招、未展開指令窗 -> 腳邊顯示【原地出招 / 調息】快捷浮標
+  if (!showCmdPopover && !u.moved && !u.acted && u.ap > 0) {
     const pill = document.createElement('button');
     pill.className = 'quick-action-pill';
     pill.id = 'quickActionPill';
-    pill.textContent = '⚔ 原地出招 / 待機';
+    pill.textContent = u.hasActedThisTurn ? '⚔ 原地再動出招' : `⚔ 原地出招 / 調息(+${40 + (getHex().bonusQi || 0)}氣)`;
     pill.onclick = e => { e.stopPropagation(); openInPlaceCmdMenu(); };
     layer.appendChild(pill);
     cachedQuickPill = pill;
@@ -6881,12 +7786,13 @@ function renderFloatingUi() {
     }
 
     if (canAct && ult) {
-      const hpOk = !ult.hpBelowPct || (u.hp / u.maxHp) < ult.hpBelowPct;
+      const reqPct = (ult.hpBelowPct && u.equip && u.equip.weapon === 'ex_lu') ? 0.50 : ult.hpBelowPct;
+      const hpOk = !reqPct || (u.hp / u.maxHp) < reqPct;
       const ok = u.qi >= ulC && hpOk && (!ult.goldCost || saveData.gold >= ult.goldCost);
       const costTxt = `${ulC}氣${ult.goldCost ? `+${ult.goldCost}兩` : ''}`;
       htmlStr += `<button class="cmd-btn ult" ${ok ? '' : 'disabled'} onclick="selectMode('ult')">
         <div class="cmd-btn-top"><span>🔥 ${ult.name.slice(0, 6)}</span><span style="font-size:0.68rem;">${costTxt}</span></div>
-        <div class="cmd-btn-sub">${!hpOk ? '需血量<30%' : ult.rangeText}</div>
+        <div class="cmd-btn-sub">${!hpOk ? `需血量<${Math.round(reqPct * 100)}%` : ult.rangeText}</div>
       </button>`;
     }
 
@@ -6913,7 +7819,11 @@ function renderFloatingUi() {
       </button>`;
     }
 
-    htmlStr += `<button class="cmd-btn wait" onclick="doWait()">🧘 待機（調息 +${20 + (getHex().bonusQi || 0)}氣）</button>`;
+    if (!u.acted && !u.hasActedThisTurn && u.ap > 0) {
+      const waitGain = (u.moved ? 20 : 40) + (getHex().bonusQi || 0);
+      const waitLbl = u.moved ? `🧘 待機調息（+${waitGain}氣）` : `🧘 原地調息（加倍 +${waitGain}氣）`;
+      htmlStr += `<button class="cmd-btn wait" onclick="doWait()">${waitLbl}</button>`;
+    }
 
     card.innerHTML = htmlStr;
     layer.appendChild(card);
@@ -7320,6 +8230,26 @@ const DATA_STORIES = {
     ],
     postBattle: [
       { side: 'right', tpl: 'p_agu', name: '阿谷處女', seal: '谷', fx: 'fadeIn', text: '果然名不虛傳！這枚玉佩我收回了，從今天起就跟在夫子身邊，替各位試探天下敵人的深淺！' }
+    ]  },
+  tower_15: {
+    preBattle: [
+      { side: 'right', tpl: 'p_lu', name: '幻影·子路', seal: '幻', fx: 'lunge', text: '哼！平常打仗都叫我衝最前面吃招當砲灰，今天換你們嚐嚐被「暴虎馮河」撞飛的滋味！' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '……連心魔都會抱怨工時與職災了嗎？諸位小心，這層是我們孔門自己的鏡像！' },
+      { side: 'right', tpl: 'p_hui', name: '幻影·顏回', seal: '幻', text: '老師對不起，這層我負責幫對面奶血加攻，請溫柔一點點殺我……' }
+    ],
+    postBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '知命境已破！這把【杏壇古琴】便留給各位，每回合奏響正氣、源源不絕回氣！' }
+    ]
+  },
+  tower_20: {
+    preBattle: [
+      { side: 'right', tpl: 'boss', name: '天道化身', seal: '天', fx: 'lunge', text: '居然真能一路殺到第二十層！在此【從心境】之巔，每回合天象劇變、萬盾齊開，爾等凡軀如何抗衡？' },
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '七十而從心所欲，不逾矩。既然來到天道之巔，今日便以我孔門十五賢才，向這天道遞交最終答卷！' },
+      { side: 'left', tpl: 'p_yanzhengzai', name: '顏徵在', seal: '徵', text: '丘兒與諸位弟子放手一戰吧，最後一戰，母親會守住你們的背影！' }
+    ],
+    postBattle: [
+      { side: 'left', tpl: 'p_kong', name: '孔子', seal: '孔', text: '二十重天道試煉，終至從心所欲之境！感謝諸位一路相伴，此番【萬世師表】金印，與全門共享！' },
+      { side: 'left', tpl: 'p_lu', name: '子路', seal: '路', fx: 'shake', text: '太爽啦！連天道都被我們打服了，以後誰還敢說讀書人手無縛雞之力！' }
     ]
   }
 };
@@ -7470,10 +8400,444 @@ function replaySelectedStageStory() {
   StoryEngine.play(st.preBattle, null, true);
 }
 
-// 啟動時自動掃描 assets/sprites/ 資料夾，並渲染地圖
-preloadFolderSprites();
-updateGlobalNav();
-renderMapScene();
+
+// ============================================================================
+// 七、 v1.8 天道之塔（20 層・四重境界・10 大零重複《論語》天命詞條）
+// ============================================================================
+const DATA_TOWER_AFFIXES = {
+  blood_vigor:   { id: 'blood_vigor',   name: '血氣方剛', short: '全場移+2、攻+20%、防-25%', desc: '〈季氏〉戒之在鬥：全場所有單位移動力 +2、攻擊 +20%，但防禦 -25%，進入高速互秒局！' },
+  no_impose:     { id: 'no_impose',     name: '己所不欲', short: '全場雙向反擊傷提升至130%', desc: '〈衛靈公〉勿施於人：全場敵我雙向反擊傷害提升至 130%，貼臉普攻前務必先看反擊預覽！' },
+  no_haste:      { id: 'no_haste',      name: '欲速不達', short: '未移出招+20氣；移>2格攻-15%', desc: '〈子路〉無欲速：我方本回合未移動直接出招額外 +20 氣；若移動超過 2 格則本回合攻擊 -15%。' },
+  not_alone:     { id: 'not_alone',     name: '德不孤，必有鄰', short: '敵陣亡時周圍2格敵回血20%＋攻防↑', desc: '〈里仁〉敵軍陣亡時，周圍 2 格存活敵軍立即回復 20% 生命並獲得攻防 +20%（1回合），適合控血一波清場！' },
+  hollow_fierce: { id: 'hollow_fierce', name: '色厲內荏', short: '每回合開始敵軍全體+30護盾', desc: '〈陽貨〉每回合開始時所有敵軍獲得 30 點護盾，考驗真實傷害、太極合擊與泰山婦人吞盾！' },
+  stoic_wood:    { id: 'stoic_wood',    name: '剛毅木訥', short: '敵免暈眠，但破防/易傷效果翻倍', desc: '〈子路〉敵軍免疫暈眩與睡眠，但承受的「破防」（-60%防）與「易傷」（+70%傷）效果翻倍！' },
+  no_full_belly: { id: 'no_full_belly', name: '食無求飽', short: '禁回復道具，每回合我方損8%血', desc: '〈學而〉禁用所有回復道具，且每回合開始我方全體損失 8% 最大生命，考驗顏回、顏徵在與切兌卦續航！' },
+  harmony_diff:  { id: 'harmony_diff',  name: '和而不同', short: '絕招耗氣+20%，太極合擊+45真傷', desc: '〈子路〉絕招耗氣 +20%（上限100），但觸發「陽→陰」太極合擊時額外追加 +45 無視防禦真傷！' },
+  inner_trouble: { id: 'inner_trouble', name: '禍起蕭牆', short: '敵攻擊命中50%附內傷或破防', desc: '〈季氏〉敵軍每次攻擊命中時，50% 機率附加內傷或破防（2回合），正是冉伯牛與孔子淨化的主場！' },
+  time_flows:    { id: 'time_flows',    name: '逝者如斯', short: '八純卦改為每1回合強制輪轉', desc: '〈子罕〉天時流速翻倍，八純卦每 1 回合就強制輪轉一次，考驗臨場應變與【韋編三絕】！' }
+};
+
+const TOWER_REALMS = [
+  { idx: 0, name: '而立境', range: [1, 5],   msFloor: 5,  msLabel: '5F 全軍+2六藝點' },
+  { idx: 1, name: '不惑境', range: [6, 10],  msFloor: 10, msLabel: '10F 春秋筆・真' },
+  { idx: 2, name: '知命境', range: [11, 15], msFloor: 15, msLabel: '15F 杏壇古琴・真' },
+  { idx: 3, name: '從心境', range: [16, 20], msFloor: 20, msLabel: '20F 太初獲麟神劍' }
+];
+
+const DATA_TOWER_FLOORS = [
+  // ---- 第一重：而立境 1-5F (單詞條，奇數層快節奏殘局 / 偶數與5F大軍) ----
+  { floor: 1, realm: '而立境', name: '初試啼聲・疾風殘局', scale: 2.85, hex: 'zhen', affixes: ['blood_vigor'], dutyUnits: ['p_lu', 'p_zhonggong', 'p_min'],
+    obstacles: [[3,3],[3,5],[5,3],[5,5]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'天道先鋒', r:1, c:4, eliteSkill:'crush' }, { tpl:'cavalry', name:'疾風玄騎甲', r:2, c:1 }, { tpl:'cavalry', name:'疾風玄騎乙', r:2, c:7 }, { tpl:'archer', name:'天道箭衛', r:0, c:4 }] },
+  { floor: 2, realm: '而立境', name: '厚甲偽勢・破盾之戰', scale: 2.92, hex: 'gen', affixes: ['hollow_fierce'], dutyUnits: ['p_taishan', 'p_zixia', 'p_gong'],
+    obstacles: [[2,2],[2,6],[6,2],[6,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'金甲守門將', r:1, c:4, eliteSkill:'rally' }, { tpl:'soldier', name:'玄盾衛甲', r:2, c:3 }, { tpl:'soldier', name:'玄盾衛乙', r:2, c:5 }, { tpl:'strategist', name:'天道策士', r:0, c:4 }, { tpl:'archer', name:'塔樓弩手甲', r:1, c:1 }, { tpl:'archer', name:'塔樓弩手乙', r:1, c:7 }] },
+  { floor: 3, realm: '而立境', name: '靜如山嶽・陣地殘局', scale: 2.98, hex: 'kun', affixes: ['no_haste'], dutyUnits: ['p_zhonggong', 'p_ranyou', 'p_zixia'],
+    obstacles: [[2,4],[4,2],[4,6],[6,4]], playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
+    enemies: [{ tpl:'elite', name:'鎮嶽都尉', r:1, c:4, eliteSkill:'crush' }, { tpl:'soldier', name:'重盾鐵衛', r:2, c:3 }, { tpl:'strategist', name:'軍陣策士', r:0, c:5 }, { tpl:'archer', name:'高台長弓', r:1, c:7 }] },
+  { floor: 4, realm: '而立境', name: '群策互援・圍殲試煉', scale: 3.04, hex: 'dui', affixes: ['not_alone'], dutyUnits: ['p_ziyou', 'p_wo', 'p_nanzi'],
+    obstacles: [[3,2],[3,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'同袍校尉', r:1, c:4, eliteSkill:'rally' }, { tpl:'soldier', name:'互援甲士甲', r:2, c:2 }, { tpl:'soldier', name:'互援甲士乙', r:2, c:6 }, { tpl:'cavalry', name:'援軍輕騎', r:1, c:1 }, { tpl:'strategist', name:'隨軍醫官', r:0, c:3 }, { tpl:'archer', name:'聯防弓手甲', r:0, c:5 }, { tpl:'archer', name:'聯防弓手乙', r:1, c:7 }] },
+  { floor: 5, realm: '而立境', name: '而立守關・鏡鋒反制', scale: 3.10, hex: 'qian', affixes: ['no_impose'], dutyUnits: ['p_agu', 'p_lu', 'p_hui'], milestone: true,
+    obstacles: [[2,3],[2,5],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'boss', name:'而立守關・劍魂', r:0, c:4 }, { tpl:'elite', name:'反擊護法', r:2, c:4, eliteSkill:'crush' }, { tpl:'soldier', name:'重甲禁衛甲', r:1, c:2 }, { tpl:'soldier', name:'重甲禁衛乙', r:1, c:6 }, { tpl:'strategist', name:'劍魂祝史', r:0, c:2 }, { tpl:'archer', name:'天道神射甲', r:1, c:0 }, { tpl:'archer', name:'天道神射乙', r:1, c:8 }] },
+
+  // ---- 第二重：不惑境 6-10F (雙詞條＋雙策士) ----
+  { floor: 6, realm: '不惑境', name: '蕭牆毒陣・淨化考驗', scale: 3.20, hex: 'kan', affixes: ['inner_trouble', 'hollow_fierce'], dutyUnits: ['p_boniu', 'p_kong', 'p_taishan'],
+    obstacles: [[2,2],[2,6],[6,2],[6,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'毒策統領', r:1, c:4, eliteSkill:'rally' }, { tpl:'soldier', name:'劇毒盾兵甲', r:2, c:3 }, { tpl:'soldier', name:'劇毒盾兵乙', r:2, c:5 }, { tpl:'strategist', name:'蠱毒策士甲', r:0, c:3 }, { tpl:'strategist', name:'蠱毒策士乙', r:0, c:5 }, { tpl:'archer', name:'毒矢弓手', r:1, c:7 }] },
+  { floor: 7, realm: '不惑境', name: '剛毅鐵壁・破防殘局', scale: 3.28, hex: 'gen', affixes: ['no_haste', 'stoic_wood'], dutyUnits: ['p_zixia', 'p_nanzi', 'p_zhonggong'],
+    obstacles: [[3,1],[3,4],[3,7],[5,4]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'鐵壁將軍甲', r:1, c:3, eliteSkill:'crush' }, { tpl:'elite', name:'鐵壁將軍乙', r:1, c:5, eliteSkill:'rally' }, { tpl:'strategist', name:'鐵壁軍師', r:0, c:4 }, { tpl:'cavalry', name:'破陣玄騎', r:2, c:1 }] },
+  { floor: 8, realm: '不惑境', name: '陰陽相濟・連攜試煉', scale: 3.36, hex: 'dui', affixes: ['harmony_diff', 'not_alone'], dutyUnits: ['p_kong', 'p_hui', 'p_gong'],
+    obstacles: [[2,3],[2,5],[5,3],[5,5]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'太極考官', r:1, c:4, eliteSkill:'rally' }, { tpl:'cavalry', name:'連攜輕騎甲', r:2, c:1 }, { tpl:'cavalry', name:'連攜輕騎乙', r:2, c:7 }, { tpl:'soldier', name:'護法盾兵甲', r:2, c:3 }, { tpl:'soldier', name:'護法盾兵乙', r:2, c:5 }, { tpl:'strategist', name:'陰陽策士甲', r:0, c:2 }, { tpl:'strategist', name:'陰陽策士乙', r:0, c:6 }] },
+  { floor: 9, realm: '不惑境', name: '絕食狂瀾・高壓殘局', scale: 3.45, hex: 'li', affixes: ['no_full_belly', 'blood_vigor'], dutyUnits: ['p_yanzhengzai', 'p_hui', 'p_min'],
+    obstacles: [[2,2],[2,6],[6,2],[6,6]], playerSlots: [[4,4],[4,3],[4,5],[5,4],[5,3],[5,5]],
+    enemies: [{ tpl:'elite', name:'狂瀾猛將', r:0, c:4, eliteSkill:'crush' }, { tpl:'cavalry', name:'奪命輕騎甲', r:1, c:0 }, { tpl:'cavalry', name:'奪命輕騎乙', r:1, c:8 }, { tpl:'strategist', name:'燃血策士', r:8, c:4 }] },
+  { floor: 10, realm: '不惑境', name: '不惑守關・春秋筆試', scale: 3.55, hex: 'qian', affixes: ['inner_trouble', 'no_impose'], dutyUnits: ['p_boniu', 'p_agu', 'p_zixia'], milestone: true,
+    obstacles: [[2,2],[2,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'boss', name:'不惑守關・史官魂', r:0, c:4 }, { tpl:'elite', name:'執法校尉', r:2, c:4, eliteSkill:'rally' }, { tpl:'cavalry', name:'史筆輕騎甲', r:1, c:1 }, { tpl:'cavalry', name:'史筆輕騎乙', r:1, c:7 }, { tpl:'strategist', name:'褒貶策士甲', r:0, c:2 }, { tpl:'strategist', name:'褒貶策士乙', r:0, c:6 }, { tpl:'archer', name:'春秋弩手', r:2, c:0 }] },
+
+  // ---- 第三重：知命境 11-15F (引入【逝者如斯】＋ 15F 孔門鏡像戰) ----
+  { floor: 11, realm: '知命境', name: '川流不息・瞬息殘局', scale: 3.70, hex: 'zhen', affixes: ['time_flows', 'blood_vigor'], dutyUnits: ['p_ranyou', 'p_ziyou', 'p_lu'],
+    obstacles: [[3,3],[3,5],[5,3],[5,5]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'逐日都尉', r:1, c:4, eliteSkill:'crush' }, { tpl:'cavalry', name:'流光玄騎甲', r:2, c:0 }, { tpl:'cavalry', name:'流光玄騎乙', r:2, c:8 }, { tpl:'archer', name:'追風神射', r:0, c:4 }] },
+  { floor: 12, realm: '知命境', name: '饑寒堅盾・續航大戰', scale: 3.80, hex: 'kan', affixes: ['no_full_belly', 'hollow_fierce'], dutyUnits: ['p_yanzhengzai', 'p_taishan', 'p_hui'],
+    obstacles: [[2,2],[2,6],[4,4],[6,2],[6,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'玄冰統帥', r:1, c:4, eliteSkill:'rally' }, { tpl:'soldier', name:'堅壁重甲甲', r:2, c:3 }, { tpl:'soldier', name:'堅壁重甲乙', r:2, c:5 }, { tpl:'strategist', name:'寒水策士甲', r:0, c:3 }, { tpl:'strategist', name:'寒水策士乙', r:0, c:5 }, { tpl:'archer', name:'冰矢弓手甲', r:1, c:1 }, { tpl:'archer', name:'冰矢弓手乙', r:1, c:7 }] },
+  { floor: 13, realm: '知命境', name: '木訥太極・破甲殘局', scale: 3.90, hex: 'dui', affixes: ['harmony_diff', 'stoic_wood'], dutyUnits: ['p_kong', 'p_nanzi', 'p_zixia'],
+    obstacles: [[2,4],[4,2],[4,6],[6,4]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'金剛羅漢甲', r:1, c:3, eliteSkill:'crush' }, { tpl:'elite', name:'金剛羅漢乙', r:1, c:5, eliteSkill:'rally' }, { tpl:'soldier', name:'不動鐵衛', r:2, c:4 }, { tpl:'strategist', name:'破妄軍師', r:0, c:4 }] },
+  { floor: 14, realm: '知命境', name: '易變連營・天象迷陣', scale: 4.00, hex: 'xun', affixes: ['time_flows', 'not_alone'], dutyUnits: ['p_wo', 'p_gong', 'p_min'],
+    obstacles: [[2,2],[2,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'八卦都督', r:1, c:4, eliteSkill:'rally' }, { tpl:'cavalry', name:'巽風輕騎甲', r:2, c:1 }, { tpl:'cavalry', name:'巽風輕騎乙', r:2, c:7 }, { tpl:'soldier', name:'乾坤盾兵甲', r:2, c:3 }, { tpl:'soldier', name:'乾坤盾兵乙', r:2, c:5 }, { tpl:'strategist', name:'奇門策士', r:0, c:4 }, { tpl:'archer', name:'流矢弩手', r:0, c:2 }] },
+  { floor: 15, realm: '知命境', name: '孔門心魔鏡像戰', scale: 4.10, hex: 'qian', affixes: ['time_flows', 'inner_trouble'], dutyUnits: ['p_kong', 'p_lu', 'p_hui'], milestone: true,
+    obstacles: [[2,2],[2,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [
+      { tpl:'boss',       name:'幻影·孔子', r:0, c:4, mirrorTpl:'p_kong' },
+      { tpl:'elite',      name:'幻影·子路', r:2, c:3, eliteSkill:'crush', mirrorTpl:'p_lu' },
+      { tpl:'elite',      name:'幻影·仲弓', r:2, c:5, eliteSkill:'rally', mirrorTpl:'p_zhonggong' },
+      { tpl:'strategist', name:'幻影·顏回', r:1, c:4, mirrorTpl:'p_hui' },
+      { tpl:'archer',     name:'幻影·子夏', r:0, c:1, mirrorTpl:'p_zixia' },
+      { tpl:'cavalry',    name:'幻影·南子', r:1, c:7, mirrorTpl:'p_nanzi' }
+    ] },
+
+  // ---- 第四重：從心境 16-20F (終極高壓試煉) ----
+  { floor: 16, realm: '從心境', name: '合擊破壁・太極神陣', scale: 4.30, hex: 'dui', affixes: ['harmony_diff', 'hollow_fierce'], dutyUnits: ['p_taishan', 'p_kong', 'p_ziyou'],
+    obstacles: [[2,3],[2,5],[5,3],[5,5]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'從心將軍甲', r:1, c:3, eliteSkill:'rally' }, { tpl:'elite', name:'從心將軍乙', r:1, c:5, eliteSkill:'crush' }, { tpl:'soldier', name:'天道盾兵甲', r:2, c:2 }, { tpl:'soldier', name:'天道盾兵乙', r:2, c:6 }, { tpl:'strategist', name:'天道策士甲', r:0, c:3 }, { tpl:'strategist', name:'天道策士乙', r:0, c:5 }, { tpl:'archer', name:'天道弓手', r:1, c:0 }] },
+  { floor: 17, realm: '從心境', name: '浴血還擊・絕境殘局', scale: 4.45, hex: 'li', affixes: ['no_full_belly', 'no_impose'], dutyUnits: ['p_yanzhengzai', 'p_agu', 'p_lu'],
+    obstacles: [[3,2],[3,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'boss', name:'絕境劍魔', r:0, c:4 }, { tpl:'elite', name:'反傷血將', r:2, c:4, eliteSkill:'crush' }, { tpl:'cavalry', name:'嗜血玄騎甲', r:1, c:1 }, { tpl:'cavalry', name:'嗜血玄騎乙', r:1, c:7 }] },
+  { floor: 18, realm: '從心境', name: '萬化不動・剛毅天時', scale: 4.60, hex: 'gen', affixes: ['time_flows', 'stoic_wood'], dutyUnits: ['p_zixia', 'p_nanzi', 'p_boniu'],
+    obstacles: [[2,2],[2,6],[4,4],[6,2],[6,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'不動明王甲', r:1, c:2, eliteSkill:'crush' }, { tpl:'elite', name:'不動明王乙', r:1, c:6, eliteSkill:'rally' }, { tpl:'soldier', name:'玄鐵重衛甲', r:2, c:3 }, { tpl:'soldier', name:'玄鐵重衛乙', r:2, c:5 }, { tpl:'strategist', name:'天時策士甲', r:0, c:3 }, { tpl:'strategist', name:'天時策士乙', r:0, c:5 }, { tpl:'archer', name:'破空神射', r:0, c:7 }] },
+  { floor: 19, realm: '從心境', name: '天門前哨・血戰連營', scale: 4.80, hex: 'zhen', affixes: ['blood_vigor', 'not_alone'], dutyUnits: ['p_zhonggong', 'p_min', 'p_ranyou'],
+    obstacles: [[2,3],[2,5],[6,3],[6,5]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [{ tpl:'elite', name:'天門左將', r:1, c:2, eliteSkill:'rally' }, { tpl:'elite', name:'天門右將', r:1, c:6, eliteSkill:'crush' }, { tpl:'cavalry', name:'雷霆玄騎甲', r:2, c:0 }, { tpl:'cavalry', name:'雷霆玄騎乙', r:2, c:8 }, { tpl:'strategist', name:'天門軍師甲', r:0, c:3 }, { tpl:'strategist', name:'天門軍師乙', r:0, c:5 }, { tpl:'archer', name:'天門神射甲', r:1, c:4 }, { tpl:'soldier', name:'天門鐵衛', r:2, c:4 }] },
+  { floor: 20, realm: '從心境', name: '天道終極試煉・萬世師表', scale: 5.00, hex: 'qian', affixes: ['time_flows', 'hollow_fierce'], dutyUnits: ['p_kong', 'p_yanzhengzai', 'p_hui'], milestone: true,
+    obstacles: [[2,2],[2,6],[5,2],[5,6]], playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
+    enemies: [
+      { tpl:'boss',       name:'天道化身',   r:0, c:3 },
+      { tpl:'boss',       name:'萬世心魔',   r:0, c:5 },
+      { tpl:'elite',      name:'天道執法將', r:2, c:4, eliteSkill:'rally' },
+      { tpl:'cavalry',    name:'劫火玄騎甲', r:1, c:1 },
+      { tpl:'cavalry',    name:'劫火玄騎乙', r:1, c:7 },
+      { tpl:'strategist', name:'天機策士甲', r:1, c:3 },
+      { tpl:'strategist', name:'天機策士乙', r:1, c:5 },
+      { tpl:'archer',     name:'天罰神射',   r:3, c:0 }
+    ] }
+];
+
+let selectedTowerRealm = 0;
+
+function isTowerUnlocked() {
+  return Boolean(saveData.clearedStages && saveData.clearedStages.includes('taishan_huolin'));
+}
+
+function openTowerEntry() {
+  if (!isTowerUnlocked()) {
+    showInkDialog({
+      seal: '封',
+      sealTone: 'warn',
+      title: '天道之塔尚未解鎖',
+      bodyHtml: '需先通關主線第 10 關<strong>【泰山・獲麟絕筆】</strong>，方能踏入二十重天道試煉！',
+      actions: [{ label: '繼續征程', cls: 'primary' }]
+    });
+    return;
+  }
+  const maxC = saveData.tower?.maxCleared || 0;
+  selectedTowerRealm = Math.min(3, Math.floor(maxC / 5));
+  switchScene('tower');
+}
+
+function switchTowerRealm(idx) {
+  selectedTowerRealm = idx;
+  renderTowerScene();
+}
+
+function buildTowerStageObj(fl) {
+  return {
+    id: `tower_${fl.floor}`,
+    isTowerFloor: true,
+    floor: fl.floor,
+    milestone: Boolean(fl.milestone),
+    cityLabel: `天道塔・${fl.floor}F`,
+    region: `天道之塔・${fl.realm}`,
+    name: `第 ${fl.floor} 層・${fl.name}`,
+    enemyScale: fl.scale,
+    startHex: fl.hex,
+    victoryType: 'annihilate',
+    rewardGold: 600 + fl.floor * 90,
+    rewardExp: 180 + fl.floor * 25,
+    obstacles: fl.obstacles,
+    modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
+    affixes: fl.affixes,
+    dutyUnits: fl.dutyUnits,
+    playerSlots: fl.playerSlots,
+    enemySpawns: fl.enemies
+  };
+}
+
+function startTowerFloor(floorNum) {
+  const fl = DATA_TOWER_FLOORS.find(f => f.floor === floorNum);
+  if (!fl) return;
+  const maxC = saveData.tower?.maxCleared || 0;
+  if (floorNum > maxC + 1) {
+    showInkDialog({ seal: '鎖', sealTone: 'warn', title: '尚未解鎖此層', bodyHtml: `請先突破<strong>第 ${maxC + 1} 層</strong>後再往上挑戰。`, actions: [{ label: '知道了', cls: 'primary' }] });
+    return;
+  }
+  launchStage(buildTowerStageObj(fl));
+}
+
+function startNextTowerFloor() {
+  if (!activeStage || !activeStage.isTowerFloor || activeStage.floor >= 20) return;
+  startTowerFloor(activeStage.floor + 1);
+}
+
+function showTowerAffixDialog() {
+  if (!activeStage || !activeStage.isTowerFloor) return;
+  const affHtml = (activeStage.affixes || []).map(aid => {
+    const a = DATA_TOWER_AFFIXES[aid];
+    return a ? `<div class="affix-chip" style="margin-bottom:5px;"><strong>【${a.name}】</strong>${a.desc}</div>` : '';
+  }).join('');
+  const dutyNames = (activeStage.dutyUnits || []).map(id => DATA_UNITS[id]?.name || id).join('、');
+  showInkDialog({
+    seal: '命',
+    sealTone: 'info',
+    title: `天道之塔・第 ${activeStage.floor} 層天命`,
+    bodyHtml: `
+      ${affHtml}
+      <div style="margin-top:8px; padding:7px 9px; background:#121d1c; border:1px solid #3f756e; border-radius:5px; font-size:0.75rem; color:#cdeae6;">
+        <strong>✨ 本層值日生加護：</strong>${dutyNames}<br>
+        <span style="color:#9a9284;">上述弟子本層出戰享全屬性 +25%、開局滿氣 100！</span>
+      </div>`,
+    actions: [{ label: '明白了', cls: 'primary' }]
+  });
+}
+
+function renderTowerScene() {
+  const maxC = saveData.tower?.maxCleared || 0;
+  const claimed = saveData.tower?.claimedMilestones || [];
+  document.getElementById('towerProgressText').textContent =
+    `目前最高突破：${maxC} / 20 層${saveData.tower?.titleUnlocked ? '｜👑【萬世師表】已加冕' : ''}`;
+
+  const msRow = document.getElementById('towerMilestoneRow');
+  msRow.innerHTML = TOWER_REALMS.map(r => {
+    const done = claimed.includes(r.msFloor) || maxC >= r.msFloor;
+    return `<div class="tower-ms-pill ${done ? 'done' : ''}">${done ? '✅ ' : '🎁 '}${r.msLabel}</div>`;
+  }).join('');
+
+  TOWER_REALMS.forEach(r => {
+    const b = document.getElementById('towerRealm_' + r.idx);
+    if (b) b.classList.toggle('active', r.idx === selectedTowerRealm);
+  });
+
+  const realm = TOWER_REALMS[selectedTowerRealm] || TOWER_REALMS[0];
+  const floors = DATA_TOWER_FLOORS.filter(f => f.floor >= realm.range[0] && f.floor <= realm.range[1]);
+  const list = document.getElementById('towerFloorList');
+  list.innerHTML = '';
+
+  floors.forEach(fl => {
+    const cleared = fl.floor <= maxC;
+    const unlocked = fl.floor <= maxC + 1;
+    const hexObj = DATA_HEXAGRAMS.find(h => h.id === fl.hex) || DATA_HEXAGRAMS[0];
+    const affixHtml = fl.affixes.map(aid => {
+      const a = DATA_TOWER_AFFIXES[aid];
+      return a ? `<div class="affix-chip"><strong>【${a.name}】</strong>${a.short}</div>` : '';
+    }).join('');
+    const dutyHtml = fl.dutyUnits.map(uid => {
+      const t = DATA_UNITS[uid];
+      const inTeam = saveData.deployedIds.includes(uid);
+      return t ? `<span class="duty-unit-tag" style="${inTeam ? 'border-color:#ecd29b; color:#fff3d6;' : ''}">${t.name}${inTeam ? '✓' : ''}</span>` : '';
+    }).join('');
+
+    let msNote = '';
+    if (fl.floor === 5)  msNote = '🎁 首通突破：全軍永久 +2 六藝點 ＋ 束脩×3';
+    if (fl.floor === 10) msNote = '🎁 首通突破：超越兵器【春秋筆・真】（攻+24・擊殺再動）';
+    if (fl.floor === 15) msNote = '🎁 首通突破：超越禮器【杏壇古琴・真】（2格回氣回血）';
+    if (fl.floor === 20) msNote = '👑 首通登頂：終極神兵【太初・獲麟神劍】＋【萬世師表】';
+
+    const card = document.createElement('div');
+    card.className = 'tower-floor-card' + (cleared ? ' cleared' : '') + (fl.milestone ? ' boss-floor' : '') + (!unlocked ? ' locked' : '');
+    card.innerHTML = `
+      <div class="row-between">
+        <div>
+          <span class="pill ${fl.milestone ? 'gold' : 'player'}" style="font-size:0.66rem;">第 ${fl.floor} 層${fl.milestone ? '・守關' : ''}</span>
+          <strong style="font-family:var(--font-serif); font-size:0.92rem; color:#fff; margin-left:4px;">${fl.name}</strong>
+        </div>
+        <span style="font-size:0.7rem; color:#e86b64; font-weight:800;">${Math.round(fl.scale * 100)}%｜${hexObj.name}</span>
+      </div>
+      <div class="affix-chip-list">${affixHtml}</div>
+      <div class="duty-row">
+        <span>✨ 值日生(+25%全屬/滿氣)：</span>${dutyHtml}
+      </div>
+      ${msNote ? `<div style="font-size:0.72rem; color:#ecd29b; font-weight:800;">${msNote}${cleared ? '（已領取）' : ''}</div>` : ''}
+      <div class="row-between" style="margin-top:2px;">
+        <span style="font-size:0.7rem; color:#9a9284;">敵軍 ${fl.enemies.length} 員｜獎勵 ${600 + fl.floor * 90}兩 / ${180 + fl.floor * 25} EXP</span>
+        <button class="btn sm ${unlocked ? 'primary' : ''}" ${unlocked ? '' : 'disabled'} onclick="startTowerFloor(${fl.floor})">
+          ${cleared ? '⚔ 再次挑戰' : (unlocked ? '⚔ 立即登塔' : '🔒 未解鎖')}
+        </button>
+      </div>`;
+    list.appendChild(card);
+  });
+}
+
+
+// ============================================================================
+// 八、 v1.11 嚴禁社群內建瀏覽器（LINE / Facebook / Instagram / Threads 脆）
+// ============================================================================
+let detectedIabInfo = null;
+
+function getCleanGameUrl() {
+  try {
+    const u = new URL(window.location.href);
+    u.searchParams.delete('openExternalBrowser');
+    u.searchParams.delete('testBlock');
+    return u.toString();
+  } catch (e) {
+    return window.location.href;
+  }
+}
+
+function detectBlockedInAppBrowser() {
+  const ua = navigator.userAgent || navigator.vendor || window.opera || '';
+  const isAndroid = /Android/i.test(ua);
+  const isIOS = /iPhone|iPad|iPod/i.test(ua);
+  let testMode = '';
+  try {
+    testMode = (new URLSearchParams(window.location.search).get('testBlock') || '').toLowerCase();
+  } catch (e) {}
+
+  if (testMode === 'line' || /Line\/|\bLIFF\b/i.test(ua)) {
+    return {
+      key: 'line',
+      name: 'LINE 內建瀏覽器',
+      isAndroid, isIOS,
+      guideHtml:
+        '<strong>【LINE 跳轉教學】</strong><br>' +
+        '1. 點擊畫面右下角（或右上角）<strong>「⋮」</strong>或<strong>「分享」</strong>圖示。<br>' +
+        '2. 選擇<strong>「使用預設瀏覽器開啟」</strong>（Safari / Chrome）。<br>' +
+        '3. 或點擊下方複製網址，手動貼至系統瀏覽器遊玩。'
+    };
+  }
+  if (testMode === 'threads' || /Barcelona|Threads/i.test(ua)) {
+    return {
+      key: 'threads',
+      name: 'Threads（脆）內建瀏覽器',
+      isAndroid, isIOS,
+      guideHtml:
+        '<strong>【Threads（脆）跳轉教學】</strong><br>' +
+        '1. 點擊畫面右上角<strong>「⋯」</strong>或右下角<strong>「分享」</strong>圖示。<br>' +
+        '2. 選擇<strong>「在瀏覽器中開啟」</strong>（Safari / Chrome）。<br>' +
+        '3. 或點擊下方複製網址，改由手機系統瀏覽器開啟。'
+    };
+  }
+  if (testMode === 'ig' || /Instagram/i.test(ua)) {
+    return {
+      key: 'ig',
+      name: 'Instagram 內建瀏覽器',
+      isAndroid, isIOS,
+      guideHtml:
+        '<strong>【Instagram 跳轉教學】</strong><br>' +
+        '1. 點擊畫面右上角<strong>「⋯」</strong>選單。<br>' +
+        '2. 選擇<strong>「在外部瀏覽器中開啟」</strong>（Safari / Chrome）。<br>' +
+        '3. 或點擊下方複製網址，改由手機系統瀏覽器開啟。'
+    };
+  }
+  if (testMode === 'fb' || /FBAN|FBAV|FB_IAB|FBIOS|FB4A|Messenger/i.test(ua)) {
+    return {
+      key: 'fb',
+      name: 'Facebook / Messenger 內建瀏覽器',
+      isAndroid, isIOS,
+      guideHtml:
+        '<strong>【Facebook 跳轉教學】</strong><br>' +
+        '1. 點擊畫面右上角<strong>「⋯」</strong>（或右下角選單）。<br>' +
+        '2. 選擇<strong>「在外部瀏覽器開啟」</strong>（Safari / Chrome）。<br>' +
+        '3. 或點擊下方複製網址，改由手機系統瀏覽器開啟。'
+    };
+  }
+  return null;
+}
+
+function tryOpenExternalBrowser() {
+  if (!detectedIabInfo) return;
+  const cleanUrl = getCleanGameUrl();
+  if (detectedIabInfo.key === 'line') {
+    try {
+      const u = new URL(cleanUrl);
+      u.searchParams.set('openExternalBrowser', '1');
+      window.location.replace(u.toString());
+      return;
+    } catch (e) {}
+  }
+  if (detectedIabInfo.isAndroid && /^https?:\/\//i.test(cleanUrl)) {
+    const scheme = cleanUrl.startsWith('https://') ? 'https' : 'http';
+    const stripped = cleanUrl.replace(/^https?:\/\//i, '');
+    window.location.href = `intent://${stripped}#Intent;scheme=${scheme};action=android.intent.action.VIEW;end`;
+    return;
+  }
+  copyGameUrlForExternal();
+}
+
+function copyGameUrlForExternal() {
+  const url = getCleanGameUrl();
+  const toast = document.getElementById('iabCopyToast');
+  const onCopied = () => {
+    if (toast) toast.textContent = '✅ 網址已複製！請打開 Safari 或 Chrome 貼上開啟。';
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(url).then(onCopied).catch(() => fallbackCopyText(url, onCopied));
+  } else {
+    fallbackCopyText(url, onCopied);
+  }
+}
+
+function fallbackCopyText(text, cb) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    if (cb) cb();
+  } catch (e) {
+    const toast = document.getElementById('iabCopyToast');
+    if (toast) toast.textContent = '請長按下方網址列手動複製，並貼至 Safari / Chrome 開啟。';
+  }
+}
+
+function initGameOrBlockInAppBrowser() {
+  detectedIabInfo = detectBlockedInAppBrowser();
+  if (detectedIabInfo) {
+    // LINE 若尚未帶 openExternalBrowser=1，先嘗試自動強制跳出至系統瀏覽器
+    if (detectedIabInfo.key === 'line') {
+      try {
+        const cur = new URL(window.location.href);
+        if (cur.searchParams.get('openExternalBrowser') !== '1' && !cur.searchParams.get('testBlock') && /^https?:/i.test(cur.protocol)) {
+          cur.searchParams.set('openExternalBrowser', '1');
+          window.location.replace(cur.toString());
+        }
+      } catch (e) {}
+    }
+
+    const shell = document.querySelector('.mobile-shell');
+    if (shell) shell.style.display = 'none';
+    const blocker = document.getElementById('iabBlocker');
+    if (blocker) {
+      document.getElementById('iabAppBadge').textContent = `偵測到：${detectedIabInfo.name}`;
+      document.getElementById('iabGuideBox').innerHTML = detectedIabInfo.guideHtml;
+      document.getElementById('iabUrlBox').textContent = getCleanGameUrl();
+      const extBtn = document.getElementById('btnIabExternal');
+      if (extBtn) {
+        if (detectedIabInfo.key === 'line') {
+          extBtn.style.display = 'inline-flex';
+          extBtn.textContent = '🚀 嘗試透過 LINE 跳轉至外部瀏覽器';
+        } else if (detectedIabInfo.isAndroid) {
+          extBtn.style.display = 'inline-flex';
+          extBtn.textContent = '🚀 嘗試直接喚醒系統瀏覽器（Chrome）';
+        } else {
+          extBtn.style.display = 'none';
+        }
+      }
+      blocker.classList.add('show');
+    }
+    return;
+  }
+
+  // 正常瀏覽器環境：啟動遊戲
+  preloadFolderSprites();
+  updateGlobalNav();
+  renderMapScene();
+}
+
+initGameOrBlockInAppBrowser();
+
 </script>
 </body>
 </html>
