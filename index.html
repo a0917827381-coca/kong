@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.13 — 暗黑水墨・瞭望箭塔精靈圖對映修正版</title>
+<title>《論語戰棋》v1.14 — 暗黑水墨・結束回合自動調息版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -2220,7 +2220,7 @@
       </div>
       <div class="guide-block">
         <div class="g-head">二、行動點 (AP) 與浩然氣</div>
-        • <strong>行動與調息二選一</strong>：移動後可選擇「出招」或「待機調息 (+20氣)」；若本回合<strong>未移動直接【原地調息】</strong>，回氣加倍為 <strong>+40 浩然氣</strong>！本回合已出招後即不可再調息。<br>
+        • <strong>行動與調息二選一</strong>：移動後未出招可「待機調息 (+20氣)」，未移動直接「原地調息」加倍為 <strong>+40 浩然氣</strong>；直接按<strong>【結束回合】</strong>時，所有尚未出招的我方武將也會自動觸發對應調息！本回合已出招後即不可再調息。<br>
         • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
         • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
       </div>
@@ -6777,6 +6777,29 @@ async function endPlayerTurn() {
   pendingMove = null; pendingAction = null; showCmdPopover = false; selectedUnitId = null; reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
 
   try {
+
+  // v1.14 結束回合自動調息：未移動且未出招 -> 原地調息(+40氣)；已移動但未出招 -> 待機調息(+20氣)
+  const autoRestUnits = units.filter(u =>
+    u.team === 'player' && u.hp > 0 && !u.isTower &&
+    !u.stunned && u.sleepTurns <= 0 &&
+    !u.acted && !u.hasActedThisTurn && u.ap > 0
+  );
+  if (autoRestUnits.length > 0) {
+    const bonusQi = getHex().bonusQi || 0;
+    AudioManager.play('guqin');
+    const restLogs = [];
+    autoRestUnits.forEach(u => {
+      const isInPlace = !u.moved;
+      const gain = (isInPlace ? 40 : 20) + bonusQi;
+      u.ap = 0; u.moved = true; u.acted = true; u.hasActedThisTurn = true;
+      u.qi = Math.min(100, u.qi + gain);
+      spawnFloatText(u.r, u.c, isInPlace ? `原地調息 +${gain}氣` : `待機調息 +${gain}氣`, isInPlace ? 'taiji' : 'info');
+      restLogs.push(`${u.name}(${isInPlace ? '原地' : '待機'}+${gain}氣)`);
+    });
+    renderUnits();
+    addLog(`自動調息：${restLogs.join('、')}。`, 'player');
+    await sleep(320);
+  }
 
   // 冉有【瞭望箭塔】於玩家回合結束自動射擊 3 格內敵軍
   for (const tower of units.filter(u => u.team === 'player' && u.isTower && u.hp > 0)) {
