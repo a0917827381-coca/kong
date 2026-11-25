@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.12 — 暗黑水墨・吾與點也回氣與素材掉落修正版</title>
+<title>《論語戰棋》v1.13 — 暗黑水墨・瞭望箭塔精靈圖對映修正版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -2658,8 +2658,8 @@ const DATA_UNITS = {
   p_yanzhengzai:{ id: 'p_yanzhengzai', char: '徵', name: '顏徵在', role: '英靈守護・復活淨化', team: 'player', color: '#d97706', yinYang: '陰', trigram: 'kun',  maxHp: 125, baseAtk: 31, baseDef: 16, baseMove: 3, basicId: 'yan_basic',     skillId: 'yan_skill',     ultId: 'yan_ult',     spriteSheetKey: 'assets/sprites/yanzhengzai.png' },
 
   // ---- 召喚單位與敵軍 ----
-  chariot:     { char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
-  arrow_tower: { char: '塔', name: '瞭望箭塔', role: '工兵建築・自動射擊', team: 'player', isTower: true, color: '#92400e', yinYang: '無', trigram: 'gen', maxHp: 90, baseAtk: 30, baseDef: 18, baseMove: 0, range: 3, basicId: null, skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/tower.png' },
+  chariot:     { id: 'chariot', char: '車', name: '僱傭戰車', role: '召喚單位・近戰衝撞', team: 'player', color: '#b45309', yinYang: '陽', trigram: 'zhen', maxHp: 115, baseAtk: 38, baseDef: 16, baseMove: 4, basicId: 'kong_basic', skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/chariot.png' },
+  arrow_tower: { id: 'arrow_tower', char: '塔', name: '瞭望箭塔', role: '工兵建築・自動射擊', team: 'player', isTower: true, color: '#92400e', yinYang: '無', trigram: 'gen', maxHp: 90, baseAtk: 30, baseDef: 18, baseMove: 0, range: 3, basicId: null, skillId: null, ultId: null, spriteSheetKey: 'assets/sprites/tower.png' },
   soldier:     { char: '兵', name: '近戰盾兵', role: '敵方前排・近戰1格', team: 'enemy', enemyType: 'soldier',    color: '#9e2a24', yinYang: '無', trigram: 'gen', maxHp: 105, baseAtk: 29, baseDef: 15, baseMove: 3, range: 1, spriteSheetKey: 'assets/sprites/soldier.png' },
   archer:      { char: '弓', name: '遠程弓手', role: '敵方狙擊・遠程3格', team: 'enemy', enemyType: 'archer',     color: '#8f3068', yinYang: '無', trigram: 'xun', maxHp: 74,  baseAtk: 31, baseDef: 7,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/archer.png' },
   strategist:  { char: '策', name: '敵軍策士', role: '敵方輔助・治癒破防', team: 'enemy', enemyType: 'strategist', color: '#3b6e6c', yinYang: '陰', trigram: 'kan', maxHp: 78,  baseAtk: 28, baseDef: 8,  baseMove: 3, range: 3, spriteSheetKey: 'assets/sprites/strategist.png' },
@@ -5175,7 +5175,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     bonusCrit: (inner.num || 0) * 0.08 + eqB.crit, outerTalents: { ...outer },
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
     basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
-    ap: 2, maxAp: 2, moved: false, acted: false, hasActedThisTurn: false, chunqiuPendingExtra: false,
+    ap: tpl.isTower ? 0 : 2, maxAp: tpl.isTower ? 0 : 2, moved: false, acted: Boolean(tpl.isTower), hasActedThisTurn: false, chunqiuPendingExtra: false,
     isTower: Boolean(tpl.isTower),
     stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
     internalBleedTurns: 0, vulnerableTurns: 0, confusedTurns: 0, frozenTurns: 0,
@@ -7642,7 +7642,7 @@ function renderUnits() {
       eH.status.style.display = 'none';
     }
     if (eH.yy.textContent !== yyShort) eH.yy.textContent = yyShort;
-    if (u.team === 'player') {
+    if (u.team === 'player' && !u.isTower) {
       eH.ap.style.display = '';
       const apTxt = String(u.ap);
       if (eH.ap.textContent !== apTxt) eH.ap.textContent = apTxt;
