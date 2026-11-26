@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.19 — 暗黑水墨・絕學警覺與伏兵增援版</title>
+<title>《論語戰棋》v1.20 — 暗黑水墨・全覽滿屏華夏大輿圖版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -211,13 +211,13 @@
     left: 0;
     top: 0;
     width: 1000px;
-    height: 740px;
+    height: 1480px;
     transform-origin: 0 0;
     will-change: transform;
   }
   .china-svg {
     width: 1000px;
-    height: 740px;
+    height: 1480px;
     display: block;
     pointer-events: auto;
   }
@@ -2267,9 +2267,9 @@
 
         <div class="map-viewport" id="mapViewport">
           <div class="map-camera-layer" id="mapCameraLayer">
-            <svg class="china-svg" id="chinaMapSvg" width="1000" height="740" viewBox="0 0 1000 740" xmlns="http://www.w3.org/2000/svg">
+            <svg class="china-svg" id="chinaMapSvg" width="1000" height="1480" viewBox="0 0 1000 1480" xmlns="http://www.w3.org/2000/svg">
               <defs>
-                <radialGradient id="parchmentBg" cx="46%" cy="46%" r="65%">
+                <radialGradient id="parchmentBg" cx="46%" cy="50%" r="62%">
                   <stop offset="0%" stop-color="#2c2821"/>
                   <stop offset="56%" stop-color="#1c1915"/>
                   <stop offset="100%" stop-color="#101112"/>
@@ -2282,61 +2282,100 @@
                   <stop offset="0%" stop-color="#474033" stop-opacity="0.24"/>
                   <stop offset="100%" stop-color="#0c0d0e" stop-opacity="0"/>
                 </radialGradient>
+                <linearGradient id="edgeFadeTop" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#080a0c" stop-opacity="0.72"/>
+                  <stop offset="100%" stop-color="#080a0c" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="edgeFadeBottom" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0%" stop-color="#080a0c" stop-opacity="0.72"/>
+                  <stop offset="100%" stop-color="#080a0c" stop-opacity="0"/>
+                </linearGradient>
               </defs>
-              <!-- 海域背景 -->
-              <rect x="0" y="0" width="1000" height="740" fill="url(#seaGrad)"/>
-              <!-- 水墨海波紋 -->
-              <g stroke="#1b2d33" stroke-width="1.4" fill="none" opacity="0.55">
-                <path d="M 835,120 Q 860,112 885,120 T 935,120"/>
-                <path d="M 880,310 Q 905,302 930,310 T 980,310"/>
-                <path d="M 865,485 Q 890,477 915,485 T 965,485"/>
-                <path d="M 790,645 Q 815,637 840,645 T 890,645"/>
+              <!-- 全幅海域背景 -->
+              <rect x="0" y="0" width="1000" height="1480" fill="url(#seaGrad)"/>
+              <!-- 水墨海波紋（遼東灣・黃海・東海・南海） -->
+              <g stroke="#1b2d33" stroke-width="1.5" fill="none" opacity="0.55">
+                <path d="M 820,240 Q 845,232 870,240 T 920,240"/>
+                <path d="M 835,460 Q 860,452 885,460 T 935,460"/>
+                <path d="M 880,650 Q 905,642 930,650 T 980,650"/>
+                <path d="M 865,825 Q 890,817 915,825 T 965,825"/>
+                <path d="M 790,985 Q 815,977 840,985 T 890,985"/>
+                <path d="M 745,1165 Q 770,1157 795,1165 T 845,1165"/>
+                <path d="M 650,1345 Q 675,1337 700,1345 T 750,1345"/>
               </g>
-              <!-- 真實比例春秋華夏大陸輪廓（遼西・渤海灣・山東半島・江淮・長江口・吳越東南沿海） -->
-              <path d="M 0,0 L 765,0 L 748,26 L 728,55 L 705,74 L 662,62 L 625,78 L 608,112 L 638,148 L 692,162 L 745,168 L 818,162 L 882,174 L 912,198 L 892,232 L 848,248 L 812,265 L 788,298 L 795,342 L 822,388 L 856,442 L 882,492 L 892,528 L 862,554 L 832,572 L 852,606 L 828,655 L 785,705 L 732,740 L 0,740 Z"
-                    fill="url(#parchmentBg)" stroke="#756142" stroke-width="3"/>
+              <!-- 真實比例春秋華夏大陸填色（北至燕山塞北、南至百越嶺南，無上下切邊硬線） -->
+              <path d="M -20,-20 L 895,-20 L 868,78 L 836,158 L 802,248 L 765,340 L 748,366 L 728,395 L 705,414 L 662,402 L 625,418 L 608,452 L 638,488 L 692,502 L 745,508 L 818,502 L 882,514 L 912,538 L 892,572 L 848,588 L 812,605 L 788,638 L 795,682 L 822,728 L 856,782 L 882,832 L 892,868 L 862,894 L 832,912 L 852,946 L 828,995 L 785,1045 L 732,1080 L 688,1148 L 642,1212 L 585,1278 L 512,1345 L 435,1415 L 368,1500 L -20,1500 Z"
+                    fill="url(#parchmentBg)"/>
+              <!-- 僅繪製真實海岸線邊界（絕不在上下左切出硬線） -->
+              <path d="M 895,-20 L 868,78 L 836,158 L 802,248 L 765,340 L 748,366 L 728,395 L 705,414 L 662,402 L 625,418 L 608,452 L 638,488 L 692,502 L 745,508 L 818,502 L 882,514 L 912,538 L 892,572 L 848,588 L 812,605 L 788,638 L 795,682 L 822,728 L 856,782 L 882,832 L 892,868 L 862,894 L 832,912 L 852,946 L 828,995 L 785,1045 L 732,1080 L 688,1148 L 642,1212 L 585,1278 L 512,1345 L 435,1415 L 368,1500"
+                    fill="none" stroke="#756142" stroke-width="3" stroke-linejoin="round"/>
               <!-- 內陸水墨暈染 -->
-              <ellipse cx="470" cy="365" rx="330" ry="250" fill="url(#inkMist)"/>
-              <!-- 歷史疆域淡墨印記（晉・齊・魯・衛・宋・楚・吳） -->
+              <ellipse cx="470" cy="705" rx="340" ry="300" fill="url(#inkMist)"/>
+              <!-- 歷史疆域淡墨印記（北燕・中原列國・南越） -->
               <g fill="#594e3b" font-family="Noto Serif TC, KaiTi, serif" font-size="34" font-weight="900" opacity="0.24" letter-spacing="6">
-                <text x="155" y="210">晉</text>
-                <text x="775" y="205">齊</text>
-                <text x="640" y="365">魯</text>
-                <text x="415" y="310">衛</text>
-                <text x="545" y="425">宋</text>
-                <text x="235" y="615">楚</text>
-                <text x="775" y="595">吳</text>
+                <text x="540" y="255">燕</text>
+                <text x="210" y="205" font-size="28">塞北</text>
+                <text x="155" y="550">晉</text>
+                <text x="775" y="545">齊</text>
+                <text x="640" y="705">魯</text>
+                <text x="415" y="650">衛</text>
+                <text x="545" y="765">宋</text>
+                <text x="235" y="955">楚</text>
+                <text x="775" y="935">吳</text>
+                <text x="660" y="1095">越</text>
+                <text x="315" y="1265" font-size="30">百越</text>
               </g>
-              <!-- 水墨山脈：太行山、泰山、嵩山、大別山 -->
+              <!-- 水墨山脈：陰山・燕山・太行山・泰山・嵩山・大別山・武夷山・五嶺 -->
               <g stroke="#5e5443" stroke-width="2" fill="rgba(20,18,15,0.5)" opacity="0.86">
+                <!-- 陰山 / 塞北遠山 -->
+                <path d="M 165,155 L 205,108 L 245,155 M 212,158 L 248,118 L 284,158"/>
+                <!-- 燕山 -->
+                <path d="M 495,188 L 532,140 L 568,188 M 542,190 L 575,148 L 608,190"/>
                 <!-- 太行山脈 -->
-                <path d="M 285,115 L 315,72 L 345,115 M 318,118 L 348,80 L 378,118"/>
-                <path d="M 245,195 L 278,150 L 310,195 M 280,200 L 308,162 L 336,200"/>
-                <path d="M 195,295 L 228,252 L 260,295"/>
+                <path d="M 285,455 L 315,412 L 345,455 M 318,458 L 348,420 L 378,458"/>
+                <path d="M 245,535 L 278,490 L 310,535 M 280,540 L 308,502 L 336,540"/>
+                <path d="M 195,635 L 228,592 L 260,635"/>
                 <!-- 泰山 -->
-                <path d="M 652,235 L 688,186 L 724,235 M 694,238 L 724,198 L 754,238"/>
+                <path d="M 652,575 L 688,526 L 724,575 M 694,578 L 724,538 L 754,578"/>
                 <!-- 嵩山 / 伏牛山 -->
-                <path d="M 310,425 L 344,382 L 378,425 M 350,428 L 378,392 L 406,428"/>
+                <path d="M 310,765 L 344,722 L 378,765 M 350,768 L 378,732 L 406,768"/>
                 <!-- 大別山 -->
-                <path d="M 488,575 L 520,536 L 552,575 M 526,578 L 556,544 L 586,578"/>
+                <path d="M 488,915 L 520,876 L 552,915 M 526,918 L 556,884 L 586,918"/>
+                <!-- 武夷山 -->
+                <path d="M 545,1135 L 578,1090 L 612,1135 M 586,1138 L 615,1098 L 645,1138"/>
+                <!-- 五嶺 / 南嶺 -->
+                <path d="M 235,1235 L 272,1190 L 310,1235 M 280,1238 L 315,1196 L 350,1238"/>
               </g>
               <!-- 山海標註 -->
-              <text x="652" y="106" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">渤海</text>
-              <text x="872" y="355" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">黃海</text>
-              <text x="895" y="528" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">東海</text>
-              <text x="275" y="140" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">太行山</text>
-              <text x="728" y="218" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">泰山</text>
-              <text x="328" y="446" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">嵩山</text>
-              <text x="515" y="596" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">大別山</text>
+              <text x="652" y="446" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">渤海</text>
+              <text x="872" y="695" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">黃海</text>
+              <text x="895" y="868" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">東海</text>
+              <text x="685" y="1310" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">南海</text>
+              <text x="515" y="210" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.82">燕山</text>
+              <text x="275" y="480" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">太行山</text>
+              <text x="728" y="558" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">泰山</text>
+              <text x="328" y="786" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">嵩山</text>
+              <text x="515" y="936" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">大別山</text>
+              <text x="562" y="1158" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.8">武夷山</text>
+              <text x="262" y="1258" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.8">五嶺</text>
+              <!-- 桑乾河 / 遼西水系 -->
+              <path d="M 380,260 Q 480,275 565,305 T 675,382" fill="none" stroke="#4c7a82" stroke-width="3.2" opacity="0.45" stroke-linecap="round"/>
               <!-- 石青墨色黃河（春秋故道：經衛國北入渤海） -->
-              <path d="M 0,342 Q 120,335 235,342 T 405,315 Q 485,288 530,222 T 618,125" fill="none" stroke="#578a8f" stroke-width="6" opacity="0.68" stroke-linecap="round"/>
-              <text x="352" y="335" fill="#89bcc2" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">黃河</text>
+              <path d="M 0,682 Q 120,675 235,682 T 405,655 Q 485,628 530,562 T 618,465" fill="none" stroke="#578a8f" stroke-width="6" opacity="0.68" stroke-linecap="round"/>
+              <text x="352" y="675" fill="#89bcc2" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">黃河</text>
               <!-- 淮河 -->
-              <path d="M 385,512 Q 510,502 630,488 T 812,455" fill="none" stroke="#4c7a82" stroke-width="3.6" opacity="0.52" stroke-linecap="round"/>
-              <text x="572" y="484" fill="#7aaab2" font-family="Noto Serif TC, KaiTi, serif" font-size="12" font-weight="800" opacity="0.82">淮水</text>
+              <path d="M 385,852 Q 510,842 630,828 T 812,795" fill="none" stroke="#4c7a82" stroke-width="3.6" opacity="0.52" stroke-linecap="round"/>
+              <text x="572" y="824" fill="#7aaab2" font-family="Noto Serif TC, KaiTi, serif" font-size="12" font-weight="800" opacity="0.82">淮水</text>
               <!-- 長江 -->
-              <path d="M 0,618 Q 145,650 295,642 T 565,612 Q 720,588 865,536" fill="none" stroke="#477a82" stroke-width="7.5" opacity="0.68" stroke-linecap="round"/>
-              <text x="488" y="638" fill="#7cb2ba" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">長江</text>
+              <path d="M 0,958 Q 145,990 295,982 T 565,952 Q 720,928 865,876" fill="none" stroke="#477a82" stroke-width="7.5" opacity="0.68" stroke-linecap="round"/>
+              <text x="488" y="978" fill="#7cb2ba" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">長江</text>
+              <!-- 湘水與珠江水系 -->
+              <path d="M 290,992 Q 285,1080 265,1165" fill="none" stroke="#4c7a82" stroke-width="3.4" opacity="0.46" stroke-linecap="round"/>
+              <path d="M 80,1325 Q 230,1315 365,1320 T 532,1318" fill="none" stroke="#477a82" stroke-width="4.5" opacity="0.5" stroke-linecap="round"/>
+              <text x="355" y="1310" fill="#7aaab2" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.78">珠江</text>
+              <!-- 上下水墨自然漸層羽化（完全消除切邊感） -->
+              <rect x="0" y="0" width="1000" height="170" fill="url(#edgeFadeTop)" pointer-events="none"/>
+              <rect x="0" y="1310" width="1000" height="170" fill="url(#edgeFadeBottom)" pointer-events="none"/>
               <g id="mapRoutesLayer"></g>
               <g id="mapCitiesLayer"></g>
             </svg>
@@ -3181,7 +3220,7 @@ const BOND_PAIRS = [
 const DATA_STAGES = [
   // ---- 主線 7 站 (9×9 硬核戰棋：階級縮放 + 多樣開局卦 + 菁英將領 + 功能兵種) ----
   {
-    id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 515, y: 365, req: null,
+    id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 515, y: 705, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
     enemyScale: 1.0, startHex: 'qian',
     victoryType: 'annihilate',
@@ -3199,7 +3238,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 455, y: 260, req: 'lu_kuang',
+    id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 455, y: 600, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
     enemyScale: 1.22, startHex: 'kun',
     victoryType: 'annihilate',
@@ -3217,7 +3256,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 545, y: 460, req: 'wei_nanzi',
+    id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 545, y: 800, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
     enemyScale: 1.42, startHex: 'li',
     victoryType: 'annihilate',
@@ -3240,7 +3279,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 720, y: 410, req: 'song_huan',
+    id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 720, y: 750, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
     enemyScale: 1.60, startHex: 'xun',
     victoryType: 'annihilate',
@@ -3263,7 +3302,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 275, y: 280, req: 'lu_wucheng',
+    id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 275, y: 620, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
     enemyScale: 1.78, startHex: 'gen',
     victoryType: 'annihilate',
@@ -3286,7 +3325,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 430, y: 525, req: 'wei_xihe',
+    id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 430, y: 865, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧・破圍而出',
     enemyScale: 1.95, startHex: 'kan',
     victoryType: 'annihilate',
@@ -3309,7 +3348,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 330, y: 625, req: 'chencai',
+    id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 330, y: 965, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     enemyScale: 2.15, startHex: 'li',
     victoryType: 'annihilate',
@@ -3333,7 +3372,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 820, y: 240, req: 'chu_boss',
+    id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 820, y: 580, req: 'chu_boss',
     region: '主線第8站・歸魯終章', name: '夾谷會盟・萊夷伏兵',
     enemyScale: 2.35, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -3360,7 +3399,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 600, y: 295, req: 'qi_jiagu',
+    id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 600, y: 635, req: 'qi_jiagu',
     region: '主線第9站・歸魯終章', name: '墮三都・三桓圍城',
     enemyScale: 2.55, startHex: 'gen',
     victoryType: 'annihilate',
@@ -3387,7 +3426,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 695, y: 195, req: 'lu_sandu',
+    id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 695, y: 535, req: 'lu_sandu',
     region: '最終章・泰山之巔', name: '獲麟絕筆（真正最終戰）',
     enemyScale: 2.80, startHex: 'li',
     victoryType: 'annihilate',
@@ -3415,7 +3454,7 @@ const DATA_STAGES = [
 
   // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 硬核特化試煉) ----
   {
-    id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 695, y: 315, req: 'lu_kuang', isSecret: true,
+    id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 695, y: 655, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
     enemyScale: 1.50, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -3437,7 +3476,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 370, y: 175, req: 'wei_nanzi', isSecret: true,
+    id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 370, y: 515, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
     enemyScale: 1.48, startHex: 'dui',
     victoryType: 'annihilate',
@@ -3458,7 +3497,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 805, y: 335, req: 'song_huan', isSecret: true,
+    id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 805, y: 675, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
     enemyScale: 1.65, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -3480,7 +3519,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 785, y: 495, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 785, y: 835, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
     enemyScale: 1.85, startHex: 'gen',
     victoryType: 'annihilate',
@@ -3502,7 +3541,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 605, y: 560, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 605, y: 900, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
     enemyScale: 1.90, startHex: 'kan',
     victoryType: 'annihilate',
@@ -3829,7 +3868,9 @@ function isStageUnlocked(st) { return !st.req || saveData.clearedStages.includes
 
 // ---- v1.17 春秋大輿圖攝影機系統（等比真實中國版圖、單指拖曳慣性、一鍵全覽切換） ----
 const MAP_W = 1000;
-const MAP_H = 740;
+const MAP_H = 1480;
+const MAP_CENTER_X = 548;
+const MAP_CENTER_Y = 740;
 let mapZoomMode = 'explore'; // 'explore' | 'overview'
 let mapCamX = 0, mapCamY = 0, mapCamScale = 1;
 let mapTargetX = null, mapTargetY = null;
@@ -3846,10 +3887,11 @@ function getMapViewportSize() {
 function computeMapScale() {
   const { w, h } = getMapViewportSize();
   if (mapZoomMode === 'overview') {
-    return Math.min(w / MAP_W, h / MAP_H);
+    // 全覽滿屏：維持真實地理 1:1 比例，並以較大邊撐滿整個直向螢幕（零上下黑邊），中原 15 城完整入鏡
+    return Math.max(w / MAP_W, h / MAP_H);
   }
-  // 探索模式：比例不變，高度填滿可視區（並略微放大便於上下左右巡視），寬度自然超出可拖曳
-  return Math.max((h / MAP_H) * 1.06, (w / MAP_W) * 1.35);
+  // 探索放大模式：比例不變，清楚放大列國城池，支援上下左右流暢拖曳
+  return Math.max((w / MAP_W) * 1.65, (h / MAP_H) * 1.48);
 }
 
 function clampMapCamera(x, y) {
@@ -3937,7 +3979,8 @@ function toggleMapZoom() {
   updateMapZoomBtnUi();
   mapCamScale = computeMapScale();
   if (mapZoomMode === 'overview') {
-    const cl = clampMapCamera(0, 0);
+    const { w, h } = getMapViewportSize();
+    const cl = clampMapCamera(w / 2 - MAP_CENTER_X * mapCamScale, h / 2 - MAP_CENTER_Y * mapCamScale);
     mapCamX = cl.x; mapCamY = cl.y;
     mapTargetX = null; mapTargetY = null;
     mapVelX = 0; mapVelY = 0;
@@ -3979,7 +4022,7 @@ function initMapPointerControls() {
     if (!mapDragActive || e.pointerId !== mapPointerId) return;
     const totalDist = Math.hypot(e.clientX - mapStartX, e.clientY - mapStartY);
     if (totalDist >= 8) mapDragMoved = true;
-    if (mapDragMoved && mapZoomMode === 'explore') {
+    if (mapDragMoved) {
       const dx = e.clientX - mapLastX;
       const dy = e.clientY - mapLastY;
       const cl = clampMapCamera(mapCamX + dx, mapCamY + dy);
@@ -3999,7 +4042,7 @@ function initMapPointerControls() {
     if (!mapDragActive || e.pointerId !== mapPointerId) return;
     mapDragActive = false;
     try { vp.releasePointerCapture(e.pointerId); } catch (err) {}
-    if (mapDragMoved && mapZoomMode === 'explore') {
+    if (mapDragMoved) {
       startMapCameraLoop();
       return;
     }
