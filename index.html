@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.16 — 暗黑水墨・雙重強制勝利條件版</title>
+<title>《論語戰棋》v1.17 — 暗黑水墨・全屏真實中國大輿圖版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -166,59 +166,172 @@
   .scene { display: none; flex-direction: column; flex: 1; overflow-y: auto; }
   .scene.active { display: flex; }
 
-  /* ==================== 場景 1：春秋中國水墨輿圖 ==================== */
-  .map-scene-wrap { flex: 1; display: flex; flex-direction: column; padding: 8px; gap: 8px; }
+  /* ==================== 場景 1：春秋中國水墨輿圖 (v1.17 全屏可拖曳真實版圖) ==================== */
+  .mobile-shell.in-map {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+  .mobile-shell.in-map #sceneMap {
+    overflow: hidden;
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .map-scene-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    gap: 0;
+  }
   .map-frame {
     position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
     width: 100%;
     border-radius: 8px;
     overflow: hidden;
     border: 2px solid #594a32;
-    background: #0c0e10;
+    background: #070b0d;
     box-shadow: inset 0 0 36px rgba(0, 0, 0, 0.85), 0 8px 22px rgba(0, 0, 0, 0.65);
   }
-  .china-svg { width: 100%; height: auto; display: block; touch-action: manipulation; }
-  .map-float-tools { position: absolute; top: 8px; right: 8px; display: flex; gap: 5px; z-index: 5; }
-  .map-watermark {
+  .map-viewport {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    cursor: grab;
+    background: radial-gradient(circle at 50% 50%, #10191d 0%, #070a0c 100%);
+  }
+  .map-viewport:active { cursor: grabbing; }
+  .map-camera-layer {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    background: rgba(16, 15, 13, 0.86);
+    left: 0;
+    top: 0;
+    width: 1000px;
+    height: 740px;
+    transform-origin: 0 0;
+    will-change: transform;
+  }
+  .china-svg {
+    width: 1000px;
+    height: 740px;
+    display: block;
+    pointer-events: auto;
+  }
+  .map-top-overlay {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    z-index: 12;
+    pointer-events: none;
+  }
+  .map-float-tools {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+    pointer-events: auto;
+  }
+  .map-float-tools .btn.sm {
+    min-height: 28px;
+    padding: 3px 7px;
+    font-size: 0.7rem;
+  }
+  .map-watermark {
+    background: rgba(16, 15, 13, 0.88);
     border: 1px solid #8c6d3b;
     color: var(--gold-bright);
     font-family: var(--font-serif);
-    font-size: 0.8rem;
+    font-size: 0.74rem;
     font-weight: 900;
-    padding: 3px 10px;
+    padding: 4px 8px;
     border-radius: 4px;
-    letter-spacing: 3px;
+    letter-spacing: 1.5px;
     pointer-events: none;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.65);
+  }
+  .map-bottom-overlay {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    right: 8px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 6px;
+    z-index: 12;
+    pointer-events: none;
+  }
+  .map-hint-pill {
+    background: rgba(14, 15, 16, 0.82);
+    border: 1px solid rgba(110, 92, 62, 0.65);
+    color: #cfc7b8;
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .map-zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    pointer-events: auto;
+  }
+  .map-ctrl-btn {
+    background: rgba(24, 22, 19, 0.92);
+    color: var(--gold-bright);
+    border: 1.5px solid #8c6d3b;
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-family: var(--font-serif);
+    font-size: 0.74rem;
+    font-weight: 900;
+    cursor: pointer;
+    min-height: 32px;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  }
+  .map-ctrl-btn:active { transform: scale(0.95); }
+  .map-ctrl-btn.overview {
+    background: linear-gradient(180deg, #5c4321 0%, #3d2b13 100%);
+    border-color: var(--gold-bright);
+    color: #fff5df;
   }
   .city-node { cursor: pointer; }
   .city-node.locked { cursor: not-allowed; opacity: 0.42; }
   .city-ring-pulse { animation: cityPulse 1.8s infinite ease-in-out; transform-box: fill-box; transform-origin: center; }
   @keyframes cityPulse { 0%, 100% { transform: scale(1); opacity: 0.88; } 50% { transform: scale(1.24); opacity: 0.3; } }
 
-  .briefing-card {
-    background: linear-gradient(180deg, #1b1a18 0%, #111110 100%);
-    border: 1.5px solid #4f4433;
-    border-radius: 8px;
-    padding: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.55);
+  .briefing-modal-sheet {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(212, 175, 106, 0.12) 0%, transparent 58%),
+      linear-gradient(180deg, #1d1b18 0%, #111112 100%);
+    border: 2px solid var(--gold);
+    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.92), inset 0 0 24px rgba(0, 0, 0, 0.6);
+    animation: inkDialogPop 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-  .briefing-head { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .briefing-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; border-bottom: 1px solid rgba(212, 175, 106, 0.26); padding-bottom: 8px; }
   .briefing-title {
     font-family: var(--font-serif);
-    font-size: 1.06rem;
+    font-size: 1.1rem;
     font-weight: 900;
     color: var(--gold-bright);
     letter-spacing: 1px;
+    margin-top: 2px;
   }
-  .briefing-meta { font-size: 0.78rem; color: #cfc7b8; line-height: 1.55; }
+  .briefing-meta { font-size: 0.8rem; color: #d6cebf; line-height: 1.6; }
   .briefing-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 8px; }
 
   /* ==================== 場景 2：孔門營地 & 場景 2.5：列國市集 ==================== */
@@ -1931,69 +2044,102 @@
     </div>
   </div>
 
-  <!-- ==================== 場景 1：春秋中國輿圖 ==================== -->
+  <!-- ==================== 場景 1：春秋中國輿圖 (v1.17 全屏真實中國版圖) ==================== -->
   <div class="scene active" id="sceneMap">
     <div class="map-scene-wrap">
       <div class="map-frame">
-        <div class="map-watermark">春秋列國輿圖</div>
-        <div class="map-float-tools">
-          <button class="btn sm" id="btnOpenTower" onclick="openTowerEntry()">🗼 天道之塔</button>
-          <button class="btn sm gold" onclick="openGuideModal()">📖 兵法手冊</button>
-        </div>
-        <svg class="china-svg" id="chinaMapSvg" viewBox="0 0 420 440" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="parchmentBg" cx="42%" cy="45%" r="68%">
-              <stop offset="0%" stop-color="#292620"/>
-              <stop offset="58%" stop-color="#1a1815"/>
-              <stop offset="100%" stop-color="#0f1011"/>
-            </radialGradient>
-            <linearGradient id="seaGrad" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#0d1417"/>
-              <stop offset="100%" stop-color="#070a0c"/>
-            </linearGradient>
-            <radialGradient id="inkMist" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#3d382e" stop-opacity="0.22"/>
-              <stop offset="100%" stop-color="#0c0d0e" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <rect x="0" y="0" width="420" height="440" fill="url(#seaGrad)"/>
-          <path d="M 0,0 L 340,0 L 325,38 L 295,62 L 312,86 L 368,88 L 395,112 L 372,142 L 340,162 L 352,218 L 382,272 L 362,320 L 330,375 L 285,425 L 240,440 L 0,440 Z"
-                fill="url(#parchmentBg)" stroke="#6e5c3e" stroke-width="2.2"/>
-          <ellipse cx="195" cy="215" rx="145" ry="130" fill="url(#inkMist)"/>
-          <!-- 水墨遠山 -->
-          <g stroke="#544b3c" stroke-width="1.6" fill="rgba(22,20,17,0.45)" opacity="0.82">
-            <path d="M 92,112 L 115,82 L 136,112 M 118,110 L 138,86 L 158,112"/>
-            <path d="M 288,110 L 306,88 L 324,110"/>
-            <path d="M 52,226 L 78,198 L 102,226 M 84,228 L 108,204 L 132,228"/>
-            <path d="M 178,276 L 198,256 L 218,276"/>
-          </g>
-          <text x="372" y="185" fill="#466266" font-family="Noto Serif TC, KaiTi, serif" font-size="12" font-weight="800" letter-spacing="3">東海</text>
-          <text x="275" y="46" fill="#466266" font-family="Noto Serif TC, KaiTi, serif" font-size="11" font-weight="800">渤海</text>
-          <text x="95" y="130" fill="#7c705b" font-family="Noto Serif TC, KaiTi, serif" font-size="10" opacity="0.85">太行山</text>
-          <text x="295" y="120" fill="#7c705b" font-family="Noto Serif TC, KaiTi, serif" font-size="10" opacity="0.85">泰山</text>
-          <!-- 石青墨色黃河、長江 -->
-          <path d="M 0,188 Q 75,180 130,175 T 230,152 T 320,102 L 348,88" fill="none" stroke="#538287" stroke-width="4" opacity="0.62" stroke-linecap="round"/>
-          <text x="148" y="166" fill="#82b3b8" font-family="Noto Serif TC, KaiTi, serif" font-size="10" font-weight="700" opacity="0.9">黃河</text>
-          <path d="M 0,335 Q 70,350 135,342 T 245,328 T 355,295 L 382,282" fill="none" stroke="#477a82" stroke-width="5" opacity="0.62" stroke-linecap="round"/>
-          <text x="255" y="344" fill="#78adb5" font-family="Noto Serif TC, KaiTi, serif" font-size="10" font-weight="700" opacity="0.9">長江</text>
-          <g id="mapRoutesLayer"></g>
-          <g id="mapCitiesLayer"></g>
-        </svg>
-      </div>
-
-      <div class="briefing-card">
-        <div class="briefing-head">
-          <div>
-            <div style="font-size:0.72rem; color:#8ec9c2; font-weight:800;" id="briefRegion">第一站・魯衛之交</div>
-            <div class="briefing-title" id="briefName">匡地突圍</div>
+        <div class="map-top-overlay">
+          <div class="map-watermark">春秋列國輿圖</div>
+          <div class="map-float-tools">
+            <button class="btn sm" id="btnOpenTower" onclick="openTowerEntry()">🗼 天道之塔</button>
+            <button class="btn sm gold" onclick="openGuideModal()">📖 兵法</button>
           </div>
-          <span class="pill" id="briefStatus">尚未通關</span>
         </div>
-        <div class="briefing-meta" id="briefMeta"></div>
-        <div class="briefing-actions-v15">
-          <button class="btn" id="btnReplayStory" onclick="replaySelectedStageStory()" title="重溫本關劇情">📜 劇情</button>
-          <button class="btn gold" onclick="switchScene('camp')">🏕 營地整備</button>
-          <button class="btn primary" id="btnEnterBattle" onclick="startSelectedStage()">⚔ 帶隊出征</button>
+
+        <div class="map-viewport" id="mapViewport">
+          <div class="map-camera-layer" id="mapCameraLayer">
+            <svg class="china-svg" id="chinaMapSvg" width="1000" height="740" viewBox="0 0 1000 740" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <radialGradient id="parchmentBg" cx="46%" cy="46%" r="65%">
+                  <stop offset="0%" stop-color="#2c2821"/>
+                  <stop offset="56%" stop-color="#1c1915"/>
+                  <stop offset="100%" stop-color="#101112"/>
+                </radialGradient>
+                <linearGradient id="seaGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#0f181c"/>
+                  <stop offset="100%" stop-color="#06090b"/>
+                </linearGradient>
+                <radialGradient id="inkMist" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#474033" stop-opacity="0.24"/>
+                  <stop offset="100%" stop-color="#0c0d0e" stop-opacity="0"/>
+                </radialGradient>
+              </defs>
+              <!-- 海域背景 -->
+              <rect x="0" y="0" width="1000" height="740" fill="url(#seaGrad)"/>
+              <!-- 水墨海波紋 -->
+              <g stroke="#1b2d33" stroke-width="1.4" fill="none" opacity="0.55">
+                <path d="M 835,120 Q 860,112 885,120 T 935,120"/>
+                <path d="M 880,310 Q 905,302 930,310 T 980,310"/>
+                <path d="M 865,485 Q 890,477 915,485 T 965,485"/>
+                <path d="M 790,645 Q 815,637 840,645 T 890,645"/>
+              </g>
+              <!-- 真實比例春秋華夏大陸輪廓（遼西・渤海灣・山東半島・江淮・長江口・吳越東南沿海） -->
+              <path d="M 0,0 L 765,0 L 748,26 L 728,55 L 705,74 L 662,62 L 625,78 L 608,112 L 638,148 L 692,162 L 745,168 L 818,162 L 882,174 L 912,198 L 892,232 L 848,248 L 812,265 L 788,298 L 795,342 L 822,388 L 856,442 L 882,492 L 892,528 L 862,554 L 832,572 L 852,606 L 828,655 L 785,705 L 732,740 L 0,740 Z"
+                    fill="url(#parchmentBg)" stroke="#756142" stroke-width="3"/>
+              <!-- 內陸水墨暈染 -->
+              <ellipse cx="470" cy="365" rx="330" ry="250" fill="url(#inkMist)"/>
+              <!-- 歷史疆域淡墨印記（晉・齊・魯・衛・宋・楚・吳） -->
+              <g fill="#594e3b" font-family="Noto Serif TC, KaiTi, serif" font-size="34" font-weight="900" opacity="0.24" letter-spacing="6">
+                <text x="155" y="210">晉</text>
+                <text x="775" y="205">齊</text>
+                <text x="640" y="365">魯</text>
+                <text x="415" y="310">衛</text>
+                <text x="545" y="425">宋</text>
+                <text x="235" y="615">楚</text>
+                <text x="775" y="595">吳</text>
+              </g>
+              <!-- 水墨山脈：太行山、泰山、嵩山、大別山 -->
+              <g stroke="#5e5443" stroke-width="2" fill="rgba(20,18,15,0.5)" opacity="0.86">
+                <!-- 太行山脈 -->
+                <path d="M 285,115 L 315,72 L 345,115 M 318,118 L 348,80 L 378,118"/>
+                <path d="M 245,195 L 278,150 L 310,195 M 280,200 L 308,162 L 336,200"/>
+                <path d="M 195,295 L 228,252 L 260,295"/>
+                <!-- 泰山 -->
+                <path d="M 652,235 L 688,186 L 724,235 M 694,238 L 724,198 L 754,238"/>
+                <!-- 嵩山 / 伏牛山 -->
+                <path d="M 310,425 L 344,382 L 378,425 M 350,428 L 378,392 L 406,428"/>
+                <!-- 大別山 -->
+                <path d="M 488,575 L 520,536 L 552,575 M 526,578 L 556,544 L 586,578"/>
+              </g>
+              <!-- 山海標註 -->
+              <text x="652" y="106" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">渤海</text>
+              <text x="872" y="355" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">黃海</text>
+              <text x="895" y="528" fill="#4f7075" font-family="Noto Serif TC, KaiTi, serif" font-size="18" font-weight="900" letter-spacing="4">東海</text>
+              <text x="275" y="140" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">太行山</text>
+              <text x="728" y="218" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="14" font-weight="800" opacity="0.9">泰山</text>
+              <text x="328" y="446" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">嵩山</text>
+              <text x="515" y="596" fill="#8f8168" font-family="Noto Serif TC, KaiTi, serif" font-size="13" font-weight="800" opacity="0.82">大別山</text>
+              <!-- 石青墨色黃河（春秋故道：經衛國北入渤海） -->
+              <path d="M 0,342 Q 120,335 235,342 T 405,315 Q 485,288 530,222 T 618,125" fill="none" stroke="#578a8f" stroke-width="6" opacity="0.68" stroke-linecap="round"/>
+              <text x="352" y="335" fill="#89bcc2" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">黃河</text>
+              <!-- 淮河 -->
+              <path d="M 385,512 Q 510,502 630,488 T 812,455" fill="none" stroke="#4c7a82" stroke-width="3.6" opacity="0.52" stroke-linecap="round"/>
+              <text x="572" y="484" fill="#7aaab2" font-family="Noto Serif TC, KaiTi, serif" font-size="12" font-weight="800" opacity="0.82">淮水</text>
+              <!-- 長江 -->
+              <path d="M 0,618 Q 145,650 295,642 T 565,612 Q 720,588 865,536" fill="none" stroke="#477a82" stroke-width="7.5" opacity="0.68" stroke-linecap="round"/>
+              <text x="488" y="638" fill="#7cb2ba" font-family="Noto Serif TC, KaiTi, serif" font-size="15" font-weight="900" opacity="0.92">長江</text>
+              <g id="mapRoutesLayer"></g>
+              <g id="mapCitiesLayer"></g>
+            </svg>
+          </div>
+        </div>
+
+        <div class="map-bottom-overlay">
+          <div class="map-hint-pill">單指拖曳巡視・點城池看軍情</div>
+          <div class="map-zoom-controls">
+            <button class="map-ctrl-btn" onclick="centerMapOnSelected(false)" title="定位到目前城池">📍 歸位</button>
+            <button class="map-ctrl-btn" id="btnMapZoomToggle" onclick="toggleMapZoom()">🔍 全覽</button>
+          </div>
         </div>
       </div>
     </div>
@@ -2207,6 +2353,28 @@
     <button class="nav-tab" id="navCamp" onclick="switchScene('camp')"><span>🏕️</span><span>孔門營地</span></button>
     <button class="nav-tab" id="navShop" onclick="switchScene('shop')"><span>🏪</span><span>列國市集</span></button>
     <button class="nav-tab" onclick="openSaveModal()"><span>💾</span><span>存檔管理</span></button>
+  </div>
+</div>
+
+<!-- 彈窗 0：城池軍情與出征簡報（畫面正中央彈出） -->
+<div class="modal-backdrop center" id="stageBriefingModal" onclick="if(event.target===this) closeModal('stageBriefingModal')">
+  <div class="modal-sheet briefing-modal-sheet">
+    <div class="briefing-head">
+      <div style="min-width:0;">
+        <div style="font-size:0.74rem; color:#8ec9c2; font-weight:800;" id="briefRegion">第一站・魯衛之交</div>
+        <div class="briefing-title" id="briefName">匡地突圍</div>
+      </div>
+      <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+        <span class="pill" id="briefStatus">尚未通關</span>
+        <button class="icon-btn" style="min-height:28px; padding:2px 8px;" onclick="closeModal('stageBriefingModal')" title="關閉">✕</button>
+      </div>
+    </div>
+    <div class="briefing-meta" id="briefMeta"></div>
+    <div class="briefing-actions-v15" style="margin-top:4px;">
+      <button class="btn" id="btnReplayStory" onclick="closeModal('stageBriefingModal'); replaySelectedStageStory()" title="重溫本關劇情">📜 劇情</button>
+      <button class="btn gold" onclick="closeModal('stageBriefingModal'); switchScene('camp')">🏕 營地整備</button>
+      <button class="btn primary" id="btnEnterBattle" onclick="closeModal('stageBriefingModal'); startSelectedStage()">⚔ 帶隊出征</button>
+    </div>
   </div>
 </div>
 
@@ -2802,7 +2970,7 @@ const BOND_PAIRS = [
 const DATA_STAGES = [
   // ---- 主線 7 站 (9×9 硬核戰棋：階級縮放 + 多樣開局卦 + 菁英將領 + 功能兵種) ----
   {
-    id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
+    id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 515, y: 365, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
     enemyScale: 1.0, startHex: 'qian',
     victoryType: 'annihilate',
@@ -2820,7 +2988,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
+    id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 455, y: 260, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
     enemyScale: 1.22, startHex: 'kun',
     victoryType: 'annihilate',
@@ -2838,7 +3006,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
+    id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 545, y: 460, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
     enemyScale: 1.42, startHex: 'li',
     victoryType: 'annihilate',
@@ -2857,7 +3025,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
+    id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 720, y: 410, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
     enemyScale: 1.60, startHex: 'xun',
     victoryType: 'annihilate',
@@ -2876,7 +3044,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
+    id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 275, y: 280, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
     enemyScale: 1.78, startHex: 'gen',
     victoryType: 'annihilate',
@@ -2895,7 +3063,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
+    id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 430, y: 525, req: 'wei_xihe',
     region: '主線第6站・陳蔡之間', name: '陳蔡絕糧・破圍而出',
     enemyScale: 1.95, startHex: 'kan',
     victoryType: 'annihilate',
@@ -2914,7 +3082,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
+    id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 330, y: 625, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     enemyScale: 2.15, startHex: 'li',
     victoryType: 'annihilate',
@@ -2933,7 +3101,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 64, y: 306, req: 'chu_boss',
+    id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 820, y: 240, req: 'chu_boss',
     region: '主線第8站・歸魯終章', name: '夾谷會盟・萊夷伏兵',
     enemyScale: 2.35, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -2955,7 +3123,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 68, y: 152, req: 'qi_jiagu',
+    id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 600, y: 295, req: 'qi_jiagu',
     region: '主線第9站・歸魯終章', name: '墮三都・三桓圍城',
     enemyScale: 2.55, startHex: 'gen',
     victoryType: 'annihilate',
@@ -2977,7 +3145,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 242, y: 72, req: 'lu_sandu',
+    id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 695, y: 195, req: 'lu_sandu',
     region: '最終章・泰山之巔', name: '獲麟絕筆（真正最終戰）',
     enemyScale: 2.80, startHex: 'li',
     victoryType: 'annihilate',
@@ -3000,7 +3168,7 @@ const DATA_STAGES = [
 
   // ---- 隱藏外傳 / 歷史支線 5 站 (9×9 硬核特化試煉) ----
   {
-    id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
+    id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 695, y: 315, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
     enemyScale: 1.50, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -3018,7 +3186,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
+    id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 370, y: 175, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
     enemyScale: 1.48, startHex: 'dui',
     victoryType: 'annihilate',
@@ -3035,7 +3203,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
+    id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 805, y: 335, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
     enemyScale: 1.65, startHex: 'zhen',
     victoryType: 'annihilate',
@@ -3053,7 +3221,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 785, y: 495, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
     enemyScale: 1.85, startHex: 'gen',
     victoryType: 'annihilate',
@@ -3071,7 +3239,7 @@ const DATA_STAGES = [
     ]
   },
   {
-    id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
+    id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 605, y: 560, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
     enemyScale: 1.90, startHex: 'kan',
     victoryType: 'annihilate',
@@ -3351,17 +3519,27 @@ function toggleSound() {
 let currentScene = 'map';
 function switchScene(scene) {
   currentScene = scene;
+  closeModal('stageBriefingModal');
   ['map', 'camp', 'shop', 'tower', 'battle'].forEach(s => {
     const el = document.getElementById('scene' + s.charAt(0).toUpperCase() + s.slice(1));
     if (el) el.classList.toggle('active', s === scene);
   });
   const shell = document.querySelector('.mobile-shell');
-  if (shell) shell.classList.toggle('in-battle', scene === 'battle');
+  if (shell) {
+    shell.classList.toggle('in-battle', scene === 'battle');
+    shell.classList.toggle('in-map', scene === 'map');
+  }
   document.getElementById('bottomNav').style.display = (scene === 'battle') ? 'none' : 'grid';
   document.getElementById('navMap').classList.toggle('active', scene === 'map');
   document.getElementById('navCamp').classList.toggle('active', scene === 'camp');
   document.getElementById('navShop').classList.toggle('active', scene === 'shop');
-  if (scene === 'map') renderMapScene();
+  if (scene === 'map') {
+    renderMapScene();
+    requestAnimationFrame(() => {
+      resizeWorldMap();
+      centerMapOnSelected(true);
+    });
+  }
   if (scene === 'camp') renderCampScene();
   if (scene === 'shop') renderShopScene();
   if (scene === 'tower') renderTowerScene();
@@ -3377,80 +3555,213 @@ function updateGlobalNav() {
   if (tBtn) {
     const unlocked = isTowerUnlocked();
     tBtn.className = 'btn sm ' + (unlocked ? 'primary' : '');
-    tBtn.textContent = unlocked ? `🗼 天道之塔 (${saveData.tower?.maxCleared || 0}/20)` : '🔒 天道之塔';
+    tBtn.textContent = unlocked ? `🗼 天道之塔(${saveData.tower?.maxCleared || 0}/20)` : '🔒 天道之塔';
   }
 }
 function isStageUnlocked(st) { return !st.req || saveData.clearedStages.includes(st.req); }
 
-function renderMapScene() {
-  const routesG = document.getElementById('mapRoutesLayer');
-  const citiesG = document.getElementById('mapCitiesLayer');
-  routesG.innerHTML = ''; citiesG.innerHTML = '';
-  const ns = 'http://www.w3.org/2000/svg';
+// ---- v1.17 春秋大輿圖攝影機系統（等比真實中國版圖、單指拖曳慣性、一鍵全覽切換） ----
+const MAP_W = 1000;
+const MAP_H = 740;
+let mapZoomMode = 'explore'; // 'explore' | 'overview'
+let mapCamX = 0, mapCamY = 0, mapCamScale = 1;
+let mapTargetX = null, mapTargetY = null;
+let mapVelX = 0, mapVelY = 0;
+let mapDragActive = false, mapDragMoved = false;
+let mapPointerId = null, mapStartX = 0, mapStartY = 0, mapLastX = 0, mapLastY = 0, mapLastTs = 0;
+let mapAnimRaf = null;
 
-  DATA_STAGES.forEach(st => {
-    if (!st.req) return;
-    const prev = DATA_STAGES.find(s => s.id === st.req); if (!prev) return;
-    const unlocked = isStageUnlocked(st);
-    const line = document.createElementNS(ns, 'line');
-    line.setAttribute('x1', prev.x); line.setAttribute('y1', prev.y);
-    line.setAttribute('x2', st.x);   line.setAttribute('y2', st.y);
-    line.setAttribute('stroke', unlocked ? '#d4af6a' : '#4a453c');
-    line.setAttribute('stroke-width', unlocked ? '3' : '2');
-    line.setAttribute('stroke-dasharray', unlocked ? (st.isSecret ? '5,4' : 'none') : '5,5');
-    line.setAttribute('opacity', unlocked ? '0.88' : '0.45');
-    routesG.appendChild(line);
-  });
+function getMapViewportSize() {
+  const vp = document.getElementById('mapViewport');
+  return { w: (vp && vp.clientWidth) || 380, h: (vp && vp.clientHeight) || 540 };
+}
 
-  DATA_STAGES.forEach(st => {
-    const unlocked = isStageUnlocked(st), cleared = saveData.clearedStages.includes(st.id), selected = saveData.selectedStageId === st.id;
-    const g = document.createElementNS(ns, 'g');
-    g.setAttribute('class', 'city-node' + (unlocked ? '' : ' locked'));
-    g.setAttribute('transform', `translate(${st.x}, ${st.y})`);
+function computeMapScale() {
+  const { w, h } = getMapViewportSize();
+  if (mapZoomMode === 'overview') {
+    return Math.min(w / MAP_W, h / MAP_H);
+  }
+  // 探索模式：比例不變，高度填滿可視區（並略微放大便於上下左右巡視），寬度自然超出可拖曳
+  return Math.max((h / MAP_H) * 1.06, (w / MAP_W) * 1.35);
+}
 
-    if (selected) {
-      const ring = document.createElementNS(ns, 'circle');
-      ring.setAttribute('r', '26'); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#d4af6a');
-      ring.setAttribute('stroke-width', '3'); ring.setAttribute('class', 'city-ring-pulse');
-      g.appendChild(ring);
+function clampMapCamera(x, y) {
+  const { w, h } = getMapViewportSize();
+  const sw = MAP_W * mapCamScale;
+  const sh = MAP_H * mapCamScale;
+  let cx = x, cy = y;
+  if (sw <= w) cx = (w - sw) / 2;
+  else cx = Math.min(0, Math.max(w - sw, cx));
+  if (sh <= h) cy = (h - sh) / 2;
+  else cy = Math.min(0, Math.max(h - sh, cy));
+  return { x: cx, y: cy };
+}
+
+function applyMapTransform() {
+  const layer = document.getElementById('mapCameraLayer');
+  if (!layer) return;
+  layer.style.transform = `translate3d(${mapCamX.toFixed(1)}px, ${mapCamY.toFixed(1)}px, 0) scale(${mapCamScale.toFixed(4)})`;
+}
+
+function startMapCameraLoop() {
+  if (mapAnimRaf) return;
+  const step = () => {
+    mapAnimRaf = null;
+    if (currentScene !== 'map') return;
+    let moved = false;
+    if (mapTargetX !== null && mapTargetY !== null && !mapDragActive) {
+      const dx = mapTargetX - mapCamX, dy = mapTargetY - mapCamY;
+      if (Math.hypot(dx, dy) < 0.8) {
+        mapCamX = mapTargetX; mapCamY = mapTargetY;
+        mapTargetX = null; mapTargetY = null;
+      } else {
+        mapCamX += dx * 0.2; mapCamY += dy * 0.2;
+      }
+      moved = true;
+    } else if (!mapDragActive && (Math.abs(mapVelX) > 0.25 || Math.abs(mapVelY) > 0.25)) {
+      mapCamX += mapVelX; mapCamY += mapVelY;
+      mapVelX *= 0.88; mapVelY *= 0.88;
+      const cl = clampMapCamera(mapCamX, mapCamY);
+      if (cl.x !== mapCamX) { mapCamX = cl.x; mapVelX = 0; }
+      if (cl.y !== mapCamY) { mapCamY = cl.y; mapVelY = 0; }
+      moved = true;
     }
-    const base = document.createElementNS(ns, 'circle');
-    base.setAttribute('r', '19');
-    base.setAttribute('fill', cleared ? '#173022' : (unlocked ? '#1c1b18' : '#0f1011'));
-    base.setAttribute('stroke', selected ? '#ecd29b' : (cleared ? '#6eb589' : (unlocked ? '#6ea8a1' : '#3f3a32')));
-    base.setAttribute('stroke-width', selected ? '3' : '2');
-    g.appendChild(base);
-
-    const castle = document.createElementNS(ns, 'path');
-    castle.setAttribute('d', 'M -12,9 L -12,-2 L -15,-2 L -9,-10 L 9,-10 L 15,-2 L 12,-2 L 12,9 Z');
-    castle.setAttribute('fill', cleared ? '#9ed4b2' : (st.isSecret ? '#c792d4' : '#eae3d5'));
-    g.appendChild(castle);
-    const gate = document.createElementNS(ns, 'path');
-    gate.setAttribute('d', 'M -4,9 L -4,2 A 4,4 0 0,1 4,2 L 4,9 Z'); gate.setAttribute('fill', '#0b0c0d');
-    g.appendChild(gate);
-
-    if (cleared) {
-      const pole = document.createElementNS(ns, 'line');
-      pole.setAttribute('x1', '10'); pole.setAttribute('y1', '-6'); pole.setAttribute('x2', '10'); pole.setAttribute('y2', '-24');
-      pole.setAttribute('stroke', '#ecd29b'); pole.setAttribute('stroke-width', '2'); g.appendChild(pole);
-      const flag = document.createElementNS(ns, 'polygon');
-      flag.setAttribute('points', '10,-24 25,-19 10,-14'); flag.setAttribute('fill', '#b82e28'); flag.setAttribute('stroke', '#ecd29b'); flag.setAttribute('stroke-width', '1'); g.appendChild(flag);
+    if (moved) {
+      applyMapTransform();
+      mapAnimRaf = requestAnimationFrame(step);
     }
+  };
+  mapAnimRaf = requestAnimationFrame(step);
+}
 
-    const lblBg = document.createElementNS(ns, 'rect');
-    lblBg.setAttribute('x', '-34'); lblBg.setAttribute('y', '21'); lblBg.setAttribute('width', '68'); lblBg.setAttribute('height', '17'); lblBg.setAttribute('rx', '4');
-    lblBg.setAttribute('fill', selected ? '#473216' : 'rgba(16, 15, 13, 0.92)'); lblBg.setAttribute('stroke', selected ? '#d4af6a' : '#4a4337'); lblBg.setAttribute('stroke-width', '1');
-    g.appendChild(lblBg);
-    const lbl = document.createElementNS(ns, 'text');
-    lbl.setAttribute('x', '0'); lbl.setAttribute('y', '33'); lbl.setAttribute('text-anchor', 'middle');
-    lbl.setAttribute('fill', selected ? '#fff3d6' : '#eae3d5'); lbl.setAttribute('font-family', 'Noto Serif TC, KaiTi, serif'); lbl.setAttribute('font-size', '10.5'); lbl.setAttribute('font-weight', '900');
-    lbl.textContent = st.cityLabel; g.appendChild(lbl);
+function focusMapOn(mx, my, immediate = false) {
+  mapCamScale = computeMapScale();
+  const { w, h } = getMapViewportSize();
+  const desired = clampMapCamera(w / 2 - mx * mapCamScale, h / 2 - my * mapCamScale);
+  mapVelX = 0; mapVelY = 0;
+  if (immediate || mapZoomMode === 'overview') {
+    mapCamX = desired.x; mapCamY = desired.y;
+    mapTargetX = null; mapTargetY = null;
+    applyMapTransform();
+  } else {
+    mapTargetX = desired.x; mapTargetY = desired.y;
+    startMapCameraLoop();
+  }
+}
 
-    if (unlocked) g.onclick = () => { saveData.selectedStageId = st.id; persistSave(); renderMapScene(); };
-    citiesG.appendChild(g);
-  });
-
+function centerMapOnSelected(immediate = false) {
   const sel = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+  if (mapZoomMode === 'overview') {
+    mapZoomMode = 'explore';
+    updateMapZoomBtnUi();
+  }
+  focusMapOn(sel.x, sel.y, immediate);
+}
+
+function updateMapZoomBtnUi() {
+  const btn = document.getElementById('btnMapZoomToggle');
+  if (!btn) return;
+  btn.textContent = mapZoomMode === 'overview' ? '🔎 放大' : '🔍 全覽';
+  btn.classList.toggle('overview', mapZoomMode === 'overview');
+}
+
+function toggleMapZoom() {
+  mapZoomMode = (mapZoomMode === 'explore') ? 'overview' : 'explore';
+  updateMapZoomBtnUi();
+  mapCamScale = computeMapScale();
+  if (mapZoomMode === 'overview') {
+    const cl = clampMapCamera(0, 0);
+    mapCamX = cl.x; mapCamY = cl.y;
+    mapTargetX = null; mapTargetY = null;
+    mapVelX = 0; mapVelY = 0;
+    applyMapTransform();
+  } else {
+    const sel = DATA_STAGES.find(s => s.id === saveData.selectedStageId) || DATA_STAGES[0];
+    focusMapOn(sel.x, sel.y, true);
+  }
+}
+
+function resizeWorldMap() {
+  if (currentScene !== 'map') return;
+  mapCamScale = computeMapScale();
+  const cl = clampMapCamera(mapCamX, mapCamY);
+  mapCamX = cl.x; mapCamY = cl.y;
+  applyMapTransform();
+}
+window.addEventListener('resize', resizeWorldMap);
+
+function initMapPointerControls() {
+  const vp = document.getElementById('mapViewport');
+  if (!vp || vp.dataset.mapPtrBound) return;
+  vp.dataset.mapPtrBound = '1';
+
+  vp.addEventListener('pointerdown', e => {
+    if (e.button !== 0 && e.pointerType === 'mouse') return;
+    mapPointerId = e.pointerId;
+    mapDragActive = true;
+    mapDragMoved = false;
+    mapStartX = mapLastX = e.clientX;
+    mapStartY = mapLastY = e.clientY;
+    mapLastTs = performance.now();
+    mapVelX = 0; mapVelY = 0;
+    mapTargetX = null; mapTargetY = null;
+    try { vp.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+
+  vp.addEventListener('pointermove', e => {
+    if (!mapDragActive || e.pointerId !== mapPointerId) return;
+    const totalDist = Math.hypot(e.clientX - mapStartX, e.clientY - mapStartY);
+    if (totalDist >= 8) mapDragMoved = true;
+    if (mapDragMoved && mapZoomMode === 'explore') {
+      const dx = e.clientX - mapLastX;
+      const dy = e.clientY - mapLastY;
+      const cl = clampMapCamera(mapCamX + dx, mapCamY + dy);
+      mapCamX = cl.x; mapCamY = cl.y;
+      const now = performance.now();
+      const dt = Math.max(8, now - mapLastTs);
+      mapVelX = dx * (16 / dt);
+      mapVelY = dy * (16 / dt);
+      mapLastTs = now;
+      applyMapTransform();
+    }
+    mapLastX = e.clientX;
+    mapLastY = e.clientY;
+  });
+
+  const finishMapPointer = e => {
+    if (!mapDragActive || e.pointerId !== mapPointerId) return;
+    mapDragActive = false;
+    try { vp.releasePointerCapture(e.pointerId); } catch (err) {}
+    if (mapDragMoved && mapZoomMode === 'explore') {
+      startMapCameraLoop();
+      return;
+    }
+    if (!mapDragMoved) {
+      // 透過座標命中判定點擊的城池節點（不受 setPointerCapture 干擾）
+      const rect = vp.getBoundingClientRect();
+      const mx = (e.clientX - rect.left - mapCamX) / mapCamScale;
+      const my = (e.clientY - rect.top - mapCamY) / mapCamScale;
+      let hitStage = null, bestD = 42;
+      DATA_STAGES.forEach(st => {
+        if (!isStageUnlocked(st)) return;
+        const d = Math.hypot(mx - st.x, my - st.y);
+        if (d < bestD) { bestD = d; hitStage = st; }
+      });
+      if (hitStage) {
+        saveData.selectedStageId = hitStage.id;
+        persistSave();
+        renderMapScene();
+        if (mapZoomMode === 'explore') focusMapOn(hitStage.x, hitStage.y, false);
+        openStageBriefingModal(hitStage.id);
+      }
+    }
+  };
+  vp.addEventListener('pointerup', finishMapPointer);
+  vp.addEventListener('pointercancel', finishMapPointer);
+}
+
+function populateStageBriefing(stageId) {
+  const sel = DATA_STAGES.find(s => s.id === (stageId || saveData.selectedStageId)) || DATA_STAGES[0];
   const isCleared = saveData.clearedStages.includes(sel.id);
   document.getElementById('briefRegion').textContent = `${sel.region}・${sel.cityLabel}${sel.isSecret ? ' ★隱藏外傳' : ''}`;
   document.getElementById('briefName').textContent = sel.name;
@@ -3486,6 +3797,83 @@ function renderMapScene() {
     `敵軍強度：<strong style="color:#e86b64;">${scalePct}%</strong>｜開局天時：<strong style="color:#ecd29b;">${startHexObj.name}${sel.modifiers.lockHexagram ? '（鎖卦）' : ''}</strong><br>` +
     `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
     (sel.modifiers.starvationPct ? '<br><span style="color:#e86b64;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
+}
+
+function openStageBriefingModal(stageId) {
+  populateStageBriefing(stageId);
+  document.getElementById('stageBriefingModal').classList.add('show');
+}
+
+function renderMapScene() {
+  initMapPointerControls();
+  updateMapZoomBtnUi();
+  const routesG = document.getElementById('mapRoutesLayer');
+  const citiesG = document.getElementById('mapCitiesLayer');
+  routesG.innerHTML = ''; citiesG.innerHTML = '';
+  const ns = 'http://www.w3.org/2000/svg';
+
+  DATA_STAGES.forEach(st => {
+    if (!st.req) return;
+    const prev = DATA_STAGES.find(s => s.id === st.req); if (!prev) return;
+    const unlocked = isStageUnlocked(st);
+    const line = document.createElementNS(ns, 'line');
+    line.setAttribute('x1', prev.x); line.setAttribute('y1', prev.y);
+    line.setAttribute('x2', st.x);   line.setAttribute('y2', st.y);
+    line.setAttribute('stroke', unlocked ? '#d4af6a' : '#4a453c');
+    line.setAttribute('stroke-width', unlocked ? '4' : '2.5');
+    line.setAttribute('stroke-dasharray', unlocked ? (st.isSecret ? '8,6' : 'none') : '7,7');
+    line.setAttribute('opacity', unlocked ? '0.88' : '0.45');
+    routesG.appendChild(line);
+  });
+
+  DATA_STAGES.forEach(st => {
+    const unlocked = isStageUnlocked(st), cleared = saveData.clearedStages.includes(st.id), selected = saveData.selectedStageId === st.id;
+    const g = document.createElementNS(ns, 'g');
+    g.setAttribute('class', 'city-node' + (unlocked ? '' : ' locked'));
+    g.setAttribute('transform', `translate(${st.x}, ${st.y})`);
+
+    if (selected) {
+      const ring = document.createElementNS(ns, 'circle');
+      ring.setAttribute('r', '32'); ring.setAttribute('fill', 'none'); ring.setAttribute('stroke', '#d4af6a');
+      ring.setAttribute('stroke-width', '3.5'); ring.setAttribute('class', 'city-ring-pulse');
+      g.appendChild(ring);
+    }
+    const base = document.createElementNS(ns, 'circle');
+    base.setAttribute('r', '24');
+    base.setAttribute('fill', cleared ? '#173022' : (unlocked ? '#1c1b18' : '#0f1011'));
+    base.setAttribute('stroke', selected ? '#ecd29b' : (cleared ? '#6eb589' : (unlocked ? '#6ea8a1' : '#3f3a32')));
+    base.setAttribute('stroke-width', selected ? '3.5' : '2.5');
+    g.appendChild(base);
+
+    const castle = document.createElementNS(ns, 'path');
+    castle.setAttribute('d', 'M -15,11 L -15,-3 L -19,-3 L -11,-13 L 11,-13 L 19,-3 L 15,-3 L 15,11 Z');
+    castle.setAttribute('fill', cleared ? '#9ed4b2' : (st.isSecret ? '#c792d4' : '#eae3d5'));
+    g.appendChild(castle);
+    const gate = document.createElementNS(ns, 'path');
+    gate.setAttribute('d', 'M -5,11 L -5,2 A 5,5 0 0,1 5,2 L 5,11 Z'); gate.setAttribute('fill', '#0b0c0d');
+    g.appendChild(gate);
+
+    if (cleared) {
+      const pole = document.createElementNS(ns, 'line');
+      pole.setAttribute('x1', '12'); pole.setAttribute('y1', '-8'); pole.setAttribute('x2', '12'); pole.setAttribute('y2', '-30');
+      pole.setAttribute('stroke', '#ecd29b'); pole.setAttribute('stroke-width', '2.5'); g.appendChild(pole);
+      const flag = document.createElementNS(ns, 'polygon');
+      flag.setAttribute('points', '12,-30 31,-24 12,-17'); flag.setAttribute('fill', '#b82e28'); flag.setAttribute('stroke', '#ecd29b'); flag.setAttribute('stroke-width', '1.2'); g.appendChild(flag);
+    }
+
+    const lblBg = document.createElementNS(ns, 'rect');
+    lblBg.setAttribute('x', '-44'); lblBg.setAttribute('y', '27'); lblBg.setAttribute('width', '88'); lblBg.setAttribute('height', '22'); lblBg.setAttribute('rx', '5');
+    lblBg.setAttribute('fill', selected ? '#473216' : 'rgba(16, 15, 13, 0.94)'); lblBg.setAttribute('stroke', selected ? '#d4af6a' : '#4a4337'); lblBg.setAttribute('stroke-width', '1.4');
+    g.appendChild(lblBg);
+    const lbl = document.createElementNS(ns, 'text');
+    lbl.setAttribute('x', '0'); lbl.setAttribute('y', '42'); lbl.setAttribute('text-anchor', 'middle');
+    lbl.setAttribute('fill', selected ? '#fff3d6' : '#eae3d5'); lbl.setAttribute('font-family', 'Noto Serif TC, KaiTi, serif'); lbl.setAttribute('font-size', '13.5'); lbl.setAttribute('font-weight', '900');
+    lbl.textContent = st.cityLabel; g.appendChild(lbl);
+
+    citiesG.appendChild(g);
+  });
+
+  populateStageBriefing(saveData.selectedStageId);
 }
 
 function openGuideModal(tab = 'basic') {
@@ -9198,9 +9586,15 @@ function initGameOrBlockInAppBrowser() {
   }
 
   // 正常瀏覽器環境：啟動遊戲
+  const shellInit = document.querySelector('.mobile-shell');
+  if (shellInit) shellInit.classList.add('in-map');
   preloadFolderSprites();
   updateGlobalNav();
   renderMapScene();
+  requestAnimationFrame(() => {
+    resizeWorldMap();
+    centerMapOnSelected(true);
+  });
 }
 
 initGameOrBlockInAppBrowser();
