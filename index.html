@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.14 — 暗黑水墨・結束回合自動調息版</title>
+<title>《論語戰棋》v1.16 — 暗黑水墨・雙重強制勝利條件版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1690,6 +1690,99 @@
   .forge-ing.miss { border-color: #7a2621; color: #e89c97; background: #24100f; }
 
 
+  /* ==================== v1.16 雙重強制勝利條件條・目標格與首殺標記 ==================== */
+  .battle-goal-strip {
+    flex: 0 0 auto;
+    background: linear-gradient(90deg, #12110f 0%, #1d1912 50%, #12110f 100%);
+    border-bottom: 1px solid #4d402c;
+    padding: 4px 8px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    z-index: 29;
+    cursor: pointer;
+  }
+  .battle-goal-strip.show { display: flex; }
+  .goal-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.69rem;
+    font-weight: 800;
+    background: #171614;
+    border: 1px solid #6e5938;
+    color: var(--gold-bright);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 66%;
+  }
+  .goal-pill.done {
+    background: #12291c;
+    border-color: #5e9c76;
+    color: #9ed4b2;
+  }
+  .goal-pill.warn {
+    background: #2e1210;
+    border-color: #c83e37;
+    color: #ffb8b3;
+  }
+  .goal-pill.secondary {
+    max-width: 34%;
+    background: #14171a;
+    border-color: #4b5563;
+    color: #dcd4c6;
+  }
+  .tile.goal-tile {
+    box-shadow: inset 0 0 0 4px #d4af6a, inset 0 0 24px rgba(212, 175, 106, 0.42);
+  }
+  .tile.goal-tile::after {
+    content: "目標";
+    position: absolute;
+    inset: 14px;
+    border: 2px dashed rgba(236, 210, 155, 0.9);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff3d6;
+    font-family: var(--font-serif);
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.95);
+    background: radial-gradient(circle, rgba(212, 175, 106, 0.28) 0%, transparent 72%);
+  }
+  .tile.goal-tile.reached {
+    box-shadow: inset 0 0 0 4px #5e9c76, inset 0 0 22px rgba(94, 156, 118, 0.35);
+  }
+  .tile.goal-tile.reached::after {
+    content: "已達";
+    border-color: rgba(121, 201, 151, 0.85);
+    color: #b5e6c8;
+    background: radial-gradient(circle, rgba(94, 156, 118, 0.28) 0%, transparent 72%);
+  }
+  .hud-goal-mark {
+    position: absolute;
+    top: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #b82822, #7a1410);
+    border: 1.5px solid #ecd29b;
+    color: #fff5e0;
+    font-family: var(--font-serif);
+    font-size: 13px;
+    font-weight: 900;
+    padding: 1px 7px;
+    border-radius: 4px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.85);
+    letter-spacing: 1px;
+  }
+
   /* ==================== v1.11 嚴禁社群內建瀏覽器（LINE / FB / IG / Threads） ==================== */
   .iab-blocker {
     position: fixed;
@@ -2049,6 +2142,12 @@
         </div>
       </div>
 
+      <!-- 1.5 雙重強制勝利條件進度條 (v1.16) -->
+      <div class="battle-goal-strip" id="battleGoalStrip" onclick="showBattleGoalDialog()">
+        <span class="goal-pill" id="goalPillPrimary">① 條件載入中</span>
+        <span class="goal-pill secondary" id="goalPillSecondary">② 敵軍全滅</span>
+      </div>
+
       <!-- 2. 中央主戰場 (~78%，長螢幕 4×5~5.5 格，128×128 1:1 呈現) -->
       <div class="board-stage">
         <div class="board-viewport" id="boardViewport" data-hex="qian" oncontextmenu="onBoardRightClick(event)">
@@ -2222,6 +2321,7 @@
         <div class="g-head">二、行動點 (AP) 與浩然氣</div>
         • <strong>行動與調息二選一</strong>：移動後未出招可「待機調息 (+20氣)」，未移動直接「原地調息」加倍為 <strong>+40 浩然氣</strong>；直接按<strong>【結束回合】</strong>時，所有尚未出招的我方武將也會自動觸發對應調息！本回合已出招後即不可再調息。<br>
         • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
+        • <strong>雙重強制勝利條件</strong>：列國 15 關皆設有「第一條件（如登堂入室、全師而返、兵貴神速、擒賊擒王、順天應人、克己復禮等）＋ 敵軍全滅」雙條件，缺一不可！點擊戰場上方條件條可隨時查看詳情。<br>
         • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
       </div>
     </div>
@@ -2705,7 +2805,8 @@ const DATA_STAGES = [
     id: 'lu_kuang', dropMaterial: 'mat_kuang', cityLabel: '魯・匡城', x: 282, y: 158, req: null,
     region: '主線第1站・魯衛之交', name: '匡地突圍',
     enemyScale: 1.0, startHex: 'qian',
-    victoryType: 'annihilate', rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'reach_tile', r: 0, c: 4, tileName: '北城門', title: '登堂入室', desc: '我方任一武將抵達北城門 (0,4)' }, rewardGold: 450, rewardExp: 120, firstClearEquip: null, firstClearRecruit: 'p_gong',
     obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,3]],
@@ -2722,7 +2823,8 @@ const DATA_STAGES = [
     id: 'wei_nanzi', dropMaterial: 'mat_wei', cityLabel: '衛・帝丘', x: 202, y: 142, req: 'lu_kuang',
     region: '主線第2站・衛國', name: '子見南子・宮門截擊',
     enemyScale: 1.22, startHex: 'kun',
-    victoryType: 'annihilate', rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'no_death', title: '全師而返', desc: '己方無人陣亡（不含召喚物）' }, rewardGold: 550, rewardExp: 140, firstClearEquip: 'qian_zaodu', firstClearRecruit: 'p_wo',
     obstacles: [[2,2],[2,6],[4,3],[4,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
@@ -2739,7 +2841,8 @@ const DATA_STAGES = [
     id: 'song_huan', dropMaterial: 'mat_song', cityLabel: '宋・商丘', x: 256, y: 222, req: 'wei_nanzi',
     region: '主線第3站・宋國', name: '桓魋伐樹・微服突襲',
     enemyScale: 1.42, startHex: 'li',
-    victoryType: 'annihilate', rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'turn_limit', maxTurns: 6, title: '兵貴神速', desc: '6 回合內全滅敵軍' }, rewardGold: 650, rewardExp: 160, firstClearEquip: 'lianshan', firstClearRecruit: 'p_zhonggong',
     obstacles: [[2,1],[2,7],[4,2],[4,6],[6,1],[6,7]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[3,5]],
@@ -2757,7 +2860,8 @@ const DATA_STAGES = [
     id: 'lu_wucheng', dropMaterial: 'mat_wucheng', cityLabel: '魯・武城', x: 318, y: 240, req: 'song_huan',
     region: '主線第4站・武城', name: '武城弦歌・禮樂教化',
     enemyScale: 1.60, startHex: 'xun',
-    victoryType: 'annihilate', rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'taiji_count', targetCount: 2, title: '陰陽相濟', desc: '單場觸發 ≥ 2 次【太極合擊】' }, rewardGold: 700, rewardExp: 175, firstClearEquip: null, firstClearRecruit: 'p_ziyou',
     obstacles: [[2,4],[3,4],[5,4],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[4,1],[4,2],[3,1],[3,2],[5,1],[5,2]],
@@ -2775,7 +2879,8 @@ const DATA_STAGES = [
     id: 'wei_xihe', dropMaterial: 'mat_xihe', cityLabel: '衛西・西河', x: 132, y: 205, req: 'lu_wucheng',
     region: '主線第5站・西河', name: '設教西河・考據破甲',
     enemyScale: 1.78, startHex: 'gen',
-    victoryType: 'annihilate', rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'first_kill', targetName: '西河統領', title: '擒賊擒王', desc: '首殺目標必須為【西河統領】' }, rewardGold: 750, rewardExp: 190, firstClearEquip: null, firstClearRecruit: 'p_zixia',
     obstacles: [[2,3],[3,5],[4,4],[5,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,6],[6,7],[7,6],[7,7],[5,7],[7,8]],
@@ -2791,9 +2896,10 @@ const DATA_STAGES = [
   },
   {
     id: 'chencai', dropMaterial: 'mat_chencai', cityLabel: '陳蔡荒野', x: 215, y: 296, req: 'wei_xihe',
-    region: '主線第6站・陳蔡之間', name: '陳蔡絕糧（生存6回合）',
+    region: '主線第6站・陳蔡之間', name: '陳蔡絕糧・破圍而出',
     enemyScale: 1.95, startHex: 'kan',
-    victoryType: 'survive', surviveTurns: 6, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'kong_hp_min', minPct: 50, title: '護師周全', desc: '孔子全程血量維持 ≥ 50%' }, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_yanzhengzai',
     obstacles: [[2,2],[2,6],[6,2],[6,6]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0.15, banNormalHeal: true },
     playerSlots: [[4,4],[4,3],[4,5],[3,4],[5,4],[5,3]],
@@ -2811,7 +2917,8 @@ const DATA_STAGES = [
     id: 'chu_boss', dropMaterial: 'mat_chu', cityLabel: '楚・葉邑', x: 148, y: 372, req: 'chencai',
     region: '主線第7站・楚國', name: '問津心魔（首領戰）',
     enemyScale: 2.15, startHex: 'li',
-    victoryType: 'annihilate', rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_boniu',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'finish_hex', hexIds: ['li', 'qian'], hexNames: '離卦／乾卦', title: '順天應人', desc: '於【離卦】或【乾卦】生效時擊破最後一敵' }, rewardGold: 1200, rewardExp: 280, firstClearEquip: null, firstClearRecruit: 'p_boniu',
     obstacles: [[2,2],[2,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,4],[6,3],[6,5],[7,4],[7,3],[7,5]],
@@ -2829,7 +2936,8 @@ const DATA_STAGES = [
     id: 'qi_jiagu', dropMaterial: 'mat_jiagu', cityLabel: '齊魯・夾谷', x: 64, y: 306, req: 'chu_boss',
     region: '主線第8站・歸魯終章', name: '夾谷會盟・萊夷伏兵',
     enemyScale: 2.35, startHex: 'zhen',
-    victoryType: 'annihilate', rewardGold: 1300, rewardExp: 310, firstClearEquip: null, firstClearRecruit: null,
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'turn_limit', maxTurns: 6, title: '兵貴神速', desc: '6 回合內全滅敵軍' }, rewardGold: 1300, rewardExp: 310, firstClearEquip: null, firstClearRecruit: null,
     firstClearBonusItems: { suxiu: 2 },
     obstacles: [[2,3],[2,5],[5,2],[5,6],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
@@ -2850,7 +2958,8 @@ const DATA_STAGES = [
     id: 'lu_sandu', dropMaterial: 'mat_sandu', cityLabel: '魯・墮三都', x: 68, y: 152, req: 'qi_jiagu',
     region: '主線第9站・歸魯終章', name: '墮三都・三桓圍城',
     enemyScale: 2.55, startHex: 'gen',
-    victoryType: 'annihilate', rewardGold: 1500, rewardExp: 350, firstClearEquip: null, firstClearRecruit: null,
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'no_death', title: '全師而返', desc: '己方無人陣亡（不含召喚物）' }, rewardGold: 1500, rewardExp: 350, firstClearEquip: null, firstClearRecruit: null,
     firstClearBonusItems: { suxiu: 2, bento: 2 },
     obstacles: [[2,2],[2,6],[4,1],[4,7],[6,2],[6,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
@@ -2871,7 +2980,8 @@ const DATA_STAGES = [
     id: 'taishan_huolin', dropMaterial: 'mat_huolin', cityLabel: '泰山・獲麟', x: 242, y: 72, req: 'lu_sandu',
     region: '最終章・泰山之巔', name: '獲麟絕筆（真正最終戰）',
     enemyScale: 2.80, startHex: 'li',
-    victoryType: 'annihilate', rewardGold: 2200, rewardExp: 450, firstClearEquip: null, firstClearRecruit: null,
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'max_combo', maxUses: 2, title: '克己復禮', desc: '合體奧義使用次數 ≤ 2 次' }, rewardGold: 2200, rewardExp: 450, firstClearEquip: null, firstClearRecruit: null,
     firstClearBonusItems: { suxiu: 3, bento: 3 },
     obstacles: [[2,2],[2,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
@@ -2893,7 +3003,8 @@ const DATA_STAGES = [
     id: 'ex_xingtan', dropMaterial: 'mat_xingtan', cityLabel: '曲阜・杏壇', x: 336, y: 120, req: 'lu_kuang', isSecret: true,
     region: '隱藏外傳・杏壇', name: '杏壇論道（無雙試煉）',
     enemyScale: 1.50, startHex: 'zhen',
-    victoryType: 'annihilate', rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'max_combo', maxUses: 2, title: '克己復禮', desc: '合體奧義使用次數 ≤ 2 次' }, rewardGold: 900, rewardExp: 220, firstClearEquip: null, firstClearRecruit: 'p_min',
     obstacles: [[3,2],[3,6],[5,2],[5,6]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]],
@@ -2910,7 +3021,8 @@ const DATA_STAGES = [
     id: 'ex_weimu', dropMaterial: 'mat_weimu', cityLabel: '衛宮・帷幕', x: 140, y: 92, req: 'wei_nanzi', isSecret: true,
     region: '隱藏支線・衛宮', name: '垂簾試探・環佩迷局',
     enemyScale: 1.48, startHex: 'dui',
-    victoryType: 'annihilate', rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'first_kill', targetName: '帷幕統領', title: '擒賊擒王', desc: '首殺目標必須為【帷幕統領】' }, rewardGold: 750, rewardExp: 180, firstClearEquip: null, firstClearRecruit: 'p_nanzi',
     obstacles: [[2,2],[2,6],[4,3],[4,5],[6,4]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
@@ -2926,7 +3038,8 @@ const DATA_STAGES = [
     id: 'ex_taishan', dropMaterial: 'mat_taishan', cityLabel: '泰山之側', x: 348, y: 184, req: 'song_huan', isSecret: true,
     region: '隱藏支線・泰山', name: '苛政猛於虎',
     enemyScale: 1.65, startHex: 'zhen',
-    victoryType: 'annihilate', rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'finish_hex', hexIds: ['zhen'], hexNames: '震卦', title: '順天應人', desc: '於【震卦】生效時擊破最後一敵' }, rewardGold: 800, rewardExp: 195, firstClearEquip: null, firstClearRecruit: 'p_taishan',
     obstacles: [[1,3],[3,2],[4,4],[5,6],[7,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[6,1],[6,2],[7,1],[7,2],[6,3],[7,3]],
@@ -2943,7 +3056,8 @@ const DATA_STAGES = [
     id: 'ex_feiyi', dropMaterial: 'mat_feiyi', cityLabel: '魯・費邑', x: 350, y: 295, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・費邑', name: '季氏伐顓臾',
     enemyScale: 1.85, startHex: 'gen',
-    victoryType: 'annihilate', rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'reach_tile', r: 2, c: 4, tileName: '費邑城心', title: '登堂入室', desc: '我方任一武將抵達費邑城心 (2,4)' }, rewardGold: 850, rewardExp: 205, firstClearEquip: null, firstClearRecruit: 'p_ranyou',
     obstacles: [[3,1],[3,2],[3,4],[3,6],[3,7],[6,3],[6,5]],
     modifiers: { lockHexagram: null, starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,3],[7,4],[7,5],[8,2],[8,4],[8,6]],
@@ -2960,7 +3074,8 @@ const DATA_STAGES = [
     id: 'ex_agu', dropMaterial: 'mat_agu', cityLabel: '魯南・阿谷', x: 274, y: 342, req: 'lu_wucheng', isSecret: true,
     region: '隱藏支線・阿谷', name: '贈佩試心・清流問道',
     enemyScale: 1.90, startHex: 'kan',
-    victoryType: 'annihilate', rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
+    victoryType: 'annihilate',
+    primaryGoal: { type: 'taiji_count', targetCount: 3, title: '陰陽相濟', desc: '單場觸發 ≥ 3 次【太極合擊】' }, rewardGold: 850, rewardExp: 210, firstClearEquip: null, firstClearRecruit: 'p_agu',
     obstacles: [[1,4],[4,1],[4,7],[7,4]],
     modifiers: { lockHexagram: 'kan', starvationPct: 0, banNormalHeal: false },
     playerSlots: [[7,2],[7,3],[7,5],[7,6],[8,3],[8,5]],
@@ -3363,8 +3478,11 @@ function renderMapScene() {
   }
   const startHexObj = DATA_HEXAGRAMS.find(h => h.id === (sel.modifiers.lockHexagram || sel.startHex || 'qian')) || DATA_HEXAGRAMS[0];
   const scalePct = Math.round((sel.enemyScale || 1) * 100);
+  const goalSummaryHtml = sel.primaryGoal
+    ? `強制雙條件：<strong style="color:#ecd29b;">①【${sel.primaryGoal.title}】${sel.primaryGoal.desc}</strong> ＋ <strong>② 敵軍全滅</strong>`
+    : `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>`;
   document.getElementById('briefMeta').innerHTML =
-    `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>｜出戰：${saveData.deployedIds.length}/6 人<br>` +
+    `${goalSummaryHtml}｜出戰：${saveData.deployedIds.length}/6 人<br>` +
     `敵軍強度：<strong style="color:#e86b64;">${scalePct}%</strong>｜開局天時：<strong style="color:#ecd29b;">${startHexObj.name}${sel.modifiers.lockHexagram ? '（鎖卦）' : ''}</strong><br>` +
     `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
     (sel.modifiers.starvationPct ? '<br><span style="color:#e86b64;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
@@ -4245,6 +4363,134 @@ let hexIndex = 0, hexCountdown = 2, hexLockedByStage = false, hexFlipRemaining =
 let forecastVisible = false, xinzhaiDomainTurns = 0, summonCounter = 1, showGuides = false;
 let grid = [], units = [], fallenAllies = [], selectedUnitId = null, actionMode = 'move', activeComboDef = null;
 let reachableTiles = new Map(), targetableTiles = new Set(), lastPlayerAction = null, pendingMove = null;
+let battleGoalState = {
+  tileReached: false, allyDied: false, taijiCount: 0,
+  firstKillChecked: false, firstKillSuccess: false,
+  kongHpViolated: false, comboUses: 0, failedReason: null
+};
+
+function resetBattleGoalState() {
+  battleGoalState = {
+    tileReached: false, allyDied: false, taijiCount: 0,
+    firstKillChecked: false, firstKillSuccess: false,
+    kongHpViolated: false, comboUses: 0, failedReason: null
+  };
+}
+
+function updateGoalProgress() {
+  const goal = activeStage && activeStage.primaryGoal;
+  if (!goal) return;
+  if (goal.type === 'reach_tile' && !battleGoalState.tileReached) {
+    const reached = units.some(u => u.team === 'player' && u.hp > 0 && !u.isTower && u.r === goal.r && u.c === goal.c);
+    if (reached) {
+      battleGoalState.tileReached = true;
+      AudioManager.play('taiji');
+      spawnFloatText(goal.r, goal.c, `✓ 抵達${goal.tileName}！`, 'taiji');
+      addLog(`✓ 【${goal.title}】達成：已抵達${goal.tileName}！`, 'taiji');
+    }
+  } else if (goal.type === 'kong_hp_min' && !battleGoalState.kongHpViolated) {
+    const kong = units.find(u => u.id === 'p_kong');
+    if (kong && (kong.hp <= 0 || (kong.hp / kong.maxHp) < (goal.minPct / 100))) {
+      battleGoalState.kongHpViolated = true;
+      if (!battleGoalState.failedReason) {
+        battleGoalState.failedReason = `【${goal.title}】失敗：孔子血量跌破 ${goal.minPct}%（${Math.max(0, kong.hp)}/${kong.maxHp}）！`;
+      }
+    }
+  }
+}
+
+function onUnitKilledForGoals(victim) {
+  const goal = activeStage && activeStage.primaryGoal;
+  if (!goal || !victim) return;
+  if (victim.team === 'player' && !victim.isTower && saveData.roster[victim.id]) {
+    battleGoalState.allyDied = true;
+    if (goal.type === 'no_death' && !battleGoalState.failedReason) {
+      battleGoalState.failedReason = `【${goal.title}】失敗：${victim.name} 陣亡！`;
+    } else if (goal.type === 'kong_hp_min' && victim.id === 'p_kong' && !battleGoalState.failedReason) {
+      battleGoalState.kongHpViolated = true;
+      battleGoalState.failedReason = `【${goal.title}】失敗：孔子陣亡！`;
+    }
+  } else if (victim.team === 'enemy') {
+    if (goal.type === 'first_kill' && !battleGoalState.firstKillChecked) {
+      battleGoalState.firstKillChecked = true;
+      if (victim.name === goal.targetName) {
+        battleGoalState.firstKillSuccess = true;
+        spawnFloatText(victim.r, victim.c, '✓ 首殺達標！', 'taiji');
+        addLog(`✓ 【${goal.title}】達成：首殺斬首【${victim.name}】！`, 'taiji');
+      } else if (!battleGoalState.failedReason) {
+        battleGoalState.failedReason = `【${goal.title}】失敗：首殺擊破了【${victim.name}】，未先斬首【${goal.targetName}】！`;
+      }
+    }
+  }
+}
+
+function getPrimaryGoalStatusView() {
+  const goal = activeStage && activeStage.primaryGoal;
+  if (!goal) return null;
+  if (goal.type === 'reach_tile') {
+    return battleGoalState.tileReached
+      ? { cls: 'done', text: `☑ ${goal.title}：已抵${goal.tileName}` }
+      : { cls: '', text: `☐ ${goal.title}：抵${goal.tileName}` };
+  }
+  if (goal.type === 'no_death') {
+    return battleGoalState.allyDied
+      ? { cls: 'warn', text: `✕ ${goal.title}：已有陣亡` }
+      : { cls: 'done', text: `☑ ${goal.title}：無人陣亡` };
+  }
+  if (goal.type === 'turn_limit') {
+    const left = Math.max(0, goal.maxTurns - turnNumber + 1);
+    return { cls: left <= 1 ? 'warn' : '', text: `☐ ${goal.title}：T${turnNumber}/${goal.maxTurns}` };
+  }
+  if (goal.type === 'taiji_count') {
+    const ok = battleGoalState.taijiCount >= goal.targetCount;
+    return { cls: ok ? 'done' : '', text: `${ok ? '☑' : '☐'} ${goal.title}：太極 ${battleGoalState.taijiCount}/${goal.targetCount}` };
+  }
+  if (goal.type === 'first_kill') {
+    if (battleGoalState.firstKillSuccess) return { cls: 'done', text: `☑ ${goal.title}：已斬首${goal.targetName}` };
+    if (battleGoalState.firstKillChecked) return { cls: 'warn', text: `✕ ${goal.title}：首殺失敗` };
+    return { cls: '', text: `☐ ${goal.title}：首殺${goal.targetName}` };
+  }
+  if (goal.type === 'kong_hp_min') {
+    const kong = units.find(u => u.id === 'p_kong');
+    const pct = kong ? Math.max(0, Math.round((kong.hp / kong.maxHp) * 100)) : 0;
+    const warn = pct < goal.minPct + 15;
+    return { cls: warn ? 'warn' : 'done', text: `${pct >= goal.minPct ? '☑' : '✕'} ${goal.title}：孔子${pct}% (≥${goal.minPct}%)` };
+  }
+  if (goal.type === 'finish_hex') {
+    const curOk = goal.hexIds.includes(getHex().id);
+    return { cls: curOk ? 'done' : '', text: `${curOk ? '☑' : '☐'} ${goal.title}：${goal.hexNames}收尾` };
+  }
+  if (goal.type === 'max_combo') {
+    const over = battleGoalState.comboUses > goal.maxUses;
+    const atCap = battleGoalState.comboUses >= goal.maxUses;
+    return { cls: (over || atCap) ? 'warn' : 'done', text: `${over ? '✕' : '☑'} ${goal.title}：合體 ${battleGoalState.comboUses}/${goal.maxUses}` };
+  }
+  return null;
+}
+
+function showBattleGoalDialog() {
+  const goal = activeStage && activeStage.primaryGoal;
+  if (!goal) return;
+  const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
+  const stView = getPrimaryGoalStatusView();
+  showInkDialog({
+    seal: '令',
+    sealTone: 'info',
+    title: `${activeStage.cityLabel}・強制雙重勝利條件`,
+    bodyHtml: `
+      <div style="margin-bottom:6px; color:#bdb5a6;">以下兩項條件<strong>缺一不可</strong>，任一違規將立即判敗：</div>
+      <div style="background:#141311; border:1px solid #6e5938; border-radius:6px; padding:8px 10px; margin-bottom:6px;">
+        <div style="color:#ecd29b; font-weight:900;">① 【${goal.title}】</div>
+        <div>${goal.desc}</div>
+        <div style="margin-top:4px; font-size:0.74rem; color:#8ec9c2;">目前狀態：${stView ? stView.text : ''}</div>
+      </div>
+      <div style="background:#141311; border:1px solid #4b5563; border-radius:6px; padding:8px 10px;">
+        <div style="color:#eae3d5; font-weight:900;">② 【敵軍全滅】</div>
+        <div>擊破戰場上所有敵軍（目前剩餘 <strong>${eAlive}</strong> 名）。</div>
+      </div>`,
+    actions: [{ label: '明白了', cls: 'primary' }]
+  });
+}
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const keyOf = (r, c) => `${r},${c}`;
@@ -5087,7 +5333,21 @@ function retryActiveBattle() {
 }
 
 function launchStage(stageObj) {
+  if (stageObj && stageObj.primaryGoal && stageObj.primaryGoal.type === 'kong_hp_min' && !saveData.deployedIds.includes('p_kong')) {
+    showInkDialog({
+      seal: '師',
+      sealTone: 'warn',
+      title: '需編入【孔子】出戰',
+      bodyHtml: `本關強制勝利條件為<strong>【${stageObj.primaryGoal.title}】</strong>（${stageObj.primaryGoal.desc}），請先至孔門營地將<strong>孔子</strong>編入出戰陣容！`,
+      actions: [
+        { label: '前往孔門營地', cls: 'primary', onClick: () => switchScene('camp') },
+        { label: '稍後再說', cls: '' }
+      ]
+    });
+    return;
+  }
   activeStage = stageObj;
+  resetBattleGoalState();
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
   turnNumber = 1; hexFlipRemaining = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
@@ -5632,6 +5892,7 @@ async function moveUnitSmooth(unit, path, isPlayer) {
   if (isPlayer) {
     unit.moved = true;
     unit.moveDistThisTurn = (unit.moveDistThisTurn || 0) + path.length;
+    updateGoalProgress();
     if (unit.acted) {
       // 打帶跑純撤退位移完成，直接結束行動，不開啟指令窗亦不可調息
       unit.ap = 0;
@@ -6183,7 +6444,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
     await playCutin([unit], sk.name, `${unit.name}・無雙大絕`, false);
     await playAnimWithHitSync(unit, 'cast', async () => {
       if (sk.type === 'line_true') {
-        const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn);
+        const burn = Math.floor(unit.hp * 0.8); unit.hp = Math.max(1, unit.hp - burn); updateGoalProgress();
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c); let killed = false;
         const endR = Math.max(0, Math.min(GRID_SIZE - 1, unit.r + dr * 5));
         const endC = Math.max(0, Math.min(GRID_SIZE - 1, unit.c + dc * 5));
@@ -6421,6 +6682,10 @@ async function executePlayerAction(unit, mode, tr, tc) {
     });
     setUltSpotlight(false);
   } else if (mode === 'combo' && activeComboDef) {
+    battleGoalState.comboUses++;
+    if (activeStage && activeStage.primaryGoal && activeStage.primaryGoal.type === 'max_combo' && battleGoalState.comboUses > activeStage.primaryGoal.maxUses && !battleGoalState.failedReason) {
+      battleGoalState.failedReason = `【${activeStage.primaryGoal.title}】失敗：合體奧義使用次數（${battleGoalState.comboUses}次）超過上限 ${activeStage.primaryGoal.maxUses} 次！`;
+    }
     const cdef = activeComboDef; cdef.partners.forEach(p => { p.qi = 0; });
     AudioManager.play('ult');
     setUltSpotlight(true);
@@ -6604,6 +6869,7 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
   if (!lastPlayerAction || lastPlayerAction.unitId === currUnit.id) return;
   const prev = getUnitById(lastPlayerAction.unitId); if (!prev) return;
   if (manhattan(prev.r, prev.c, currUnit.r, currUnit.c) === 1 && lastPlayerAction.yinYang.includes('陽') && getEffectiveYinYang(currUnit).includes('陰')) {
+    battleGoalState.taijiCount++;
     AudioManager.play('taiji'); triggerHitstop(60);
     const curAtk = getEffectiveStats(currUnit).atk;
     const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + (hasActiveAffix('harmony_diff') ? 45 : 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
@@ -6698,7 +6964,7 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
       const refDmg = Math.max(10, Math.round(absorb * 0.7));
       spawnFloatText(attacker.r, attacker.c, `反傷-${refDmg}`, 'dmg');
       attacker.hp = Math.max(0, attacker.hp - refDmg);
-      if (attacker.hp <= 0) { attacker.animState = 'die'; attacker.animFrame = 0; attacker.animTimer = 0; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); }
+      if (attacker.hp <= 0) { attacker.animState = 'die'; attacker.animFrame = 0; attacker.animTimer = 0; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); onUnitKilledForGoals(attacker); }
     }
     if (finalDmg <= 0) { renderUnits(); return; }
   }
@@ -6739,8 +7005,10 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     target[pick.k] = Math.max(target[pick.k] || 0, 2);
     spawnFloatText(target.r, target.c, `春秋筆・${pick.label}！`, 'taiji');
   }
+  updateGoalProgress();
   if (target.hp <= 0) {
     target.animState = 'die'; target.animFrame = 0; target.animTimer = 0;
+    onUnitKilledForGoals(target);
     if (target.team === 'player' && !target.isTower && saveData.roster[target.id] && !fallenAllies.includes(target)) {
       fallenAllies.push(target);
     }
@@ -7032,6 +7300,11 @@ async function endPlayerTurn() {
   if (checkVictoryOrDefeat()) return;
 
   turnNumber++; hexFlipUsedThisTurn = false; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
+  if (activeStage.primaryGoal && activeStage.primaryGoal.type === 'turn_limit' && turnNumber > activeStage.primaryGoal.maxTurns) {
+    battleGoalState.failedReason = `【${activeStage.primaryGoal.title}】失敗：已超過 ${activeStage.primaryGoal.maxTurns} 回合仍未全滅敵軍！`;
+    checkVictoryOrDefeat();
+    return;
+  }
   if (activeStage.victoryType === 'survive' && turnNumber > activeStage.surviveTurns) { triggerBattleVictory(); return; }
 
   if (!hexLockedByStage) {
@@ -7059,6 +7332,8 @@ async function endPlayerTurn() {
       const loss = Math.round(u.maxHp * activeStage.modifiers.starvationPct);
       u.hp = Math.max(1, u.hp - loss); spawnFloatText(u.r, u.c, `飢餓-${loss}`, 'dmg');
     });
+    updateGoalProgress();
+    if (checkVictoryOrDefeat()) return;
   }
   // 【食無求飽】每回合我方損失 8% 最大生命
   if (hasActiveAffix('no_full_belly')) {
@@ -7119,20 +7394,57 @@ async function endPlayerTurn() {
   }
 }
 
+function triggerBattleDefeat(titleText, subtitleHtml) {
+  setState(STATE.GAME_OVER);
+  const isTw = Boolean(activeStage && activeStage.isTowerFloor);
+  const btnRet = document.getElementById('btnEndReturn');
+  const btnNxt = document.getElementById('btnEndNextTower');
+  if (btnRet) btnRet.textContent = isTw ? '返回天道之塔' : '返回春秋輿圖';
+  if (btnNxt) btnNxt.style.display = 'none';
+  document.getElementById('endTitle').textContent = titleText;
+  document.getElementById('endSubtitle').innerHTML = subtitleHtml;
+  document.getElementById('endOverlay').classList.add('show');
+}
+
 function checkVictoryOrDefeat() {
+  updateGoalProgress();
+  const goal = activeStage && activeStage.primaryGoal;
   const pAlive = units.filter(u => u.team === 'player' && u.hp > 0 && !u.isTower).length;
   const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
-  if (eAlive === 0) { triggerBattleVictory(); return true; }
+
+  if (battleGoalState.failedReason) {
+    triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">${battleGoalState.failedReason}</strong><br>本關為雙重強制條件，請調整戰術後重戰！`);
+    return true;
+  }
   if (pAlive === 0) {
-    setState(STATE.GAME_OVER);
     const isTw = Boolean(activeStage && activeStage.isTowerFloor);
-    const btnRet = document.getElementById('btnEndReturn');
-    const btnNxt = document.getElementById('btnEndNextTower');
-    if (btnRet) btnRet.textContent = isTw ? '返回天道之塔' : '返回春秋輿圖';
-    if (btnNxt) btnNxt.style.display = 'none';
-    document.getElementById('endTitle').textContent = '全軍覆沒';
-    document.getElementById('endSubtitle').innerHTML = isTw ? '可回營地針對本層【天命詞條】與【值日生】調整陣容再戰！' : '可回營地點亮天賦、購買裝備後再戰！';
-    document.getElementById('endOverlay').classList.add('show');
+    triggerBattleDefeat('全軍覆沒', isTw ? '可回營地針對本層【天命詞條】與【值日生】調整陣容再戰！' : '可回營地點亮天賦、購買裝備後再戰！');
+    return true;
+  }
+  if (eAlive === 0) {
+    if (goal) {
+      if (goal.type === 'reach_tile' && !battleGoalState.tileReached) {
+        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：已全滅敵軍，但未先抵達【${goal.tileName}】！</strong><br>請先派任一武將踏上目標格再完成清場。`);
+        return true;
+      }
+      if (goal.type === 'taiji_count' && battleGoalState.taijiCount < goal.targetCount) {
+        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：清場時僅觸發 ${battleGoalState.taijiCount}/${goal.targetCount} 次【太極合擊】！</strong><br>請善用陽先手＋相鄰陰出手順序累積合擊。`);
+        return true;
+      }
+      if (goal.type === 'finish_hex' && !goal.hexIds.includes(getHex().id)) {
+        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：擊破最後一名敵軍時天時為【${getHex().name}】，並非【${goal.hexNames}】！</strong><br>建議保留孔子【韋編三絕】於收尾回合切卦。`);
+        return true;
+      }
+      if (goal.type === 'first_kill' && !battleGoalState.firstKillSuccess) {
+        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：未能優先斬首【${goal.targetName}】！</strong>`);
+        return true;
+      }
+      if (goal.type === 'turn_limit' && turnNumber > goal.maxTurns) {
+        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：已超過 ${goal.maxTurns} 回合限制！</strong>`);
+        return true;
+      }
+    }
+    triggerBattleVictory();
     return true;
   }
   return false;
@@ -7427,7 +7739,22 @@ function renderBattleTop() {
 
   document.getElementById('hexTitle').textContent = `【${hex.name}・${hexLockedByStage ? '鎖卦' : `剩${hexCountdown}回合`}】`;
   document.getElementById('hexDesc').textContent = hex.desc;
-  document.getElementById('turnBadge').textContent = activeStage.victoryType==='survive' ? `T${turnNumber}/${activeStage.surviveTurns}` : `T${turnNumber}`;
+  const maxT = (activeStage.primaryGoal && activeStage.primaryGoal.type === 'turn_limit') ? activeStage.primaryGoal.maxTurns : (activeStage.victoryType === 'survive' ? activeStage.surviveTurns : null);
+  document.getElementById('turnBadge').textContent = maxT ? `T${turnNumber}/${maxT}` : `T${turnNumber}`;
+  const gStrip = document.getElementById('battleGoalStrip');
+  if (gStrip) {
+    const gView = getPrimaryGoalStatusView();
+    if (gView) {
+      gStrip.classList.add('show');
+      const pEl = document.getElementById('goalPillPrimary');
+      const sEl = document.getElementById('goalPillSecondary');
+      const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
+      if (pEl) { pEl.className = 'goal-pill ' + gView.cls; pEl.textContent = gView.text; }
+      if (sEl) { sEl.className = 'goal-pill secondary ' + (eAlive === 0 ? 'done' : ''); sEl.textContent = `${eAlive === 0 ? '☑' : '☐'} 全滅(剩${eAlive})`; }
+    } else {
+      gStrip.classList.remove('show');
+    }
+  }
 
   const syn = getActiveSynergies();
   const swf = document.getElementById('synWaterFire');
@@ -7480,6 +7807,9 @@ function renderGrid() {
       if (actionMode === 'basic' && targetableTiles.has(k)) cls += ' attack-range';
       if (['skill', 'ult', 'combo'].includes(actionMode) && targetableTiles.has(k)) {
         cls += (sel && ((actionMode === 'skill' && ['p_kong', 'p_hui', 'p_min', 'p_ranyou', 'p_yanzhengzai'].includes(sel.id)) || (actionMode === 'ult' && sel.id === 'p_gong'))) ? ' heal-range' : ' special-range';
+      }
+      if (activeStage && activeStage.primaryGoal && activeStage.primaryGoal.type === 'reach_tile' && activeStage.primaryGoal.r === r && activeStage.primaryGoal.c === c) {
+        cls += battleGoalState.tileReached ? ' goal-tile reached' : ' goal-tile';
       }
       if (pendingAction && pendingAction.r === r && pendingAction.c === c) cls += ' preview-target';
       if (t.className !== cls) t.className = cls;
@@ -7610,6 +7940,7 @@ function renderUnits() {
       hud.className = 'unit-hud';
       hud.dataset.hudid = u.id;
       hud.innerHTML = `
+        <span class="hud-goal-mark" style="display:none;">首殺</span>
         <span class="hud-status" style="display:none;"></span>
         <div class="hud-foot-badges">
           <span class="hud-yy-circle"></span>
@@ -7621,6 +7952,7 @@ function renderUnits() {
           <div class="qi-bar-bg" style="display:none;"><div class="qi-bar-fill"></div></div>
         </div>`;
       hud._els = {
+        goalMark: hud.querySelector('.hud-goal-mark'),
         status: hud.querySelector('.hud-status'),
         yy: hud.querySelector('.hud-yy-circle'),
         ap: hud.querySelector('.hud-ap-circle'),
@@ -7657,6 +7989,13 @@ function renderUnits() {
     const yyShort = effYY === '陽/陰' ? '陰陽' : effYY;
 
     const eH = hud._els;
+    if (eH.goalMark) {
+      const showFirstKillMark = Boolean(
+        activeStage && activeStage.primaryGoal && activeStage.primaryGoal.type === 'first_kill' &&
+        !battleGoalState.firstKillChecked && u.team === 'enemy' && u.name === activeStage.primaryGoal.targetName
+      );
+      eH.goalMark.style.display = showFirstKillMark ? '' : 'none';
+    }
     const flagTxt = flags.slice(0, 2).join('');
     if (flagTxt) {
       eH.status.style.display = '';
@@ -7820,9 +8159,14 @@ function renderFloatingUi() {
     }
 
     if (canAct && cb) {
+      const mcGoal = (activeStage && activeStage.primaryGoal && activeStage.primaryGoal.type === 'max_combo') ? activeStage.primaryGoal : null;
+      const mcWarn = mcGoal && battleGoalState.comboUses >= mcGoal.maxUses;
+      const mcSub = mcWarn
+        ? `<span style="color:#ff8a84;">⚠ 已達本關上限 ${battleGoalState.comboUses}/${mcGoal.maxUses}，再放將判敗！</span>`
+        : (mcGoal ? `本關限用 ${battleGoalState.comboUses}/${mcGoal.maxUses}｜${cb.desc.slice(0, 12)}…` : `${cb.desc.slice(0, 18)}…`);
       htmlStr += `<button class="cmd-btn combo" onclick="selectMode('combo')">
         <div class="cmd-btn-top"><span>★ 合體・${cb.name}</span><span style="font-size:0.68rem;">奧義</span></div>
-        <div class="cmd-btn-sub">${cb.desc.slice(0, 18)}…</div>
+        <div class="cmd-btn-sub">${mcSub}</div>
       </button>`;
     }
     if (canAct) {
