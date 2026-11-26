@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.18 — 暗黑水墨・水墨圖示格與彈窗詳解版</title>
+<title>《論語戰棋》v1.19 — 暗黑水墨・絕學警覺與伏兵增援版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -2740,7 +2740,8 @@
         • <strong>【弓】遠程弓手</strong>：會拉開 2～3 格距離風箏並優先狙擊顏回與脆皮。<br>
         • <strong>【策】敵軍策士</strong>：會幫殘血敵軍<strong>回血＋加攻</strong>，或對我方施放<strong>破防</strong>，建議優先點殺！<br>
         • <strong>【騎】敵軍輕騎</strong>：高達 5 格機動力，專切後排軟甲單位，需用前排或石碑卡住路線。<br>
-        • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技（破陣重擊、督戰號令或心魔範圍技），善用<strong>暈眩、睡眠、嘲諷與裝備詞條</strong>打斷其節奏！
+        • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技；同回合承受第 1 次大絕／合體技後會進入<strong>【絕學警覺】</strong>（本回合後續大絕／合體技減傷 50% 且免暈）。<br>
+        • <strong>首領半血反撲與分波伏兵</strong>：首領首次跌至 50% 血會強制鎖血並震退 3 格內我軍＋清除增益；第 3 關起（含隱藏支線與天道之塔 6F 以上）設有<strong>第二波伏兵增援</strong>（殘敵 ≤2 或首領半血時自兩翼殺出並自帶 40 護盾），切忌開局梭哈所有大絕與翻卦！
       </div>
       <div class="guide-block">
         <div class="g-head">卡關時的整備建議</div>
@@ -3232,6 +3233,10 @@ const DATA_STAGES = [
       { tpl: 'soldier',    name: '桓魋私兵乙',   r: 8, c: 6 },
       { tpl: 'strategist', name: '宋軍巫祝',     r: 0, c: 4 },
       { tpl: 'archer',     name: '伏林弓手',     r: 8, c: 4 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '桓魋伏騎', r: 4, c: 0 },
+      { tpl: 'strategist', name: '宋軍秘祝', r: 4, c: 8 }
     ]
   },
   {
@@ -3251,6 +3256,10 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '齊軍隨軍策士', r: 4, c: 8 },
       { tpl: 'archer',     name: '齊國弩手甲', r: 2, c: 8 },
       { tpl: 'archer',     name: '齊國弩手乙', r: 7, c: 8 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '齊軍援騎', r: 0, c: 7 },
+      { tpl: 'strategist', name: '齊軍秘策', r: 8, c: 7 }
     ]
   },
   {
@@ -3270,6 +3279,10 @@ const DATA_STAGES = [
       { tpl: 'archer',     name: '西河神射甲', r: 0, c: 2 },
       { tpl: 'archer',     name: '西河神射乙', r: 0, c: 5 },
       { tpl: 'archer',     name: '西河神射丙', r: 1, c: 7 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '西河伏騎', r: 0, c: 0 },
+      { tpl: 'archer',     name: '西河伏弩', r: 4, c: 0 }
     ]
   },
   {
@@ -3289,6 +3302,10 @@ const DATA_STAGES = [
       { tpl: 'cavalry',    name: '陳蔡游騎乙', r: 4, c: 8 },
       { tpl: 'strategist', name: '陳蔡巫祝',   r: 8, c: 3 },
       { tpl: 'archer',     name: '陳蔡弓手',   r: 8, c: 5 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '陳蔡斷糧騎', r: 1, c: 0 },
+      { tpl: 'strategist', name: '陳蔡妖祝',   r: 1, c: 8 }
     ]
   },
   {
@@ -3308,6 +3325,11 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '心魔蠱師',   r: 0, c: 2 },
       { tpl: 'archer',     name: '妄念弓手甲', r: 1, c: 1 },
       { tpl: 'archer',     name: '妄念弓手乙', r: 1, c: 7 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '妄念伏騎甲', r: 3, c: 0 },
+      { tpl: 'cavalry',    name: '妄念伏騎乙', r: 3, c: 8 },
+      { tpl: 'strategist', name: '楚地心蠱師', r: 0, c: 4 }
     ]
   },
   {
@@ -3330,6 +3352,11 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '齊宮優施',       r: 0, c: 2 },
       { tpl: 'archer',     name: '齊國伏弩甲',     r: 8, c: 4 },
       { tpl: 'archer',     name: '齊國伏弩乙',     r: 7, c: 7 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '萊夷奇兵甲', r: 0, c: 0 },
+      { tpl: 'cavalry',    name: '萊夷奇兵乙', r: 0, c: 8 },
+      { tpl: 'strategist', name: '齊軍暗策',   r: 8, c: 8 }
     ]
   },
   {
@@ -3352,6 +3379,11 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '孟氏謀士乙',     r: 0, c: 5 },
       { tpl: 'archer',     name: '郈邑長弓甲',     r: 1, c: 0 },
       { tpl: 'archer',     name: '費邑長弓乙',     r: 1, c: 8 }
+    ],
+    reinforcements: [
+      { tpl: 'elite',      name: '三桓援將', r: 0, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: '三桓突騎', r: 4, c: 0 },
+      { tpl: 'strategist', name: '季氏暗謀', r: 4, c: 8 }
     ]
   },
   {
@@ -3373,6 +3405,11 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '縱橫詭辯師',     r: 1, c: 4 },
       { tpl: 'archer',     name: '亂世流矢甲',     r: 3, c: 0 },
       { tpl: 'archer',     name: '亂世流矢乙',     r: 3, c: 8 }
+    ],
+    reinforcements: [
+      { tpl: 'elite',      name: '亂世伏將', r: 0, c: 4, eliteSkill: 'rally' },
+      { tpl: 'cavalry',    name: '霸道伏騎', r: 4, c: 0 },
+      { tpl: 'strategist', name: '縱橫暗策', r: 4, c: 8 }
     ]
   },
 
@@ -3393,6 +3430,10 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '幻影儒師',   r: 0, c: 4 },
       { tpl: 'archer',     name: '幻影弓手甲', r: 0, c: 1 },
       { tpl: 'archer',     name: '幻影弓手乙', r: 0, c: 7 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '幻影伏騎', r: 4, c: 0 },
+      { tpl: 'strategist', name: '幻影秘師', r: 4, c: 8 }
     ]
   },
   {
@@ -3410,6 +3451,10 @@ const DATA_STAGES = [
       { tpl: 'cavalry',    name: '衛宮影衛乙', r: 1, c: 6 },
       { tpl: 'strategist', name: '宮廷樂師甲', r: 0, c: 3 },
       { tpl: 'archer',     name: '宮廷弩手乙', r: 0, c: 5 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '帷幕暗衛', r: 3, c: 0 },
+      { tpl: 'strategist', name: '衛宮密祝', r: 3, c: 8 }
     ]
   },
   {
@@ -3428,6 +3473,10 @@ const DATA_STAGES = [
       { tpl: 'cavalry',    name: '猛虎精銳乙', r: 3, c: 7 },
       { tpl: 'strategist', name: '山林巫醫',   r: 0, c: 7 },
       { tpl: 'archer',     name: '山林獵手',   r: 4, c: 8 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '猛虎伏騎', r: 0, c: 4 },
+      { tpl: 'strategist', name: '苛政術官', r: 6, c: 8 }
     ]
   },
   {
@@ -3446,6 +3495,10 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '季氏謀士',   r: 1, c: 4 },
       { tpl: 'archer',     name: '費邑弩兵甲', r: 0, c: 2 },
       { tpl: 'archer',     name: '費邑弩兵乙', r: 0, c: 6 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '費邑援騎', r: 4, c: 0 },
+      { tpl: 'strategist', name: '季氏暗策', r: 4, c: 8 }
     ]
   },
   {
@@ -3464,6 +3517,10 @@ const DATA_STAGES = [
       { tpl: 'strategist', name: '清流術士',   r: 0, c: 4 },
       { tpl: 'archer',     name: '清流弓手甲', r: 0, c: 2 },
       { tpl: 'archer',     name: '清流弓手乙', r: 0, c: 6 }
+    ],
+    reinforcements: [
+      { tpl: 'cavalry',    name: '阿谷伏騎', r: 3, c: 0 },
+      { tpl: 'strategist', name: '清流秘巫', r: 3, c: 8 }
     ]
   }
 ];
@@ -4002,10 +4059,13 @@ function populateStageBriefing(stageId) {
   const goalSummaryHtml = sel.primaryGoal
     ? `強制雙條件：<strong style="color:#ecd29b;">①【${sel.primaryGoal.title}】${sel.primaryGoal.desc}</strong> ＋ <strong>② 敵軍全滅</strong>`
     : `勝利條件：<strong>${sel.victoryType === 'survive' ? `生存 ${sel.surviveTurns} 回合` : '全滅敵軍'}</strong>`;
+  const reinfLine = (sel.reinforcements && sel.reinforcements.length)
+    ? `<br><span style="color:#f0a45d;">⚠ 伏兵增援：殘敵 ≤2 或首領半血時，第二波伏兵 ×${sel.reinforcements.length} 兩翼殺出</span>`
+    : '';
   document.getElementById('briefMeta').innerHTML =
     `${goalSummaryHtml}｜出戰：${saveData.deployedIds.length}/6 人<br>` +
     `敵軍強度：<strong style="color:#e86b64;">${scalePct}%</strong>｜開局天時：<strong style="color:#ecd29b;">${startHexObj.name}${sel.modifiers.lockHexagram ? '（鎖卦）' : ''}</strong><br>` +
-    `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}` +
+    `戰利品：${sel.rewardGold} 兩軍資金 / ${sel.rewardExp} EXP${dropLine}${reinfLine}` +
     (sel.modifiers.starvationPct ? '<br><span style="color:#e86b64;">⚠ 特殊規則：每回合飢餓 -15% HP・鎖坎卦・禁一般傷藥</span>' : '');
 }
 
@@ -5435,7 +5495,7 @@ function showBattleGoalDialog() {
       </div>
       <div style="background:#141311; border:1px solid #4b5563; border-radius:6px; padding:8px 10px;">
         <div style="color:#eae3d5; font-weight:900;">② 【敵軍全滅】</div>
-        <div>擊破戰場上所有敵軍（目前剩餘 <strong>${eAlive}</strong> 名）。</div>
+        <div>擊破戰場上所有敵軍（目前剩餘 <strong>${eAlive}</strong> 名${hasPendingReinforcements() ? ` ＋ <strong style="color:#f0a45d;">未現身伏兵 ${activeStage.reinforcements.length} 名</strong>` : ''}）。</div>
       </div>`,
     actions: [{ label: '明白了', cls: 'primary' }]
   });
@@ -6300,7 +6360,7 @@ function launchStage(stageObj) {
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
   turnNumber = 1; hexFlipRemaining = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
-  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false;
+  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false; activeUltOrCombo = false; ultAlertPendingIds.clear(); reinforcementsSpawned = false;
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
   if (activeStage.modifiers && activeStage.modifiers.lockHexagram) {
@@ -6394,7 +6454,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     tauntTurns: 0, dodgeTurns: 0, dodgeCounterTurns: 0, stealthTurns: 0,
     linkGuardianId: null, linkTurns: 0,
     shield: 0, thornsShield: 0,
-    invincibleTurns: 0, lockHpTurns: 0, fatalShield: Boolean(prog && prog.equip && prog.equip.weapon === 'ex_hui'), taiChuFatalReady: Boolean(prog && prog.equip && prog.equip.weapon === 'tai_chu_sword'), chunqiuExtraUsed: false, phase: 1,
+    ultAlert: false, invincibleTurns: 0, lockHpTurns: 0, fatalShield: Boolean(prog && prog.equip && prog.equip.weapon === 'ex_hui'), taiChuFatalReady: Boolean(prog && prog.equip && prog.equip.weapon === 'tai_chu_sword'), chunqiuExtraUsed: false, phase: 1,
     equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
     spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
     animState: 'idle', animFrame: 0, animTimer: 0,
@@ -7164,6 +7224,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
 
   try {
   activeSkillPen40 = Boolean((mode === 'skill' || mode === 'ult') && unit.equip && unit.equip.weapon === 'chunqiu_pen');
+  activeUltOrCombo = (mode === 'ult' || mode === 'combo');
+  ultAlertPendingIds.clear();
   if (hasActiveAffix('no_haste') && !unit.moved) {
     unit.qi = Math.min(100, unit.qi + 20);
     spawnFloatText(unit.r, unit.c, '欲速不達+20氣', 'info');
@@ -7283,7 +7345,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         if (stopR >= 0 && stopR < GRID_SIZE && stopC >= 0 && stopC < GRID_SIZE && !getUnitAt(stopR, stopC)) { unit.r = stopR; unit.c = stopC; }
         unit.defBreakTurns = 2; renderUnits(); triggerCameraShake(5, 180);
         await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def, Math.random() < (hex.critRate + 0.1), e), false, false, unit);
-        if (e.hp > 0) { if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); } }
+        if (e.hp > 0) { if (hasActiveAffix('stoic_wood') || e.ultAlert) spawnFloatText(e.r, e.c, e.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); } }
       } else if (sk.type === 'bribe') {
         const e = getUnitAt(tr, tc); if (!e) return; AudioManager.play('taiji');
         e.team = 'player'; e.color = '#0d9488'; e.ap = 2; e.moved = false; e.acted = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
@@ -7688,7 +7750,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         VfxEngine.spawnSkyPillar(enemy.r, enemy.c, '#f0a45d', true);
         VfxEngine.spawnSlash(enemy.r, enemy.c, -0.4, '#ecd29b', true);
         await applyDamage(enemy, 115, true, false, lu);
-        if (enemy.hp > 0) enemy.stunned = true;
+        if (enemy.hp > 0) { if (hasActiveAffix('stoic_wood') || enemy.ultAlert) spawnFloatText(enemy.r, enemy.c, enemy.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else enemy.stunned = true; }
       } else if (cdef.id === 'combo_gong_wo') {
         const enemy = getUnitAt(tr, tc); if (!enemy) return; primaryEnemy = enemy;
         focusCameraOn(enemy.r, enemy.c); await sleep(150);
@@ -7752,7 +7814,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
           primaryEnemy = e;
           VfxEngine.spawnClaw(e.r, e.c, '#c83e37');
           await applyDamage(e, 95, false, true, unit);
-          if (e.hp > 0) { if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); } }
+          if (e.hp > 0) { if (hasActiveAffix('stoic_wood') || e.ultAlert) spawnFloatText(e.r, e.c, e.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '恐懼暈眩！', 'info'); } }
           await sleep(100);
         }
         focusCameraOn(unit.r, unit.c);
@@ -7763,6 +7825,19 @@ async function executePlayerAction(unit, mode, tr, tc) {
     activeComboDef = null;
   }
 
+  if (activeUltOrCombo && ultAlertPendingIds.size > 0) {
+    ultAlertPendingIds.forEach(eid => {
+      const eu = getUnitById(eid);
+      if (eu && eu.hp > 0 && !eu.ultAlert) {
+        eu.ultAlert = true;
+        spawnFloatText(eu.r, eu.c, '絕學警覺！', 'taiji');
+        addLog(`⚠ ${eu.name} 進入【絕學警覺】：本回合後續大絕／合體技減傷 50% 且免疫暈眩！`, 'enemy');
+      }
+    });
+    ultAlertPendingIds.clear();
+    renderUnits();
+  }
+  activeUltOrCombo = false;
   await checkTaijiCombo(unit, primaryEnemy);
   if ((mode === 'basic' || mode === 'skill') && primaryEnemy && primaryEnemy.hp > 0 && primaryEnemy.team === 'enemy' && unit.hp > 0) {
     await executeEnemyCounter(primaryEnemy, unit);
@@ -7794,10 +7869,13 @@ async function executePlayerAction(unit, mode, tr, tc) {
   } finally {
     actionLockBusy = false;
     activeSkillPen40 = false;
+    activeUltOrCombo = false;
+    ultAlertPendingIds.clear();
     setUltSpotlight(false);
     activeComboDef = null;
     actionMode = 'move';
     if (gameState !== STATE.GAME_OVER && currentScene === 'battle') {
+      await checkAndSpawnReinforcements(false);
       if (!checkVictoryOrDefeat()) {
         setState(STATE.PLAYER_TURN);
         renderAll();
@@ -7830,6 +7908,83 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
 }
 
 let activeSkillPen40 = false;
+let activeUltOrCombo = false;
+let ultAlertPendingIds = new Set();
+let reinforcementsSpawned = false;
+
+function hasPendingReinforcements() {
+  return Boolean(activeStage && activeStage.reinforcements && activeStage.reinforcements.length > 0 && !reinforcementsSpawned);
+}
+
+function findNearestEmptyTile(r, c) {
+  if (r >= 0 && r < GRID_SIZE && c >= 0 && c < GRID_SIZE && grid[r][c] !== 1 && grid[r][c] !== 3 && !getUnitAt(r, c)) {
+    return { r, c };
+  }
+  for (let rad = 1; rad <= 5; rad++) {
+    for (let dr = -rad; dr <= rad; dr++) {
+      for (let dc = -rad; dc <= rad; dc++) {
+        if (Math.abs(dr) !== rad && Math.abs(dc) !== rad) continue;
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1 && grid[nr][nc] !== 3 && !getUnitAt(nr, nc)) {
+          return { r: nr, c: nc };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function showAmbushBanner(count) {
+  return new Promise(resolve => {
+    const sLayer = document.getElementById('screenVfxLayer');
+    if (!sLayer) { resolve(); return; }
+    sLayer.querySelectorAll('.turn-banner').forEach(el => el.remove());
+    const div = document.createElement('div');
+    div.className = 'turn-banner enemy';
+    div.innerHTML = `<div class="turn-banner-title">伏兵四起！</div><div class="turn-banner-sub">第二波增援 ×${count} 自兩翼殺出（附 40 點伏兵護盾）</div>`;
+    sLayer.appendChild(div);
+    setTimeout(() => { div.remove(); resolve(); }, 1050);
+  });
+}
+
+function spawnReinforcementsCore() {
+  if (!hasPendingReinforcements()) return [];
+  reinforcementsSpawned = true;
+  const stageScale = activeStage.enemyScale || 1.0;
+  const spawned = [];
+  activeStage.reinforcements.forEach((sp, idx) => {
+    const spot = findNearestEmptyTile(sp.r, sp.c);
+    if (!spot) return;
+    const u = instantiateUnit(DATA_UNITS[sp.tpl], spot.r, spot.c, `e_reinf_${sp.tpl}_${idx}_${Date.now()}`, null, stageScale, sp.eliteSkill || null, sp.mirrorTpl || null);
+    if (sp.name) u.name = sp.name;
+    u.shield = (u.shield || 0) + 40;
+    if (hasActiveAffix('hollow_fierce')) u.shield += 30;
+    units.push(u);
+    spawned.push(u);
+  });
+  return spawned;
+}
+
+async function checkAndSpawnReinforcements(forceTrigger = false) {
+  if (!hasPendingReinforcements()) return false;
+  const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
+  if (!forceTrigger && eAlive > 2) return false;
+  const spawned = spawnReinforcementsCore();
+  if (!spawned.length) return false;
+  AudioManager.play('ult');
+  triggerCameraShake(6, 220);
+  await showAmbushBanner(spawned.length);
+  for (const u of spawned) {
+    focusCameraOn(u.r, u.c);
+    VfxEngine.spawnSkyPillar(u.r, u.c, '#c83e37', false);
+    spawnFloatText(u.r, u.c, '伏兵現身！+40盾', 'dmg');
+    renderUnits();
+    await sleep(160);
+  }
+  renderBattleTop();
+  addLog(`⚠ 【分波伏兵增援】${spawned.map(u => u.name).join('、')} 自兩翼殺出，全員自帶 40 點伏兵護盾！`, 'enemy');
+  return true;
+}
 function calcDamage(atk, def, isCrit, target) {
   const effDef = (activeSkillPen40 && target && target.team === 'enemy') ? def * 0.5 : def;
   let raw = Math.max(8, Math.round(atk - effDef * 0.55));
@@ -7890,6 +8045,15 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   if (!isTrue && attacker && attacker.equip && attacker.equip.weapon === 'tai_chu_sword') {
     finalDmg += Math.max(12, Math.round(finalDmg * 0.35));
   }
+  // v1.19 菁英／首領【絕學警覺】：同回合後續大絕／合體技傷害減免 50%
+  if (activeUltOrCombo && target.team === 'enemy' && (target.enemyType === 'elite' || target.enemyType === 'boss')) {
+    if (target.ultAlert) {
+      finalDmg = Math.max(1, Math.round(finalDmg * 0.5));
+      spawnFloatText(target.r, target.c, '警覺減傷50%', 'info');
+    } else {
+      ultAlertPendingIds.add(target.id);
+    }
+  }
 
   // 閔子騫【孝感動天】共患難分傷 70% -> 轉化為浩然氣
   if (target.linkTurns > 0 && target.linkGuardianId) {
@@ -7922,7 +8086,11 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   if (target.team === 'player') target.qi = Math.min(100, target.qi + 15 + ((target.outerTalents.qi_flow || 0) * 8));
 
   const nextHp = target.hp - finalDmg;
-  if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
+  const bossHalfCap = (target.enemyType === 'boss' && target.phase === 1) ? Math.ceil(target.maxHp * 0.5) : null;
+  if (bossHalfCap !== null && nextHp <= bossHalfCap) {
+    target.hp = bossHalfCap;
+    spawnFloatText(target.r, target.c, `-${finalDmg}(半血鎖血)`, 'taiji');
+  } else if (nextHp <= 0 && target.lockHpTurns > 0) { target.hp = 1; spawnFloatText(target.r, target.c, `-${finalDmg}(鎖血)`, 'taiji'); }
   else if (nextHp <= 0 && target.taiChuFatalReady) { target.taiChuFatalReady = false; target.hp = Math.round(target.maxHp * 0.45); target.qi = 100; spawnFloatText(target.r, target.c, '獲麟免死・滿氣！', 'taiji'); }
   else if (nextHp <= 0 && target.fatalShield) { target.fatalShield = false; target.hp = Math.round(target.maxHp * 0.35); spawnFloatText(target.r, target.c, '抵死護盾！', 'heal'); }
   else { target.hp = Math.max(0, nextHp); if (!isTrue || woke) spawnFloatText(target.r, target.c, woke ? `驚醒-${finalDmg}` : (isCrit ? `暴擊-${finalDmg}` : `-${finalDmg}`), (isCrit || woke) ? 'crit' : 'dmg'); }
@@ -7936,11 +8104,37 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   if (anc) { anc.classList.add('hit-flash', 'shake'); setTimeout(() => anc.classList.remove('hit-flash', 'shake'), 150); }
   renderUnits(); await sleep(180);
 
-  if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= target.maxHp * 0.5) {
-    target.phase = 2; target.color = '#7e22ce';
-    spawnVfx(target.r, target.c, true, '首領二階段！'); renderUnits();
+  if (target.enemyType === 'boss' && target.hp > 0 && target.phase === 1 && target.hp <= Math.ceil(target.maxHp * 0.5)) {
+    target.phase = 2;
+    target.color = '#7e22ce';
+    target.ultAlert = true;
+    AudioManager.play('ult');
+    triggerImpactFrame();
+    triggerCameraShake(7, 260);
+    VfxEngine.spawnDomain(target.r, target.c, '#9370a8', 3.2, false);
+    spawnVfx(target.r, target.c, true, '半血反撲・心魔震懾！', 'ripple', '#9370a8');
+    // 心魔震懾波：清除 3 格內我方增益並擊退 1 格
+    const nearPlayers = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower && manhattan(target.r, target.c, p.r, p.c) <= 3);
+    nearPlayers.forEach(p => {
+      p.buffTurns = 0; p.hasteBuffTurns = 0; p.yaAtkBonus = 0;
+      p.defStanceTurns = 0; p.dodgeTurns = 0; p.dodgeCounterTurns = 0; p.invincibleTurns = 0;
+      const dr = Math.sign(p.r - target.r), dc = Math.sign(p.c - target.c);
+      const tryMoves = [];
+      if (dr !== 0 || dc !== 0) tryMoves.push([p.r + dr, p.c + dc]);
+      if (dr !== 0 && dc !== 0) { tryMoves.push([p.r + dr, p.c], [p.r, p.c + dc]); }
+      for (const [nr, nc] of tryMoves) {
+        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1 && grid[nr][nc] !== 3 && !getUnitAt(nr, nc)) {
+          p.r = nr; p.c = nc; break;
+        }
+      }
+      spawnFloatText(p.r, p.c, '震退＋消益！', 'dmg');
+    });
+    renderUnits();
+    addLog(`⚠ ${target.name} 觸發【半血鎖血反撲】進入二階段並進入【絕學警覺】，釋放【心魔震懾波】清除 3 格內我軍增益並擊退！`, 'enemy');
+    await sleep(240);
     const stMid = DATA_STORIES[activeStage?.id]?.midBattle?.bossPhase2;
     if (stMid) await StoryEngine.play(stMid, `${activeStage.id}_bossP2`, false);
+    await checkAndSpawnReinforcements(true);
   }
   // 【春秋筆】絕招／大絕命中存活敵軍時追加 1 種隨機負面狀態
   if (target.hp > 0 && target.team === 'enemy' && activeSkillPen40 && attacker && attacker.equip && attacker.equip.weapon === 'chunqiu_pen') {
@@ -8029,6 +8223,7 @@ async function endPlayerTurn() {
       const dmg = calcDamage(getEffectiveStats(tower).atk, getEffectiveStats(nearE).def, false, nearE);
       await applyDamage(nearE, dmg, false, false, tower);
       addLog(`瞭望箭塔自動射擊 ${nearE.name} 造成 ${dmg} 傷。`, 'player');
+      await checkAndSpawnReinforcements(false);
       if (checkVictoryOrDefeat()) return;
     }
   }
@@ -8246,6 +8441,7 @@ async function endPlayerTurn() {
     if (u.burnTurns > 0) { u.burnTurns--; await applyDamage(u, 12, false, true, null); }
     if (u.hp > 0 && u.internalBleedTurns > 0) { u.internalBleedTurns--; await applyDamage(u, Math.max(5, Math.round(u.maxHp * 0.05)), false, true, null); }
   }
+  await checkAndSpawnReinforcements(false);
   if (checkVictoryOrDefeat()) return;
 
   turnNumber++; hexFlipUsedThisTurn = false; if (xinzhaiDomainTurns > 0) xinzhaiDomainTurns--;
@@ -8268,7 +8464,7 @@ async function endPlayerTurn() {
   lastPlayerAction = null;
   units.forEach(u => {
     if (u.hp <= 0) return;
-    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false;
+    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false; u.ultAlert = false;
     ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
       if (u[k] > 0) u[k]--;
     });
@@ -8371,6 +8567,15 @@ function checkVictoryOrDefeat() {
     return true;
   }
   if (eAlive === 0) {
+    if (hasPendingReinforcements()) {
+      const sp = spawnReinforcementsCore();
+      if (sp.length > 0) {
+        renderUnits();
+        renderBattleTop();
+        addLog(`⚠ 【分波伏兵增援】${sp.map(u => u.name).join('、')} 自兩翼殺出！`, 'enemy');
+        return false;
+      }
+    }
     if (goal) {
       if (goal.type === 'reach_tile' && !battleGoalState.tileReached) {
         triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：已全滅敵軍，但未先抵達【${goal.tileName}】！</strong><br>請先派任一武將踏上目標格再完成清場。`);
@@ -8636,7 +8841,7 @@ async function executeWeibianSanzhuo(idx) {
         spawnFloatText(p.r, p.c, '移+2 暴+20%', 'taiji');
       });
       enemies.filter(e => manhattan(kong.r, kong.c, e.r, e.c) <= 3).forEach(e => {
-        if (hasActiveAffix('stoic_wood')) spawnFloatText(e.r, e.c, '剛毅免疫！', 'info');
+        if (hasActiveAffix('stoic_wood') || e.ultAlert) spawnFloatText(e.r, e.c, e.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info');
         else { e.stunned = true; spawnFloatText(e.r, e.c, '驚雷暈眩！', 'info'); }
       });
     } else if (hex.id === 'xun') {
@@ -8716,7 +8921,9 @@ function renderBattleTop() {
       const sEl = document.getElementById('goalPillSecondary');
       const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
       if (pEl) { pEl.className = 'goal-pill ' + gView.cls; pEl.textContent = gView.text; }
-      if (sEl) { sEl.className = 'goal-pill secondary ' + (eAlive === 0 ? 'done' : ''); sEl.textContent = `${eAlive === 0 ? '☑' : '☐'} 全滅(剩${eAlive})`; }
+      const pendReinf = hasPendingReinforcements() ? activeStage.reinforcements.length : 0;
+      const allCleared = (eAlive === 0 && pendReinf === 0);
+      if (sEl) { sEl.className = 'goal-pill secondary ' + (allCleared ? 'done' : ''); sEl.textContent = `${allCleared ? '☑' : '☐'} 全滅(剩${eAlive}${pendReinf ? `+伏${pendReinf}` : ''})`; }
     } else {
       gStrip.classList.remove('show');
     }
@@ -8935,6 +9142,7 @@ function renderUnits() {
     const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
+    if (u.ultAlert) flags.push('警');
     if (u.invincibleTurns > 0) flags.push('無敵');
     if (u.lockHpTurns > 0) flags.push('鎖血');
     if (u.fatalShield) flags.push('齋');
@@ -9889,7 +10097,19 @@ function buildTowerStageObj(fl) {
     affixes: fl.affixes,
     dutyUnits: fl.dutyUnits,
     playerSlots: fl.playerSlots,
-    enemySpawns: fl.enemies
+    enemySpawns: fl.enemies,
+    reinforcements: fl.floor >= 15
+      ? [
+          { tpl: 'elite',      name: `${fl.floor}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+          { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 4, c: 0 },
+          { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 4, c: 8 }
+        ]
+      : (fl.floor >= 6
+          ? [
+              { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 3, c: 0 },
+              { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 3, c: 8 }
+            ]
+          : [])
   };
 }
 
