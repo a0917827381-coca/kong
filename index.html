@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.17 — 暗黑水墨・全屏真實中國大輿圖版</title>
+<title>《論語戰棋》v1.18 — 暗黑水墨・水墨圖示格與彈窗詳解版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1803,6 +1803,215 @@
   .forge-ing.miss { border-color: #7a2621; color: #e89c97; background: #24100f; }
 
 
+  /* ==================== v1.18 水墨圖示格系統（去報表化・點擊中央彈窗詳解） ==================== */
+  .stat-ribbon {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+  }
+  .stat-chip {
+    background: linear-gradient(180deg, #171614 0%, #101112 100%);
+    border: 1px solid #383229;
+    border-radius: 6px;
+    padding: 5px 7px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .stat-chip-lbl {
+    font-size: 0.64rem;
+    color: #9a9284;
+    letter-spacing: 0.5px;
+  }
+  .stat-chip-val {
+    font-family: var(--font-serif);
+    font-size: 0.86rem;
+    font-weight: 900;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .stat-chip-val .bonus {
+    font-family: var(--font-sans);
+    font-size: 0.66rem;
+    color: #7ac495;
+    font-weight: 800;
+  }
+
+  .ink-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+  .ink-icon-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+  .ink-tile {
+    position: relative;
+    background: radial-gradient(circle at 50% 34%, #25221c 0%, #141415 78%, #0e0f10 100%);
+    border: 1.5px solid #443c30;
+    border-radius: 8px;
+    padding: 10px 4px 7px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    color: var(--text);
+    text-align: center;
+    min-height: 92px;
+    transition: transform 0.08s, border-color 0.15s, box-shadow 0.15s;
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.55), 0 3px 8px rgba(0, 0, 0, 0.4);
+  }
+  .ink-tile:active { transform: scale(0.95); }
+  .ink-tile.empty {
+    border-style: dashed;
+    border-color: #3a352c;
+    background: #101112;
+    opacity: 0.78;
+  }
+  .ink-tile.tier-base {
+    border-color: #5c5345;
+  }
+  .ink-tile.tier-exclusive {
+    border-color: #c99e52;
+    background: radial-gradient(circle at 50% 34%, #332714 0%, #17140e 78%, #0f0e0c 100%);
+    box-shadow: inset 0 0 16px rgba(212, 175, 106, 0.18), 0 0 10px rgba(212, 175, 106, 0.18);
+  }
+  .ink-tile.tier-transcend {
+    border-color: #f0a45d;
+    background: radial-gradient(circle at 50% 34%, #3d1828 0%, #1d1016 76%, #110c0f 100%);
+    box-shadow: inset 0 0 18px rgba(240, 164, 93, 0.24), 0 0 12px rgba(200, 62, 55, 0.28);
+  }
+  .ink-tile.skill-basic {
+    border-color: #4c827b;
+    background: radial-gradient(circle at 50% 34%, #172b29 0%, #101818 80%);
+  }
+  .ink-tile.skill-active {
+    border-color: #b58d46;
+    background: radial-gradient(circle at 50% 34%, #2d2313 0%, #15120d 80%);
+  }
+  .ink-tile.skill-ult {
+    border-color: #c8453e;
+    background: radial-gradient(circle at 50% 34%, #381513 0%, #180d0c 80%);
+    box-shadow: inset 0 0 14px rgba(200, 62, 55, 0.22);
+  }
+  .ink-tile.skill-hex {
+    border-color: #8f67a8;
+    background: radial-gradient(circle at 50% 34%, #291a33 0%, #140f18 80%);
+  }
+  .ink-tile.tile-equipped {
+    box-shadow: 0 0 0 1px var(--gold-bright), 0 0 12px rgba(212, 175, 106, 0.35);
+  }
+  .ink-tile.tile-ready {
+    border-color: var(--gold-bright);
+    box-shadow: 0 0 14px rgba(236, 210, 155, 0.35), inset 0 0 16px rgba(212, 175, 106, 0.22);
+  }
+  .ink-tile.tile-crafted {
+    border-color: #5e9c76;
+    background: radial-gradient(circle at 50% 34%, #162b1f 0%, #0e1712 80%);
+  }
+  .ink-tile.tile-locked {
+    opacity: 0.56;
+    border-style: dashed;
+  }
+  .ink-tile-svg {
+    width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ink-tile-svg svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.85));
+  }
+  .ink-tile-name {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text);
+    line-height: 1.2;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0 2px;
+  }
+  .ink-tile-sub {
+    font-size: 0.61rem;
+    color: #b5ad9e;
+    line-height: 1.15;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tile-badge-tl, .tile-badge-tr {
+    position: absolute;
+    top: 3px;
+    font-size: 0.57rem;
+    font-weight: 900;
+    padding: 1px 4px;
+    border-radius: 3px;
+    line-height: 1.15;
+    pointer-events: none;
+  }
+  .tile-badge-tl {
+    left: 3px;
+    background: rgba(14, 15, 16, 0.9);
+    border: 1px solid #4d4538;
+    color: #cfc7b8;
+  }
+  .tile-badge-tr {
+    right: 3px;
+    background: rgba(28, 22, 14, 0.94);
+    border: 1px solid #8c6d3b;
+    color: var(--gold-bright);
+  }
+  .tile-badge-tr.green {
+    background: rgba(16, 40, 26, 0.95);
+    border-color: #5e9c76;
+    color: #9ed4b2;
+  }
+  .tile-badge-tr.red {
+    background: rgba(84, 20, 17, 0.95);
+    border-color: #d4655d;
+    color: #ffd9d6;
+  }
+  .tile-badge-tr.cyan {
+    background: rgba(16, 42, 40, 0.95);
+    border-color: #6ea8a1;
+    color: #cdeae6;
+  }
+  .detail-hero-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    background: #121314;
+    border: 1px solid #3f382d;
+    border-radius: 7px;
+    padding: 9px 10px;
+    margin-bottom: 8px;
+  }
+  .detail-hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    background: radial-gradient(circle at 50% 40%, #2e281d 0%, #131314 82%);
+    border: 1.5px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 6px;
+  }
+  .detail-hero-icon svg { width: 100%; height: 100%; }
+
   /* ==================== v1.16 雙重強制勝利條件條・目標格與首殺標記 ==================== */
   .battle-goal-strip {
     flex: 0 0 auto;
@@ -2180,15 +2389,15 @@
 
           <!-- 子頁 1：履歷招式 -->
           <div class="focus-subpane active" id="focusPane_profile">
-            <div class="stat-pill-grid" id="focusStatsGrid"></div>
-            <div class="section-divider">《論語》招式與攻擊方式</div>
-            <div id="focusSkillsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+            <div class="stat-ribbon" id="focusStatsGrid"></div>
+            <div class="section-divider">《論語》招式（點擊圖示檢視詳解）</div>
+            <div class="ink-icon-grid cols-4" id="focusSkillsList"></div>
           </div>
 
-          <!-- 子頁 2：裝備配戴（僅顯示當前這位弟子的 3 個槽位，一屏免捲動） -->
+          <!-- 子頁 2：裝備配戴（三格並排神兵圖示框） -->
           <div class="focus-subpane" id="focusPane_equip">
-            <div style="font-size:0.72rem; color:#9a9284;">點擊槽位開啟裝備庫（支援一鍵從其他弟子轉移裝備或直接購買）。</div>
-            <div class="equip-slot-list" id="focusEquipSlots"></div>
+            <div style="font-size:0.72rem; color:#9a9284;">點擊神兵圖示開啟寶庫（支援一鍵轉移穿戴或直接購買）。</div>
+            <div class="ink-icon-grid" id="focusEquipSlots"></div>
           </div>
 
           <!-- 子頁 3：天賦盤 -->
@@ -2212,7 +2421,7 @@
           收集各城池關卡掉落的<strong>專屬鍛造素材</strong>，搭配【基礎兵器胚體】＋ 300 兩即可鍛造改寫技能機制的<strong>專屬兵器</strong>。<br>
           <span style="color:#ecd29b;">★ 支援「一鍵連買帶鍛」：若尚未買胚體，點按鈕將自動以 180 兩購入胚體並直接鍛造！</span>
         </div>
-        <div id="campForgeList" style="display:flex; flex-direction:column; gap:7px;"></div>
+        <div class="ink-icon-grid" id="campForgeList"></div>
       </div>
 
       <!-- 模式 B：束脩羈絆 -->
@@ -2226,10 +2435,10 @@
   <!-- ==================== 場景 2.5：列國市集（獨立分頁） ==================== -->
   <div class="scene" id="sceneShop">
     <div class="shop-wrap">
-      <div class="section-divider">神兵禮器（購買後存入裝備庫，可至孔門營地自由分配）</div>
-      <div id="shopEquipList" style="display:flex; flex-direction:column; gap:7px;"></div>
-      <div class="section-divider">戰場補給與束脩</div>
-      <div id="shopItemList" style="display:flex; flex-direction:column; gap:7px;"></div>
+      <div class="section-divider">神兵禮器（點擊圖示檢視詳情與購買）</div>
+      <div class="ink-icon-grid" id="shopEquipList"></div>
+      <div class="section-divider">戰場補給與束脩（點擊圖示購買）</div>
+      <div class="ink-icon-grid cols-4" id="shopItemList"></div>
     </div>
   </div>
 
@@ -2391,11 +2600,11 @@
       </div>
       <button class="btn sm" onclick="closeModal('charDetailModal')">關閉</button>
     </div>
-    <div class="stat-pill-grid" id="cdStatsGrid"></div>
-    <div class="section-divider">目前配戴裝備</div>
-    <div id="cdEquipSummary" style="font-size:0.75rem; color:#ecd29b; background:#121314; padding:7px 9px; border-radius:6px; border:1px solid #3a352c;"></div>
-    <div class="section-divider">攻擊方式與《論語》招式</div>
-    <div id="cdSkillsList" style="display:flex; flex-direction:column; gap:6px;"></div>
+    <div class="stat-ribbon" id="cdStatsGrid"></div>
+    <div class="section-divider">配戴神兵（點擊檢視詞條）</div>
+    <div class="ink-icon-grid" id="cdEquipSummary"></div>
+    <div class="section-divider">《論語》招式（點擊圖示檢視詳解）</div>
+    <div class="ink-icon-grid cols-4" id="cdSkillsList"></div>
   </div>
 </div>
 
@@ -2406,21 +2615,22 @@
       <h3 id="eqDrawerTitle">選擇兵器</h3>
       <button class="btn sm" onclick="closeModal('equipDrawerModal')">關閉</button>
     </div>
-    <div style="font-size:0.74rem; color:#9a9284;" id="eqDrawerSub">點擊已持有的裝備即可穿戴或從其他武將轉移。</div>
-    <div id="eqDrawerList" style="display:flex; flex-direction:column; gap:7px;"></div>
+    <div style="font-size:0.74rem; color:#9a9284;" id="eqDrawerSub">點擊圖示檢視完整詞條、穿戴、轉移或購買。</div>
+    <div id="eqDrawerUnequipWrap"></div>
+    <div class="ink-icon-grid" id="eqDrawerList"></div>
   </div>
 </div>
 
-<!-- 彈窗：戰鬥道具欄 -->
-<div class="modal-backdrop" id="itemModal" onclick="if(event.target===this) closeModal('itemModal')">
+<!-- 彈窗：戰鬥道具欄 (v1.18 水墨圖示格) -->
+<div class="modal-backdrop center" id="itemModal" onclick="if(event.target===this) closeModal('itemModal')">
   <div class="modal-sheet">
-    <h3>🎒 戰場補給道具</h3>
-    <div style="font-size:0.75rem; color:#9a9284;">先點選棋盤上我方角色，再使用回復道具；蓍草可直接卜卦/重骰。</div>
-    <button class="btn" id="btnItemYarrow" onclick="useItem('yarrow')">蓍草·預告4回合 / 重骰天時 (<span id="cntYarrow">0</span>)</button>
-    <button class="btn" id="btnItemPotion" onclick="useItem('potion')">一般傷藥 +40 HP (<span id="cntPotion">0</span>)</button>
-    <button class="btn primary" id="btnItemBento" onclick="useItem('bento')">簞食瓢飲 +50 HP / +20 氣（禁補豁免）(<span id="cntBento">0</span>)</button>
+    <div class="row-between">
+      <h3>🎒 戰場補給行囊</h3>
+      <button class="btn sm" onclick="closeModal('itemModal')">關閉</button>
+    </div>
+    <div style="font-size:0.73rem; color:#9a9284;">點擊道具圖示檢視說明並確認使用；回復類需先點選棋盤我方武將。</div>
+    <div class="ink-icon-grid" id="battleItemGrid"></div>
     <div id="forecastBar" style="font-size:0.76rem; color:#cdeae6; background:#15302e; border:1px solid #3f756e; padding:6px 8px; border-radius:6px; display:none;"></div>
-    <button class="btn" onclick="closeModal('itemModal')">關閉</button>
   </div>
 </div>
 
@@ -3909,11 +4119,86 @@ function getTierBadgeHtml(eq) {
   return '<span class="tier-badge base">基礎/通用</span>';
 }
 
-function openCharDetail(uid) {
-  const tpl = DATA_UNITS[uid];
-  const prog = saveData.roster[uid];
-  if (!tpl || !prog) return;
+// ---- v1.18 全站水墨風 SVG 圖示庫與中央彈窗詳解引擎 ----
+const DATA_SHOP_ITEMS = {
+  yarrow: { key: 'yarrow', name: '蓍草',     short: '卜卦重骰', price: 150, seal: '卜', desc: '首次使用可預告未來 4 回合天時卦象；再次使用則消耗 1 束立即重骰當前天時！' },
+  potion: { key: 'potion', name: '一般傷藥', short: '+40 HP',   price: 100, seal: '藥', desc: '為選定的我方武將回復 40 點生命值。（陳蔡絕糧等禁補環境下無法使用）' },
+  bento:  { key: 'bento',  name: '簞食瓢飲', short: '+50血/20氣', price: 220, seal: '簞', desc: '為選定的我方武將回復 50 點生命值與 20 點浩然氣，且完全豁免【陳蔡絕糧】禁補規則！' },
+  suxiu:  { key: 'suxiu',  name: '束脩',     short: '羈絆送禮', price: 250, seal: '脩', desc: '古代拜師敬禮。可於【孔門營地 → 束脩羈絆】贈送提升羈絆等級，達 Lv.2 即解鎖《論語》合體奧義！' }
+};
 
+function getEquipIconKind(eqId) {
+  const map = {
+    base_sword: 'sword', ex_kong: 'sword', ex_agu: 'sword', tai_chu_sword: 'greatsword',
+    base_halberd: 'halberd', rooster_halberd: 'halberd', ex_lu: 'halberd', ex_ranyou: 'halberd',
+    base_bow: 'bow', ex_zixia: 'bow',
+    base_slip: 'slip', bamboo_slip: 'slip',
+    ex_hui: 'staff', ex_taishan: 'staff',
+    ex_gong: 'abacus', ex_wo: 'fan', ex_min: 'shield', ex_boniu: 'needle',
+    ex_zhonggong: 'greatsword', ex_ziyou: 'guqin', xingtan_guqin: 'guqin',
+    ex_nanzi: 'dagger', ex_yanzhengzai: 'lantern', chunqiu_pen: 'pen',
+    zhou_jade: 'jade', qian_zaodu: 'book', lianshan: 'book'
+  };
+  return map[eqId] || 'sword';
+}
+
+function getInkSvgIcon(kind, tone = '#ecd29b') {
+  const s = (inner) => `<svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  switch (kind) {
+    case 'sk_basic':
+      return s(`<path d="M11 37 L35 13 M30 11 L37 11 L37 18" stroke="${tone}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 26 L22 32 M9 39 L15 33" stroke="#8ec9c2" stroke-width="2.8" stroke-linecap="round"/><circle cx="24" cy="24" r="19" stroke="${tone}" stroke-opacity="0.32" stroke-width="1.5" stroke-dasharray="4 3"/>`);
+    case 'sk_skill':
+      return s(`<circle cx="24" cy="24" r="17" stroke="${tone}" stroke-width="2" stroke-opacity="0.55"/><path d="M13 27 C14 19 22 18 24 24 C26 30 34 29 35 21" stroke="${tone}" stroke-width="3" stroke-linecap="round"/><path d="M17 17 Q24 11 31 17 M17 31 Q24 37 31 31" stroke="#8ec9c2" stroke-width="2.2" stroke-linecap="round"/>`);
+    case 'sk_ult':
+      return s(`<path d="M24 7 C29 14 35 19 35 27 C35 34 30 40 24 40 C18 40 13 34 13 27 C13 19 19 14 24 7 Z" fill="rgba(200,62,55,0.28)" stroke="#f0a45d" stroke-width="2.6"/><path d="M24 16 C27 21 29 24 29 29 C29 33 27 36 24 36 C21 36 19 33 19 29 C19 24 21 21 24 16 Z" fill="#ecd29b" fill-opacity="0.75"/>`);
+    case 'sk_hex':
+      return s(`<circle cx="24" cy="24" r="16" stroke="#dfc7ed" stroke-width="2.4"/><path d="M24 8 A8 8 0 0 1 24 24 A8 8 0 0 0 24 40 A16 16 0 0 1 24 8 Z" fill="#dfc7ed" fill-opacity="0.72"/><circle cx="24" cy="16" r="2.6" fill="#18121f"/><circle cx="24" cy="32" r="2.6" fill="#dfc7ed"/>`);
+    case 'sword':
+      return s(`<path d="M12 36 L34 14 L38 10 L34 10 L30 14 L12 36 Z" fill="${tone}" fill-opacity="0.22" stroke="${tone}" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 28 L20 34 M9 39 L14 34" stroke="#eae3d5" stroke-width="3" stroke-linecap="round"/>`);
+    case 'greatsword':
+      return s(`<path d="M13 35 L31 9 L39 9 L39 17 L17 35 Z" fill="${tone}" fill-opacity="0.28" stroke="${tone}" stroke-width="2.6" stroke-linejoin="round"/><path d="M22 26 L34 14" stroke="#fff4dc" stroke-width="1.8"/><path d="M11 28 L20 37 M8 40 L14 34" stroke="#d4af6a" stroke-width="3.2" stroke-linecap="round"/>`);
+    case 'halberd':
+      return s(`<path d="M11 38 L35 12" stroke="#cfc7b8" stroke-width="2.8" stroke-linecap="round"/><path d="M35 12 L38 8 L33 10" stroke="${tone}" stroke-width="2.8" stroke-linecap="round"/><path d="M25 14 C31 12 36 16 34 24 C30 21 28 19 25 14 Z" fill="${tone}" fill-opacity="0.32" stroke="${tone}" stroke-width="2.2"/><path d="M24 22 L19 19" stroke="#c83e37" stroke-width="2.6" stroke-linecap="round"/>`);
+    case 'bow':
+      return s(`<path d="M16 10 C31 14 31 34 16 38" stroke="${tone}" stroke-width="3" stroke-linecap="round"/><path d="M16 10 L16 38" stroke="#cfc7b8" stroke-width="1.6" stroke-dasharray="2 2"/><path d="M11 24 L37 24 M32 19 L37 24 L32 29" stroke="#8ec9c2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>`);
+    case 'slip':
+      return s(`<rect x="11" y="10" width="6" height="28" rx="1.5" fill="${tone}" fill-opacity="0.22" stroke="${tone}" stroke-width="2"/><rect x="21" y="10" width="6" height="28" rx="1.5" fill="${tone}" fill-opacity="0.22" stroke="${tone}" stroke-width="2"/><rect x="31" y="10" width="6" height="28" rx="1.5" fill="${tone}" fill-opacity="0.22" stroke="${tone}" stroke-width="2"/><path d="M9 17 L39 17 M9 31 L39 31" stroke="#c83e37" stroke-width="2"/>`);
+    case 'staff':
+      return s(`<path d="M14 38 L32 14" stroke="#cfc7b8" stroke-width="3" stroke-linecap="round"/><circle cx="33" cy="13" r="6" fill="${tone}" fill-opacity="0.25" stroke="${tone}" stroke-width="2.4"/><circle cx="33" cy="13" r="2.2" fill="#fff4dc"/>`);
+    case 'abacus':
+      return s(`<rect x="9" y="12" width="30" height="24" rx="3" stroke="${tone}" stroke-width="2.5" fill="${tone}" fill-opacity="0.14"/><path d="M9 20 L39 20 M16 12 L16 36 M24 12 L24 36 M32 12 L32 36" stroke="${tone}" stroke-width="1.8"/><circle cx="16" cy="16" r="2.3" fill="#ecd29b"/><circle cx="24" cy="26" r="2.3" fill="#ecd29b"/><circle cx="32" cy="30" r="2.3" fill="#ecd29b"/>`);
+    case 'fan':
+      return s(`<path d="M24 36 L9 18 C14 10 34 10 39 18 Z" fill="${tone}" fill-opacity="0.25" stroke="${tone}" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 36 L17 14 M24 36 L24 12 M24 36 L31 14" stroke="#eae3d5" stroke-width="1.5" stroke-opacity="0.7"/>`);
+    case 'shield':
+      return s(`<path d="M24 8 L37 13 V24 C37 32 31 37 24 40 C17 37 11 32 11 24 V13 Z" fill="${tone}" fill-opacity="0.22" stroke="${tone}" stroke-width="2.6" stroke-linejoin="round"/><path d="M24 14 V34 M16 22 H32" stroke="#8ec9c2" stroke-width="2.2" stroke-linecap="round"/>`);
+    case 'needle':
+      return s(`<path d="M12 36 L36 12 M18 38 L38 18 M10 30 L30 10" stroke="${tone}" stroke-width="2.4" stroke-linecap="round"/><circle cx="35" cy="13" r="2.5" fill="#8ec9c2"/>`);
+    case 'guqin':
+      return s(`<path d="M10 31 C16 26 24 20 35 12 C38 14 39 16 37 19 C28 28 21 34 14 37 Z" fill="${tone}" fill-opacity="0.24" stroke="${tone}" stroke-width="2.3"/><path d="M13 33 L35 15 M15 35 L36 17" stroke="#eae3d5" stroke-width="1.4"/>`);
+    case 'dagger':
+      return s(`<path d="M14 34 L34 14 L36 12 L28 14 L14 34 Z" fill="${tone}" fill-opacity="0.3" stroke="${tone}" stroke-width="2.4"/><circle cx="13" cy="35" r="4" stroke="#e0827c" stroke-width="2.2"/>`);
+    case 'lantern':
+      return s(`<path d="M24 7 V12 M18 12 H30 M18 36 H30 M24 36 V40" stroke="${tone}" stroke-width="2.4" stroke-linecap="round"/><rect x="15" y="13" width="18" height="22" rx="7" fill="${tone}" fill-opacity="0.24" stroke="${tone}" stroke-width="2.4"/><circle cx="24" cy="24" r="3.5" fill="#fff4dc"/>`);
+    case 'pen':
+      return s(`<path d="M15 37 L35 11" stroke="${tone}" stroke-width="3.2" stroke-linecap="round"/><path d="M15 37 C11 39 9 37 11 33 C12 31 15 32 15 37 Z" fill="#f0a45d" stroke="#fff4dc" stroke-width="1.4"/>`);
+    case 'jade':
+      return s(`<path d="M24 7 L33 16 V39 H15 V16 Z" fill="#6ea8a1" fill-opacity="0.28" stroke="#8ec9c2" stroke-width="2.5" stroke-linejoin="round"/><circle cx="24" cy="24" r="4.5" stroke="${tone}" stroke-width="2"/>`);
+    case 'book':
+      return s(`<rect x="12" y="9" width="24" height="30" rx="2.5" fill="${tone}" fill-opacity="0.2" stroke="${tone}" stroke-width="2.4"/><path d="M18 9 V39 M23 16 H31 M23 22 H31 M23 28 H29" stroke="#eae3d5" stroke-width="2" stroke-linecap="round"/>`);
+    case 'item_yarrow':
+      return s(`<path d="M16 38 L22 10 M24 39 L24 9 M32 38 L26 10" stroke="#8ec9c2" stroke-width="2.6" stroke-linecap="round"/><path d="M15 26 H33" stroke="#d4af6a" stroke-width="3" stroke-linecap="round"/>`);
+    case 'item_potion':
+      return s(`<path d="M21 10 H27 M22 10 V15 C16 17 14 23 16 28 C14 33 17 39 24 39 C31 39 34 33 32 28 C34 23 32 17 26 15 V10" fill="rgba(94,156,118,0.3)" stroke="#79c997" stroke-width="2.4" stroke-linejoin="round"/><path d="M18 26 H30" stroke="#ecd29b" stroke-width="2"/>`);
+    case 'item_bento':
+      return s(`<path d="M12 22 H36 L33 36 H15 Z" fill="rgba(212,175,106,0.25)" stroke="#ecd29b" stroke-width="2.4" stroke-linejoin="round"/><path d="M15 22 C15 13 33 13 33 22" stroke="#d4af6a" stroke-width="2.4"/><path d="M20 28 H28" stroke="#79c997" stroke-width="2.4" stroke-linecap="round"/>`);
+    case 'item_suxiu':
+      return s(`<rect x="10" y="16" width="28" height="16" rx="5" fill="rgba(200,62,55,0.28)" stroke="#e0827c" stroke-width="2.4"/><path d="M18 15 V33 M30 15 V33 M18 24 H30" stroke="#ecd29b" stroke-width="2.4"/>`);
+    default:
+      return s(`<circle cx="24" cy="24" r="14" stroke="${tone}" stroke-width="2.5"/>`);
+  }
+}
+
+function buildCompactStatsHtml(tpl, prog) {
   const lvB = prog.lv - 1;
   const inner = prog.inner || {};
   const eqB = getEquipStatBonus(prog.equip);
@@ -3921,12 +4206,365 @@ function openCharDetail(uid) {
   const atkBonus = lvB * 3 + (inner.she || 0) * 5 + eqB.atk;
   const defBonus = lvB * 2 + (inner.shu || 0) * 3;
   const moveBonus = (inner.yu || 0);
-  const startQi = Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi);
   const critBonus = Math.round(((inner.num || 0) * 0.08 + eqB.crit) * 100);
-
   const basicSk = DATA_SKILLS[tpl.basicId];
+  const shortRng = basicSk ? basicSk.rangeText.replace(/\(.*?\)/g, '').trim() : '1 格';
+  return `
+    <div class="stat-chip"><span class="stat-chip-lbl">生命 HP</span><span class="stat-chip-val">${tpl.maxHp + hpBonus} ${hpBonus ? `<span class="bonus">+${hpBonus}</span>` : ''}</span></div>
+    <div class="stat-chip"><span class="stat-chip-lbl">攻擊 ATK</span><span class="stat-chip-val">${tpl.baseAtk + atkBonus} ${atkBonus ? `<span class="bonus">+${atkBonus}</span>` : ''}</span></div>
+    <div class="stat-chip"><span class="stat-chip-lbl">防禦 DEF</span><span class="stat-chip-val">${tpl.baseDef + defBonus} ${defBonus ? `<span class="bonus">+${defBonus}</span>` : ''}</span></div>
+    <div class="stat-chip"><span class="stat-chip-lbl">移動力</span><span class="stat-chip-val">${tpl.baseMove + moveBonus}格 ${moveBonus ? `<span class="bonus">+${moveBonus}</span>` : ''}</span></div>
+    <div class="stat-chip"><span class="stat-chip-lbl">普攻射程</span><span class="stat-chip-val">${shortRng}</span></div>
+    <div class="stat-chip"><span class="stat-chip-lbl">暴擊率</span><span class="stat-chip-val">+${critBonus}%</span></div>`;
+}
+
+function buildSkillIconGridHtml(uid) {
+  const tpl = DATA_UNITS[uid];
+  if (!tpl) return '';
+  const tiles = [];
+  const basicSk = tpl.basicId ? DATA_SKILLS[tpl.basicId] : null;
   const skillSk = tpl.skillId ? DATA_SKILLS[tpl.skillId] : null;
   const ultSk = tpl.ultId ? DATA_SKILLS[tpl.ultId] : null;
+
+  if (basicSk) {
+    tiles.push(`
+      <button class="ink-tile skill-basic" onclick="showSkillDetailDialog('${uid}','basic')">
+        <span class="tile-badge-tl">普攻</span>
+        <span class="tile-badge-tr cyan">+25氣</span>
+        <div class="ink-tile-svg">${getInkSvgIcon('sk_basic', '#8ec9c2')}</div>
+        <div class="ink-tile-name">${basicSk.name}</div>
+      </button>`);
+  }
+  if (skillSk) {
+    tiles.push(`
+      <button class="ink-tile skill-active" onclick="showSkillDetailDialog('${uid}','skill')">
+        <span class="tile-badge-tl">絕招</span>
+        <span class="tile-badge-tr">${skillSk.qiCost}氣</span>
+        <div class="ink-tile-svg">${getInkSvgIcon('sk_skill', '#ecd29b')}</div>
+        <div class="ink-tile-name">${skillSk.name}</div>
+      </button>`);
+  }
+  if (ultSk) {
+    tiles.push(`
+      <button class="ink-tile skill-ult" onclick="showSkillDetailDialog('${uid}','ult')">
+        <span class="tile-badge-tl">大絕</span>
+        <span class="tile-badge-tr red">${ultSk.qiCost}氣</span>
+        <div class="ink-tile-svg">${getInkSvgIcon('sk_ult', '#f0a45d')}</div>
+        <div class="ink-tile-name">${ultSk.name}</div>
+      </button>`);
+  }
+  if (uid === 'p_kong') {
+    tiles.push(`
+      <button class="ink-tile skill-hex" onclick="showSkillDetailDialog('${uid}','hex')">
+        <span class="tile-badge-tl">天時</span>
+        <span class="tile-badge-tr">0AP</span>
+        <div class="ink-tile-svg">${getInkSvgIcon('sk_hex', '#dfc7ed')}</div>
+        <div class="ink-tile-name">韋編三絕</div>
+      </button>`);
+  }
+  return tiles.join('');
+}
+
+function showSkillDetailDialog(uid, slotType) {
+  const tpl = DATA_UNITS[uid];
+  if (!tpl) return;
+  if (slotType === 'hex') {
+    const uses = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2;
+    showInkDialog({
+      seal: '卦',
+      sealTone: 'info',
+      title: '【專屬天時技】韋編三絕',
+      bodyHtml: `
+        <div class="detail-hero-row">
+          <div class="detail-hero-icon" style="border-color:#9370a8;">${getInkSvgIcon('sk_hex', '#dfc7ed')}</div>
+          <div>
+            <div style="font-weight:900; color:#dfc7ed;">孔子專屬・不耗行動點</div>
+            <div style="font-size:0.74rem; color:#8ec9c2; margin-top:2px;">0 AP｜每回合限 1 次｜每場限 ${uses} 次</div>
+          </div>
+        </div>
+        <div>竹簡翻斷三次，隨心改寫天象！可從八純卦中<strong>任選一卦</strong>（強行改寫關卡鎖卦並重置倒數為 2 回合），同時立即觸發對應<strong>全軍戰吼</strong>！</div>`,
+      actions: [{ label: '明白了', cls: 'primary' }]
+    });
+    return;
+  }
+  const skId = slotType === 'basic' ? tpl.basicId : (slotType === 'skill' ? tpl.skillId : tpl.ultId);
+  const sk = DATA_SKILLS[skId];
+  if (!sk) return;
+  const labelMap = { basic: '普攻', skill: '絕招', ult: '無雙大絕' };
+  const iconKind = slotType === 'basic' ? 'sk_basic' : (slotType === 'skill' ? 'sk_skill' : 'sk_ult');
+  const tone = slotType === 'basic' ? '#8ec9c2' : (slotType === 'skill' ? '#ecd29b' : '#f0a45d');
+  const costTxt = sk.qiCost > 0 ? `消耗 ${sk.qiCost} 浩然氣${sk.goldCost ? ` ＋ ${sk.goldCost} 兩` : ''}` : '無消耗（命中回復 +25 氣）';
+  showInkDialog({
+    seal: slotType === 'ult' ? '絕' : (slotType === 'skill' ? '技' : '攻'),
+    sealTone: slotType === 'basic' ? 'info' : 'warn',
+    title: `【${labelMap[slotType]}】${sk.name}`,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon" style="border-color:${tone};">${getInkSvgIcon(iconKind, tone)}</div>
+        <div>
+          <div style="font-weight:900; color:${tone};">${tpl.name}・${sk.rangeText}</div>
+          <div style="font-size:0.74rem; color:#cfc7b8; margin-top:2px;">${costTxt}</div>
+        </div>
+      </div>
+      <div>${sk.desc}</div>`,
+    actions: [{ label: '知道了', cls: 'primary' }]
+  });
+}
+
+function buildEquipSlotsGridHtml(uid, interactive = true) {
+  const prog = saveData.roster[uid];
+  if (!prog) return '';
+  const eq = prog.equip || {};
+  return ['weapon', 'ritual', 'book'].map(slot => {
+    const eid = eq[slot];
+    const item = (eid && eid !== 'none') ? DATA_EQUIPS[eid] : null;
+    const tierCls = item ? `tier-${item.tier || 'base'}` : 'empty';
+    const iconKind = item ? getEquipIconKind(item.id) : (slot === 'weapon' ? 'sword' : slot === 'ritual' ? 'jade' : 'book');
+    const tone = !item ? '#595248' : (item.tier === 'transcend' ? '#f0a45d' : (item.tier === 'exclusive' ? '#ecd29b' : '#cfc7b8'));
+    const clickFn = interactive
+      ? `openEquipDrawer('${uid}','${slot}')`
+      : (item ? `showEquipReadonlyDialog('${item.id}')` : '');
+    const badgeTr = item
+      ? (item.tier === 'transcend' ? '<span class="tile-badge-tr red">超越</span>' : (item.tier === 'exclusive' ? '<span class="tile-badge-tr">專屬</span>' : '<span class="tile-badge-tr cyan">已裝</span>'))
+      : '<span class="tile-badge-tr">空槽</span>';
+    return `
+      <button class="ink-tile ${tierCls}" ${clickFn ? `onclick="${clickFn}"` : 'disabled'}>
+        <span class="tile-badge-tl">${SLOT_LABELS[slot]}</span>
+        ${badgeTr}
+        <div class="ink-tile-svg">${getInkSvgIcon(iconKind, tone)}</div>
+        <div class="ink-tile-name">${item ? item.name : '未裝備'}</div>
+        <div class="ink-tile-sub">${item ? (interactive ? '點擊更換' : '點擊看詞條') : (interactive ? '點擊配戴' : '無')}</div>
+      </button>`;
+  }).join('');
+}
+
+function showEquipReadonlyDialog(eqId) {
+  const eq = DATA_EQUIPS[eqId];
+  if (!eq) return;
+  const tone = eq.tier === 'transcend' ? '#f0a45d' : (eq.tier === 'exclusive' ? '#ecd29b' : '#cfc7b8');
+  showInkDialog({
+    seal: SLOT_LABELS[eq.slot]?.[0] || '器',
+    sealTone: eq.tier === 'transcend' ? 'warn' : 'info',
+    title: `${eq.name}`,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon" style="border-color:${tone};">${getInkSvgIcon(getEquipIconKind(eq.id), tone)}</div>
+        <div>
+          <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;"><strong>${SLOT_LABELS[eq.slot]}</strong>${getTierBadgeHtml(eq)}</div>
+          <div style="font-size:0.72rem; color:#8ec9c2; margin-top:3px;">${eq.sourceLabel}</div>
+        </div>
+      </div>
+      <div>${eq.fullDesc}</div>`,
+    actions: [{ label: '關閉', cls: 'primary' }]
+  });
+}
+
+function showEquipVaultDetailDialog(uid, slot, eqId) {
+  const eq = DATA_EQUIPS[eqId];
+  const prog = saveData.roster[uid];
+  if (!eq || !prog) return;
+  const currentEqId = prog.equip[slot];
+  const ownedCount = saveData.equipInventory[eq.id] || 0;
+  const wearers = getEquipWearers(eq.id);
+  const isWearing = (currentEqId === eq.id);
+  const freeCount = ownedCount - wearers.length;
+  const otherWearerId = wearers.find(w => w !== uid);
+  const tone = eq.tier === 'transcend' ? '#f0a45d' : (eq.tier === 'exclusive' ? '#ecd29b' : '#cfc7b8');
+  const wearerTxt = wearers.length ? `穿戴者：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '無人穿戴';
+
+  const actions = [{ label: '返回', cls: '' }];
+  if (isWearing) {
+    actions.push({ label: '卸下此裝備', cls: 'danger', onClick: () => { prog.equip[slot] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); } });
+  } else if (freeCount > 0) {
+    actions.push({ label: '穿戴此裝備', cls: 'primary', onClick: () => equipItemTo(uid, slot, eq.id, null) });
+  } else if (ownedCount > 0 && otherWearerId) {
+    const otherName = DATA_UNITS[otherWearerId].name;
+    actions.push({ label: `從【${otherName}】轉移`, cls: 'gold', onClick: () => equipItemTo(uid, slot, eq.id, otherWearerId) });
+  } else if (eq.sourceType === 'shop') {
+    if (saveData.gold >= eq.price) {
+      actions.push({ label: `購買並穿戴 (${eq.price}兩)`, cls: 'gold', onClick: () => buyEquipAndWear(uid, slot, eq.id) });
+    } else {
+      actions.push({ label: `軍資金不足 (${eq.price}兩)`, cls: '' });
+    }
+  } else if (eq.sourceType === 'forge') {
+    actions.push({ label: '前往【器作鍛造】', cls: 'gold', onClick: () => { closeModal('equipDrawerModal'); switchCampMode('forge'); } });
+  }
+
+  showInkDialog({
+    seal: SLOT_LABELS[eq.slot]?.[0] || '器',
+    sealTone: eq.tier === 'transcend' ? 'warn' : 'info',
+    title: eq.name,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon" style="border-color:${tone};">${getInkSvgIcon(getEquipIconKind(eq.id), tone)}</div>
+        <div>
+          <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;"><strong>${SLOT_LABELS[eq.slot]}</strong>${getTierBadgeHtml(eq)}</div>
+          <div style="font-size:0.72rem; color:#8ec9a4; margin-top:3px;">${ownedCount > 0 ? `持有 ${ownedCount} 件（閒置 ${Math.max(0, freeCount)}）｜${wearerTxt}` : '尚未持有'}</div>
+        </div>
+      </div>
+      <div>${eq.fullDesc}</div>
+      <div style="margin-top:6px; font-size:0.73rem; color:#9a9284;">取得方式：<strong style="color:#ecd29b;">${eq.sourceLabel}</strong></div>`,
+    actions
+  });
+}
+
+function showForgeDetailDialog(eqId) {
+  const eq = DATA_EQUIPS[eqId];
+  if (!eq || !eq.forgeRecipe) return;
+  const rec = eq.forgeRecipe;
+  const baseEq = DATA_EQUIPS[rec.baseId];
+  const mat = DATA_MATERIALS[rec.matId];
+  const ownerTpl = DATA_UNITS[eq.exclusiveFor];
+  const recruited = Boolean(saveData.roster[eq.exclusiveFor]);
+  const crafted = (saveData.equipInventory[eq.id] || 0) > 0;
+  const matCnt = (saveData.materials && saveData.materials[rec.matId]) || 0;
+  const baseOwned = saveData.equipInventory[rec.baseId] || 0;
+  const baseFree = Math.max(0, baseOwned - getEquipWearers(rec.baseId).length);
+  const needBuyBase = baseFree <= 0;
+  const totalGoldNeed = rec.gold + (needBuyBase ? baseEq.price : 0);
+  const canForge = !crafted && matCnt > 0 && saveData.gold >= totalGoldNeed;
+
+  const actions = [{ label: '關閉', cls: '' }];
+  if (crafted) {
+    const isWearing = recruited && saveData.roster[eq.exclusiveFor].equip.weapon === eq.id;
+    if (recruited && !isWearing) {
+      actions.push({ label: `為【${ownerTpl.name}】穿戴`, cls: 'primary', onClick: () => equipItemTo(eq.exclusiveFor, 'weapon', eq.id, null) });
+    }
+  } else if (canForge) {
+    actions.push({
+      label: needBuyBase ? `🔨 連買帶鍛 (${totalGoldNeed}兩)` : `🔨 鍛造神兵 (${rec.gold}兩)`,
+      cls: needBuyBase ? 'gold' : 'primary',
+      onClick: () => forgeExclusiveWeapon(eq.id, needBuyBase)
+    });
+  }
+
+  showInkDialog({
+    seal: '鍛',
+    sealTone: crafted ? 'info' : 'warn',
+    title: `${eq.name}（${ownerTpl.name}專屬）`,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon" style="border-color:#d4af6a;">${getInkSvgIcon(getEquipIconKind(eq.id), '#ecd29b')}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${buildAvatarHtml(eq.exclusiveFor, 'sm', false)}
+            <div>
+              <div style="font-weight:900; color:#ecd29b;">${ownerTpl.name}專屬神兵</div>
+              <div style="font-size:0.7rem; color:#9a9284;">${recruited ? '已在孔門麾下' : '尚未招募（仍可先鍛造）'}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;">${eq.fullDesc}</div>
+      <div class="forge-recipe-row">
+        <span class="forge-ing ${baseFree > 0 ? 'ok' : ''}">胚體：${baseEq.name} (閒置:${baseFree})</span>
+        <span class="forge-ing ${matCnt > 0 ? 'ok' : 'miss'}">素材：${mat.name} (${matCnt > 0 ? '已取得' : `掉落:${mat.stageName}`})</span>
+        <span class="forge-ing ${saveData.gold >= totalGoldNeed ? 'ok' : 'miss'}">費用：${totalGoldNeed}兩</span>
+      </div>`,
+    actions
+  });
+}
+
+function showShopEquipDetailDialog(eqId) {
+  const eq = DATA_EQUIPS[eqId];
+  if (!eq) return;
+  const owned = saveData.equipInventory[eq.id] || 0;
+  const wearers = getEquipWearers(eq.id);
+  const wearerTxt = wearers.length ? `｜穿戴中：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '';
+  const actions = [{ label: '關閉', cls: '' }];
+  if (saveData.gold >= eq.price) {
+    actions.push({ label: `購買 (${eq.price}兩)`, cls: 'gold', onClick: () => buyEquipToBag(eq.id) });
+  } else {
+    actions.push({ label: `軍資金不足 (${eq.price}兩)`, cls: '' });
+  }
+  showInkDialog({
+    seal: '市',
+    sealTone: 'info',
+    title: `[${SLOT_LABELS[eq.slot]}] ${eq.name}`,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon">${getInkSvgIcon(getEquipIconKind(eq.id), '#ecd29b')}</div>
+        <div>
+          <div style="font-weight:900; color:#ecd29b;">售價：${eq.price} 兩</div>
+          <div style="font-size:0.72rem; color:#8ec9a4; margin-top:2px;">目前持有：${owned} 件${wearerTxt}</div>
+        </div>
+      </div>
+      <div>${eq.fullDesc}</div>`,
+    actions
+  });
+}
+
+function showShopItemDetailDialog(itemKey) {
+  const it = DATA_SHOP_ITEMS[itemKey];
+  if (!it) return;
+  const owned = saveData.items[itemKey] || 0;
+  const actions = [{ label: '關閉', cls: '' }];
+  if (saveData.gold >= it.price) {
+    actions.push({ label: `購買 1 份 (${it.price}兩)`, cls: 'gold', onClick: () => buyShopItem(itemKey, it.price) });
+  } else {
+    actions.push({ label: `軍資金不足 (${it.price}兩)`, cls: '' });
+  }
+  showInkDialog({
+    seal: it.seal,
+    sealTone: 'info',
+    title: it.name,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon">${getInkSvgIcon('item_' + itemKey, '#ecd29b')}</div>
+        <div>
+          <div style="font-weight:900; color:#ecd29b;">售價：${it.price} 兩</div>
+          <div style="font-size:0.72rem; color:#8ec9a4; margin-top:2px;">目前持有：${owned} 份</div>
+        </div>
+      </div>
+      <div>${it.desc}</div>`,
+    actions
+  });
+}
+
+function showBattleItemDetailDialog(itemKey) {
+  const it = DATA_SHOP_ITEMS[itemKey];
+  if (!it) return;
+  const cnt = saveData.items[itemKey] || 0;
+  const banAllHeal = hasActiveAffix('no_full_belly');
+  const banNormal = (itemKey === 'potion' && activeStage && activeStage.modifiers && activeStage.modifiers.banNormalHeal);
+  const disabled = (gameState !== STATE.PLAYER_TURN || cnt <= 0 || ((itemKey === 'potion' || itemKey === 'bento') && banAllHeal) || banNormal);
+  let reason = '';
+  if (cnt <= 0) reason = '庫存已耗盡（可於列國市集補充）';
+  else if (banAllHeal && itemKey !== 'yarrow') reason = '本層天命詞條【食無求飽】禁止使用回復道具';
+  else if (banNormal) reason = '【陳蔡絕糧】環境禁止使用一般傷藥（請改用簞食瓢飲）';
+  else if (gameState !== STATE.PLAYER_TURN) reason = '僅限我方回合使用';
+
+  const actions = [{ label: '取消', cls: '' }];
+  if (!disabled) {
+    const label = (itemKey === 'yarrow' && !forecastVisible) ? '卜卦預告 4 回合（不消耗）' : `確認使用【${it.name}】`;
+    actions.push({ label, cls: 'primary', onClick: () => useItem(itemKey) });
+  }
+  showInkDialog({
+    seal: it.seal,
+    sealTone: disabled ? 'warn' : 'info',
+    title: it.name,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon">${getInkSvgIcon('item_' + itemKey, '#ecd29b')}</div>
+        <div>
+          <div style="font-weight:900; color:#ecd29b;">剩餘數量：${cnt} 份</div>
+          <div style="font-size:0.72rem; color:#8ec9c2; margin-top:2px;">${it.short}</div>
+        </div>
+      </div>
+      <div>${it.desc}</div>
+      ${reason ? `<div style="margin-top:6px; font-size:0.74rem; color:#ff8a84;">⚠ ${reason}</div>` : ''}`,
+    actions
+  });
+}
+
+function openCharDetail(uid) {
+  const tpl = DATA_UNITS[uid];
+  const prog = saveData.roster[uid];
+  if (!tpl || !prog) return;
+
+  const inner = prog.inner || {};
+  const eqB = getEquipStatBonus(prog.equip);
+  const startQi = Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi);
   const trigramName = DATA_HEXAGRAMS.find(h => h.id === tpl.trigram)?.name || '乾卦';
   const effYY = (prog.equip.book === 'lianshan' || prog.equip.weapon === 'tai_chu_sword') ? '陽/陰（神兵雙全）' : tpl.yinYang;
 
@@ -3935,39 +4573,9 @@ function openCharDetail(uid) {
   document.getElementById('cdName').textContent = `${tpl.name} Lv.${prog.lv}（${tpl.role}）`;
   document.getElementById('cdTags').textContent = `陰陽：${effYY}｜本命卦：${trigramName}｜開局氣：${startQi}`;
 
-  document.getElementById('cdStatsGrid').innerHTML = `
-    <div class="stat-box">生命 HP<div class="val">${tpl.maxHp + hpBonus} <span class="bonus">${hpBonus ? `(+${hpBonus})` : ''}</span></div></div>
-    <div class="stat-box">攻擊 ATK<div class="val">${tpl.baseAtk + atkBonus} <span class="bonus">${atkBonus ? `(+${atkBonus})` : ''}</span></div></div>
-    <div class="stat-box">防禦 DEF<div class="val">${tpl.baseDef + defBonus} <span class="bonus">${defBonus ? `(+${defBonus})` : ''}</span></div></div>
-    <div class="stat-box">移動力<div class="val">${tpl.baseMove + moveBonus} 格 <span class="bonus">${moveBonus ? `(+${moveBonus})` : ''}</span></div></div>
-    <div class="stat-box">普攻射程<div class="val">${basicSk ? basicSk.rangeText : '1 格'}</div></div>
-    <div class="stat-box">天賦暴擊<div class="val">+${critBonus}%</div></div>
-  `;
-
-  const eqLines = ['weapon', 'ritual', 'book'].map(slot => {
-    const eid = prog.equip[slot];
-    if (!eid || eid === 'none') return `${SLOT_LABELS[slot]}：未裝備`;
-    const eq = DATA_EQUIPS[eid];
-    return `${SLOT_LABELS[slot]}：<strong>${eq.name}</strong>（${eq.shortDesc}）`;
-  });
-  document.getElementById('cdEquipSummary').innerHTML = eqLines.join('<br>');
-
-  const skillsHtml = [];
-  if (basicSk) {
-    skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【普攻】${basicSk.name}</span><span class="pill player">${basicSk.rangeText}</span></div><div class="skill-detail-desc">${basicSk.desc}</div></div>`);
-  }
-  if (skillSk) {
-    const extraCost = skillSk.goldCost ? `＋${skillSk.goldCost}兩` : '';
-    skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【絕招】${skillSk.name}</span><span class="pill gold">${skillSk.qiCost}氣${extraCost}・${skillSk.rangeText}</span></div><div class="skill-detail-desc">${skillSk.desc}</div></div>`);
-  }
-  if (ultSk) {
-    const extraCost = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
-    skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extraCost}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
-  }
-  if (uid === 'p_kong') {
-    skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">0 AP・每回合1次・每場2次</span></div><div class="skill-detail-desc">竹簡翻斷三次，隨心改寫天象！從八純卦中任選一卦（強行改寫關卡鎖卦並重置倒數 2 回合），立即觸發對應全軍戰吼。</div></div>`);
-  }
-  document.getElementById('cdSkillsList').innerHTML = skillsHtml.join('');
+  document.getElementById('cdStatsGrid').innerHTML = buildCompactStatsHtml(tpl, prog);
+  document.getElementById('cdEquipSummary').innerHTML = buildEquipSlotsGridHtml(uid, false);
+  document.getElementById('cdSkillsList').innerHTML = buildSkillIconGridHtml(uid);
   document.getElementById('charDetailModal').classList.add('show');
   refreshAllSpriteCanvases();
 }
@@ -3982,66 +4590,69 @@ function openEquipDrawer(uid, slot) {
   const prog = saveData.roster[uid];
   const currentEqId = prog.equip[slot];
 
-  document.getElementById('eqDrawerTitle').textContent = `[${tpl.char}] ${tpl.name} — 選擇${SLOT_LABELS[slot]}`;
-  document.getElementById('eqDrawerSub').textContent = '顯示完整規則詞條、目前持有庫存與取得管道；已被他人穿戴時可一鍵轉移。';
+  document.getElementById('eqDrawerTitle').textContent = `[${tpl.char}] ${tpl.name} — ${SLOT_LABELS[slot]}寶庫`;
+  document.getElementById('eqDrawerSub').textContent = '點擊神兵圖示檢視完整詞條、穿戴、轉移或購買。';
+
+  const unWrap = document.getElementById('eqDrawerUnequipWrap');
+  if (unWrap) {
+    unWrap.innerHTML = '';
+    if (currentEqId && currentEqId !== 'none') {
+      const unBtn = document.createElement('button');
+      unBtn.className = 'btn danger sm';
+      unBtn.style.width = '100%';
+      unBtn.textContent = `卸下目前裝備（${DATA_EQUIPS[currentEqId].name}）`;
+      unBtn.onclick = () => { prog.equip[slot] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); };
+      unWrap.appendChild(unBtn);
+    }
+  }
 
   const list = document.getElementById('eqDrawerList');
   list.innerHTML = '';
-
-  if (currentEqId && currentEqId !== 'none') {
-    const unBtn = document.createElement('button');
-    unBtn.className = 'btn danger sm';
-    unBtn.textContent = `卸下目前裝備（${DATA_EQUIPS[currentEqId].name}）`;
-    unBtn.onclick = () => { prog.equip[slot] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); };
-    list.appendChild(unBtn);
-  }
 
   const tierOrd = { transcend: 0, exclusive: 1, base: 2 };
   Object.values(DATA_EQUIPS)
     .filter(eq => eq.slot === slot && (!eq.exclusiveFor || eq.exclusiveFor === uid))
     .sort((a, b) => (tierOrd[a.tier] ?? 2) - (tierOrd[b.tier] ?? 2))
     .forEach(eq => {
-    const ownedCount = saveData.equipInventory[eq.id] || 0;
-    const wearers = getEquipWearers(eq.id);
-    const isWearing = (currentEqId === eq.id);
-    const freeCount = ownedCount - wearers.length;
-    const otherWearerId = wearers.find(w => w !== uid);
+      const ownedCount = saveData.equipInventory[eq.id] || 0;
+      const wearers = getEquipWearers(eq.id);
+      const isWearing = (currentEqId === eq.id);
+      const freeCount = ownedCount - wearers.length;
+      const tone = eq.tier === 'transcend' ? '#f0a45d' : (eq.tier === 'exclusive' ? '#ecd29b' : '#cfc7b8');
 
-    const card = document.createElement('div');
-    card.className = 'equip-item-card ' + (isWearing ? 'active-eq' : (ownedCount > 0 ? 'owned' : 'locked'));
+      let badgeTr = '';
+      let subTxt = '';
+      if (isWearing) {
+        badgeTr = '<span class="tile-badge-tr">穿戴中</span>';
+        subTxt = '已配戴';
+      } else if (freeCount > 0) {
+        badgeTr = `<span class="tile-badge-tr green">×${ownedCount}</span>`;
+        subTxt = '可穿戴';
+      } else if (ownedCount > 0) {
+        badgeTr = '<span class="tile-badge-tr cyan">可轉移</span>';
+        subTxt = wearers.length ? `${DATA_UNITS[wearers[0]].name}用` : '持有中';
+      } else if (eq.sourceType === 'shop') {
+        badgeTr = `<span class="tile-badge-tr">${eq.price}兩</span>`;
+        subTxt = '市集購買';
+      } else if (eq.sourceType === 'forge') {
+        badgeTr = '<span class="tile-badge-tr">鍛造</span>';
+        subTxt = '器作鍛造';
+      } else {
+        badgeTr = '<span class="tile-badge-tr red">未得</span>';
+        subTxt = eq.sourceType === 'tower' ? '天道之塔' : '首通掉落';
+      }
 
-    let statusBadge = '';
-    if (isWearing) statusBadge = '<span class="pill gold">穿戴中</span>';
-    else if (ownedCount > 0) statusBadge = `<span class="pill green">持有 ${ownedCount} 件（閒置 ${Math.max(0, freeCount)}）</span>`;
-    else statusBadge = '<span class="pill">🔒 尚未取得</span>';
-
-    let actionBtnHtml = '';
-    if (isWearing) {
-      actionBtnHtml = `<button class="btn sm" disabled>目前已裝備</button>`;
-    } else if (freeCount > 0) {
-      actionBtnHtml = `<button class="btn sm primary" onclick="equipItemTo('${uid}','${slot}','${eq.id}',null)">穿戴此裝備</button>`;
-    } else if (ownedCount > 0 && otherWearerId) {
-      const otherName = DATA_UNITS[otherWearerId].name;
-      actionBtnHtml = `<button class="btn sm gold" onclick="equipItemTo('${uid}','${slot}','${eq.id}','${otherWearerId}')">從【${otherName}】轉移穿戴</button>`;
-    } else if (eq.sourceType === 'shop') {
-      actionBtnHtml = `<button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipAndWear('${uid}','${slot}','${eq.id}')">直接購買並穿戴 (${eq.price}兩)</button>`;
-    } else if (eq.sourceType === 'forge') {
-      actionBtnHtml = `<button class="btn sm gold" onclick="closeModal('equipDrawerModal'); switchCampMode('forge');">前往【器作鍛造】 ▸</button>`;
-    } else {
-      actionBtnHtml = `<button class="btn sm" disabled>${eq.sourceType === 'tower' ? '需通關天道之塔取得' : '需首通關卡取得'}</button>`;
-    }
-
-    const wearerTxt = wearers.length ? `穿戴者：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '無人穿戴';
-    card.innerHTML = `
-      <div class="row-between"><div style="display:flex; align-items:center; gap:5px;"><strong>${eq.name}</strong>${getTierBadgeHtml(eq)}</div>${statusBadge}</div>
-      <div style="font-size:0.74rem; color:#e0d8c8; line-height:1.4;">${eq.fullDesc}</div>
-      <div class="row-between" style="font-size:0.72rem; color:#9a9284; margin-top:2px;">
-        <span>取得方式：<strong style="color:#ecd29b;">${eq.sourceLabel}</strong>${ownedCount > 0 ? `｜${wearerTxt}` : ''}</span>
-      </div>
-      <div style="display:flex; justify-content:flex-end; margin-top:2px;">${actionBtnHtml}</div>
-    `;
-    list.appendChild(card);
-  });
+      const btn = document.createElement('button');
+      btn.className = `ink-tile tier-${eq.tier || 'base'}${isWearing ? ' tile-equipped' : (ownedCount <= 0 ? ' tile-locked' : '')}`;
+      btn.onclick = () => showEquipVaultDetailDialog(uid, slot, eq.id);
+      btn.innerHTML = `
+        <span class="tile-badge-tl">${eq.tier === 'transcend' ? '超越' : (eq.tier === 'exclusive' ? '專屬' : '基礎')}</span>
+        ${badgeTr}
+        <div class="ink-tile-svg">${getInkSvgIcon(getEquipIconKind(eq.id), tone)}</div>
+        <div class="ink-tile-name">${eq.name}</div>
+        <div class="ink-tile-sub">${subTxt}</div>`;
+      list.appendChild(btn);
+    });
 
   document.getElementById('equipDrawerModal').classList.add('show');
 }
@@ -4176,44 +4787,12 @@ function renderCampScene() {
         </div>
       </div>`;
 
-    // 子頁 1：履歷招式
-    document.getElementById('focusStatsGrid').innerHTML = `
-      <div class="stat-box">生命 HP<div class="val">${tpl.maxHp + hpBonus} <span class="bonus">${hpBonus ? `(+${hpBonus})` : ''}</span></div></div>
-      <div class="stat-box">攻擊 ATK<div class="val">${tpl.baseAtk + atkBonus} <span class="bonus">${atkBonus ? `(+${atkBonus})` : ''}</span></div></div>
-      <div class="stat-box">防禦 DEF<div class="val">${tpl.baseDef + defBonus} <span class="bonus">${defBonus ? `(+${defBonus})` : ''}</span></div></div>
-      <div class="stat-box">移動力<div class="val">${tpl.baseMove + moveBonus} 格 <span class="bonus">${moveBonus ? `(+${moveBonus})` : ''}</span></div></div>
-      <div class="stat-box">普攻射程<div class="val">${basicSk ? basicSk.rangeText : '1 格'}</div></div>
-      <div class="stat-box">天賦暴擊<div class="val">+${critBonus}%</div></div>`;
+    // 子頁 1：履歷招式（精簡屬性條 + 水墨圖示招式格）
+    document.getElementById('focusStatsGrid').innerHTML = buildCompactStatsHtml(tpl, prog);
+    document.getElementById('focusSkillsList').innerHTML = buildSkillIconGridHtml(uid);
 
-    const skillsHtml = [];
-    if (basicSk) skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【普攻】${basicSk.name}</span><span class="pill player">${basicSk.rangeText}</span></div><div class="skill-detail-desc">${basicSk.desc}</div></div>`);
-    if (skillSk) {
-      const extra = skillSk.goldCost ? `＋${skillSk.goldCost}兩` : '';
-      skillsHtml.push(`<div class="skill-detail-card"><div class="skill-detail-head"><span>【絕招】${skillSk.name}</span><span class="pill gold">${skillSk.qiCost}氣${extra}・${skillSk.rangeText}</span></div><div class="skill-detail-desc">${skillSk.desc}</div></div>`);
-    }
-    if (ultSk) {
-      const extra = ultSk.goldCost ? `＋${ultSk.goldCost}兩` : '';
-      skillsHtml.push(`<div class="skill-detail-card ult"><div class="skill-detail-head"><span style="color:#f5c5a8;">【大絕】${ultSk.name}</span><span class="pill enemy">${ultSk.qiCost}氣${extra}・${ultSk.rangeText}</span></div><div class="skill-detail-desc">${ultSk.desc}</div></div>`);
-    }
-    if (uid === 'p_kong') {
-      skillsHtml.push(`<div class="skill-detail-card" style="border-color:#7e5a94;"><div class="skill-detail-head"><span style="color:#dfc7ed;">【專屬天時技】韋編三絕</span><span class="pill">0 AP・每回合1次・每場2次</span></div><div class="skill-detail-desc">竹簡翻斷三次，隨心改寫天象！從八純卦中任選一卦（強行改寫關卡鎖卦並重置倒數 2 回合），立即觸發對應全軍戰吼。</div></div>`);
-    }
-    document.getElementById('focusSkillsList').innerHTML = skillsHtml.join('');
-
-    // 子頁 2：裝備配戴（僅顯示當前弟子 3 槽）
-    const eq = prog.equip;
-    document.getElementById('focusEquipSlots').innerHTML = ['weapon', 'ritual', 'book'].map(slot => {
-      const eid = eq[slot];
-      const item = (eid && eid !== 'none') ? DATA_EQUIPS[eid] : null;
-      return `
-        <button class="equip-slot-btn ${item ? 'equipped' : ''}" onclick="openEquipDrawer('${uid}','${slot}')">
-          <div class="slot-top">
-            <span>${SLOT_LABELS[slot]}：${item ? item.name : '未裝備'}</span>
-            <span style="color:#6ea8a1; font-size:0.74rem;">${item ? '更換 / 卸下 ▸' : '裝備 / 來源 ▸'}</span>
-          </div>
-          <div class="slot-sub">${item ? item.shortDesc : '點擊開啟裝備庫檢視詞條、轉移他人裝備或購買'}</div>
-        </button>`;
-    }).join('');
+    // 子頁 2：裝備配戴（三格並排神兵圖示框）
+    document.getElementById('focusEquipSlots').innerHTML = buildEquipSlotsGridHtml(uid, true);
 
     // 子頁 3：天賦盤
     document.getElementById('talentLiuyiPts').textContent = `六藝點：${prog.liuyiPts}`;
@@ -4259,7 +4838,6 @@ function renderForgePane() {
   if (!fList) return;
   fList.innerHTML = '';
   const exclusives = Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'forge');
-  // 排序：可立刻鍛造 > 已持有素材 > 未取得 > 已鍛造
   exclusives.sort((a, b) => {
     const score = eq => {
       if ((saveData.equipInventory[eq.id] || 0) > 0) return 3;
@@ -4275,58 +4853,39 @@ function renderForgePane() {
   exclusives.forEach(eq => {
     const rec = eq.forgeRecipe;
     const baseEq = DATA_EQUIPS[rec.baseId];
-    const mat = DATA_MATERIALS[rec.matId];
     const ownerTpl = DATA_UNITS[eq.exclusiveFor];
-    const recruited = Boolean(saveData.roster[eq.exclusiveFor]);
     const crafted = (saveData.equipInventory[eq.id] || 0) > 0;
     const matCnt = (saveData.materials && saveData.materials[rec.matId]) || 0;
     const baseOwned = saveData.equipInventory[rec.baseId] || 0;
     const baseFree = Math.max(0, baseOwned - getEquipWearers(rec.baseId).length);
-
-    const needBuyBase = baseFree <= 0;
-    const totalGoldNeed = rec.gold + (needBuyBase ? baseEq.price : 0);
+    const totalGoldNeed = rec.gold + (baseFree <= 0 ? baseEq.price : 0);
     const canForge = !crafted && matCnt > 0 && saveData.gold >= totalGoldNeed;
 
-    const card = document.createElement('div');
-    card.className = 'forge-card' + (crafted ? ' crafted' : (canForge ? ' ready' : ''));
-
-    let btnHtml = '';
+    let badgeTr = '';
+    let tileCls = 'ink-tile tier-exclusive';
     if (crafted) {
-      const isWearing = recruited && saveData.roster[eq.exclusiveFor].equip.weapon === eq.id;
-      btnHtml = recruited
-        ? (isWearing ? '<span class="pill gold">已裝備中</span>' : `<button class="btn sm primary" onclick="equipItemTo('${eq.exclusiveFor}','weapon','${eq.id}',null)">為【${ownerTpl.name}】穿戴</button>`)
-        : '<span class="pill green">已鍛造入庫</span>';
-    } else if (matCnt <= 0) {
-      btnHtml = `<button class="btn sm" disabled>缺素材（${mat.stageName}）</button>`;
-    } else if (needBuyBase) {
-      btnHtml = `<button class="btn sm gold" ${canForge ? '' : 'disabled'} onclick="forgeExclusiveWeapon('${eq.id}', true)">🔨 連買帶鍛 (${totalGoldNeed}兩)</button>`;
+      badgeTr = '<span class="tile-badge-tr green">已鍛</span>';
+      tileCls = 'ink-tile tile-crafted';
+    } else if (canForge) {
+      badgeTr = '<span class="tile-badge-tr">可鍛</span>';
+      tileCls = 'ink-tile tier-exclusive tile-ready';
+    } else if (matCnt > 0) {
+      badgeTr = '<span class="tile-badge-tr red">缺銀</span>';
     } else {
-      btnHtml = `<button class="btn sm primary" ${canForge ? '' : 'disabled'} onclick="forgeExclusiveWeapon('${eq.id}', false)">🔨 鍛造神兵 (${rec.gold}兩)</button>`;
+      badgeTr = '<span class="tile-badge-tr">缺材</span>';
+      tileCls = 'ink-tile tier-base tile-locked';
     }
 
-    card.innerHTML = `
-      <div class="row-between">
-        <div style="display:flex; align-items:center; gap:7px; min-width:0;">
-          ${buildAvatarHtml(eq.exclusiveFor, 'sm', false)}
-          <div style="min-width:0;">
-            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-              <strong style="font-family:var(--font-serif); font-size:0.88rem; color:#fff;">${eq.name}</strong>
-              <span class="tier-badge exclusive">${ownerTpl.name}專屬</span>
-            </div>
-            <div style="font-size:0.7rem; color:#ecd29b;">${eq.shortDesc.replace(/^【[^】]+】/, '')}</div>
-          </div>
-        </div>
-      </div>
-      <div class="forge-recipe-row">
-        <span class="forge-ing ${baseFree > 0 ? 'ok' : ''}">胚體：${baseEq.name} (閒置:${baseFree})</span>
-        <span class="forge-ing ${matCnt > 0 ? 'ok' : 'miss'}">素材：${mat.name} (${matCnt > 0 ? '已取得' : `掉落:${mat.stageName}`})</span>
-        <span class="forge-ing ${saveData.gold >= totalGoldNeed ? 'ok' : 'miss'}">費用：${totalGoldNeed}兩</span>
-      </div>
-      <div class="row-between" style="margin-top:2px;">
-        <span style="font-size:0.68rem; color:#9a9284;">${recruited ? `【${ownerTpl.name}】已在孔門` : `尚未招募【${ownerTpl.name}】（仍可先鍛造）`}</span>
-        ${btnHtml}
-      </div>`;
-    fList.appendChild(card);
+    const btn = document.createElement('button');
+    btn.className = tileCls;
+    btn.onclick = () => showForgeDetailDialog(eq.id);
+    btn.innerHTML = `
+      <span class="tile-badge-tl">${ownerTpl.name}</span>
+      ${badgeTr}
+      <div class="ink-tile-svg">${getInkSvgIcon(getEquipIconKind(eq.id), crafted ? '#9ed4b2' : (canForge ? '#ecd29b' : '#b5ad9e'))}</div>
+      <div class="ink-tile-name">${eq.name}</div>
+      <div class="ink-tile-sub">${crafted ? '點擊檢視' : (matCnt > 0 ? `${totalGoldNeed}兩` : '未得素材')}</div>`;
+    fList.appendChild(btn);
   });
 }
 
@@ -4376,29 +4935,31 @@ function renderShopScene() {
   const eqShop = document.getElementById('shopEquipList'); eqShop.innerHTML = '';
   Object.values(DATA_EQUIPS).filter(e => e.sourceType === 'shop').forEach(eq => {
     const owned = saveData.equipInventory[eq.id] || 0;
-    const wearers = getEquipWearers(eq.id);
-    const wearerTxt = wearers.length ? `｜穿戴中：${wearers.map(w => DATA_UNITS[w].name).join('、')}` : '';
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `
-      <div class="row-between">
-        <div><strong>[${SLOT_LABELS[eq.slot]}] ${eq.name}</strong> <span class="pill ${owned>0?'green':''}">持有:${owned}</span></div>
-        <button class="btn sm gold" ${saveData.gold < eq.price ? 'disabled' : ''} onclick="buyEquipToBag('${eq.id}')">${eq.price}兩 購買</button>
-      </div>
-      <div style="font-size:0.73rem; color:#cfc7b8; line-height:1.4;">${eq.fullDesc}</div>
-      ${wearerTxt ? `<div style="font-size:0.7rem; color:#ecd29b;">${wearerTxt.slice(1)}</div>` : ''}`;
-    eqShop.appendChild(div);
+    const isBaseMold = eq.id.startsWith('base_');
+    const btn = document.createElement('button');
+    btn.className = `ink-tile ${isBaseMold ? 'tier-base' : 'tier-exclusive'}`;
+    btn.onclick = () => showShopEquipDetailDialog(eq.id);
+    btn.innerHTML = `
+      <span class="tile-badge-tl">${SLOT_LABELS[eq.slot]}</span>
+      <span class="tile-badge-tr ${owned > 0 ? 'green' : ''}">${owned > 0 ? `持${owned}` : `${eq.price}兩`}</span>
+      <div class="ink-tile-svg">${getInkSvgIcon(getEquipIconKind(eq.id), isBaseMold ? '#cfc7b8' : '#ecd29b')}</div>
+      <div class="ink-tile-name">${eq.name}</div>
+      <div class="ink-tile-sub">${eq.price} 兩</div>`;
+    eqShop.appendChild(btn);
   });
 
   const itShop = document.getElementById('shopItemList'); itShop.innerHTML = '';
-  [
-    { key: 'yarrow', name: '蓍草（預告4回合 / 重骰天時）', price: 150 },
-    { key: 'potion', name: '一般傷藥（回血 +40）', price: 100 },
-    { key: 'bento',  name: '簞食瓢飲（回血 +50 / 禁補豁免）', price: 220 },
-    { key: 'suxiu',  name: '束脩（羈絆室送禮解鎖合體奧義）', price: 250 }
-  ].forEach(it => {
-    const div = document.createElement('div'); div.className = 'mobile-card';
-    div.innerHTML = `<div class="row-between"><div><strong>${it.name}</strong><div style="font-size:0.72rem; color:#9a9284;">持有:${saveData.items[it.key]}｜${it.price}兩</div></div><button class="btn sm gold" ${saveData.gold < it.price ? 'disabled' : ''} onclick="buyShopItem('${it.key}',${it.price})">購買</button></div>`;
-    itShop.appendChild(div);
+  Object.values(DATA_SHOP_ITEMS).forEach(it => {
+    const owned = saveData.items[it.key] || 0;
+    const btn = document.createElement('button');
+    btn.className = 'ink-tile tier-base';
+    btn.onclick = () => showShopItemDetailDialog(it.key);
+    btn.innerHTML = `
+      <span class="tile-badge-tr ${owned > 0 ? 'green' : ''}">×${owned}</span>
+      <div class="ink-tile-svg">${getInkSvgIcon('item_' + it.key, '#ecd29b')}</div>
+      <div class="ink-tile-name">${it.name}</div>
+      <div class="ink-tile-sub">${it.price} 兩</div>`;
+    itShop.appendChild(btn);
   });
 }
 
@@ -7949,22 +8510,39 @@ function applyHexagramTerrain() {
 }
 
 function renderItemModal() {
-  document.getElementById('cntYarrow').textContent = saveData.items.yarrow;
-  document.getElementById('cntPotion').textContent = saveData.items.potion;
-  document.getElementById('cntBento').textContent = saveData.items.bento;
-  document.getElementById('btnItemYarrow').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.yarrow<=0);
-  const banAllHealItems = hasActiveAffix('no_full_belly');
-  document.getElementById('btnItemPotion').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.potion<=0 || (activeStage.modifiers && activeStage.modifiers.banNormalHeal) || banAllHealItems);
-  document.getElementById('btnItemBento').disabled = (gameState!==STATE.PLAYER_TURN || saveData.items.bento<=0 || banAllHealItems);
+  const gridEl = document.getElementById('battleItemGrid');
+  if (gridEl) {
+    gridEl.innerHTML = '';
+    const banAllHeal = hasActiveAffix('no_full_belly');
+    ['yarrow', 'potion', 'bento'].forEach(key => {
+      const it = DATA_SHOP_ITEMS[key];
+      const cnt = saveData.items[key] || 0;
+      const banNormal = (key === 'potion' && activeStage && activeStage.modifiers && activeStage.modifiers.banNormalHeal);
+      const isDisabled = (cnt <= 0 || ((key === 'potion' || key === 'bento') && banAllHeal) || banNormal);
+      const btn = document.createElement('button');
+      btn.className = `ink-tile ${key === 'bento' ? 'tier-exclusive' : 'tier-base'}${isDisabled ? ' tile-locked' : ''}`;
+      btn.onclick = () => showBattleItemDetailDialog(key);
+      btn.innerHTML = `
+        <span class="tile-badge-tr ${cnt > 0 ? 'green' : 'red'}">×${cnt}</span>
+        <div class="ink-tile-svg">${getInkSvgIcon('item_' + key, '#ecd29b')}</div>
+        <div class="ink-tile-name">${it.name}</div>
+        <div class="ink-tile-sub">${(banNormal || (banAllHeal && key !== 'yarrow')) ? '本關禁用' : it.short}</div>`;
+      gridEl.appendChild(btn);
+    });
+  }
   const bar = document.getElementById('forecastBar');
-  if (forecastVisible) {
-    if (hexLockedByStage) bar.textContent = `蓍草預告：本關鎖定【${getHex().name}】`;
-    else {
-      const seq = []; let idx = hexIndex, cd = hexCountdown;
-      for (let t=1;t<=4;t++) { cd--; if (cd<=0) { idx=(idx+1)%DATA_HEXAGRAMS.length; cd=2; } seq.push(`T+${t}:${DATA_HEXAGRAMS[idx].name}`); }
-      bar.textContent = `未來4回合預告：${seq.join(' → ')}`;
+  if (bar) {
+    if (forecastVisible) {
+      if (hexLockedByStage) bar.textContent = `蓍草預告：本關鎖定【${getHex().name}】`;
+      else {
+        const seq = []; let idx = hexIndex, cd = hexCountdown;
+        for (let t = 1; t <= 4; t++) { cd--; if (cd <= 0) { idx = (idx + 1) % DATA_HEXAGRAMS.length; cd = 2; } seq.push(`T+${t}:${DATA_HEXAGRAMS[idx].name}`); }
+        bar.textContent = `未來4回合預告：${seq.join(' → ')}`;
+      }
+      bar.style.display = 'block';
+    } else {
+      bar.style.display = 'none';
     }
-    bar.style.display = 'block';
   }
 }
 
