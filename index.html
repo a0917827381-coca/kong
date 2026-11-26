@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.20 — 暗黑水墨・全覽滿屏華夏大輿圖版</title>
+<title>《論語戰棋》v1.21 — 暗黑水墨・無盡天道21F+深淵版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1724,17 +1724,40 @@
     display: flex; flex-direction: column; gap: 6px;
   }
   .tower-realm-tabs {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;
     background: var(--panel-dark); padding: 4px; border-radius: 6px; border: 1px solid #3a352c;
   }
   .tower-realm-btn {
     background: transparent; border: 1px solid transparent; color: var(--muted);
     border-radius: 4px; padding: 6px 2px; font-family: var(--font-serif);
-    font-size: 0.72rem; font-weight: 900; cursor: pointer;
+    font-size: 0.68rem; font-weight: 900; cursor: pointer; white-space: nowrap;
   }
   .tower-realm-btn.active {
     background: linear-gradient(180deg, #8a241f 0%, #631714 100%);
     border-color: #c95d56; color: #fdf5eb;
+  }
+  .tower-realm-btn.endless { color: #e2b8ff; }
+  .tower-realm-btn.endless.active {
+    background: linear-gradient(180deg, #5b1d70 0%, #361045 100%);
+    border-color: #d4af6a; color: #fff4df;
+    box-shadow: 0 0 10px rgba(178, 102, 212, 0.45);
+  }
+  .tower-endless-hero {
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(168, 85, 247, 0.20) 0%, transparent 65%),
+      linear-gradient(180deg, #211526 0%, #120e15 100%);
+    border: 1.5px solid #9b6db8;
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .tower-floor-card.endless-floor {
+    border-color: #7d4e99;
+    background: linear-gradient(180deg, #1d1522 0%, #110d14 100%);
+  }
+  .tower-floor-card.endless-floor.boss-floor {
+    border-color: #d4af6a;
+    box-shadow: 0 0 14px rgba(212, 175, 106, 0.22);
   }
   .tower-milestone-row {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
@@ -2504,6 +2527,7 @@
         <button class="tower-realm-btn" id="towerRealm_1" onclick="switchTowerRealm(1)">不惑 6-10</button>
         <button class="tower-realm-btn" id="towerRealm_2" onclick="switchTowerRealm(2)">知命 11-15</button>
         <button class="tower-realm-btn" id="towerRealm_3" onclick="switchTowerRealm(3)">從心 16-20</button>
+        <button class="tower-realm-btn endless" id="towerRealm_4" onclick="switchTowerRealm(4)">無盡 21+</button>
       </div>
 
       <div id="towerFloorList" style="display:flex; flex-direction:column; gap:8px;"></div>
@@ -3860,8 +3884,11 @@ function updateGlobalNav() {
   const tBtn = document.getElementById('btnOpenTower');
   if (tBtn) {
     const unlocked = isTowerUnlocked();
+    const maxC = saveData.tower?.maxCleared || 0;
     tBtn.className = 'btn sm ' + (unlocked ? 'primary' : '');
-    tBtn.textContent = unlocked ? `🗼 天道之塔(${saveData.tower?.maxCleared || 0}/20)` : '🔒 天道之塔';
+    tBtn.textContent = !unlocked
+      ? '🔒 天道之塔'
+      : (maxC >= 20 ? `🗼 無盡深淵(${maxC}F)` : `🗼 天道之塔(${maxC}/20)`);
   }
 }
 function isStageUnlocked(st) { return !st.req || saveData.clearedStages.includes(st.req); }
@@ -8709,8 +8736,18 @@ async function triggerBattleVictory() {
     } else if (activeStage.floor === 20) {
       saveData.tower.titleUnlocked = true;
       saveData.equipInventory.tai_chu_sword = (saveData.equipInventory.tai_chu_sword || 0) + 1;
-      recruitBanner = `<div class="recruit-callout">👑 【從心境登頂】獲得終極神兵【太初・獲麟神劍】（攻+32、暴+25%、追擊35%真傷＋免死滿氣）並加冕【萬世師表】！</div>`;
+      recruitBanner = `<div class="recruit-callout">👑 【從心境登頂】獲得終極神兵【太初・獲麟神劍】（攻+32、暴+25%、追擊35%真傷＋免死滿氣）並加冕【萬世師表】！<br>🔥 已正式解鎖【無盡天道・21F+ 深淵試刀場】！</div>`;
     }
+  }
+  if (isTower && activeStage.floor >= 21 && isFirstClear) {
+    let extraEndless = '';
+    if (activeStage.floor % 5 === 0) {
+      Object.values(saveData.roster).forEach(r => { r.wudaoPts = (r.wudaoPts || 0) + 1; });
+      saveData.items.suxiu = (saveData.items.suxiu || 0) + 2;
+      saveData.items.bento = (saveData.items.bento || 0) + 2;
+      extraEndless = `<br>🎁 【每五層深淵首破】全軍永久 +1 悟道點、束脩 ×2、簞食瓢飲 ×2！`;
+    }
+    recruitBanner = `<div class="recruit-callout">🔥 【無盡天道・新紀錄】成功突破 <strong>第 ${activeStage.floor} 層</strong>，刷新歷史最高紀錄！${extraEndless}</div>`;
   }
 
   // 出戰弟子獲得 100% EXP，板凳弟子「孔門共修」同步獲得 50% EXP
@@ -8732,9 +8769,14 @@ async function triggerBattleVictory() {
   const btnReturn = document.getElementById('btnEndReturn');
   const btnNextTw = document.getElementById('btnEndNextTower');
   if (isTower) {
-    document.getElementById('endTitle').textContent = activeStage.floor === 20 ? '👑 萬世師表・登頂天道！' : `🗼 突破第 ${activeStage.floor} 層！`;
+    document.getElementById('endTitle').textContent = activeStage.floor === 20
+      ? '👑 萬世師表・登頂天道！'
+      : (activeStage.floor >= 21 ? `🔥 突破無盡第 ${activeStage.floor} 層！` : `🗼 突破第 ${activeStage.floor} 層！`);
     if (btnReturn) btnReturn.textContent = '返回天道之塔';
-    if (btnNextTw) btnNextTw.style.display = activeStage.floor < 20 ? 'inline-flex' : 'none';
+    if (btnNextTw) {
+      btnNextTw.style.display = 'inline-flex';
+      btnNextTw.textContent = activeStage.floor === 20 ? '🔥 踏入無盡 21F' : `⚔ 挑戰第 ${activeStage.floor + 1} 層`;
+    }
   } else {
     document.getElementById('endTitle').textContent = isGrandFinale ? '🏆 獲麟絕筆・解鎖天道之塔！' : '🚩 攻克城池！';
     if (btnReturn) btnReturn.textContent = '返回春秋輿圖';
@@ -10100,6 +10142,116 @@ function isTowerUnlocked() {
   return Boolean(saveData.clearedStages && saveData.clearedStages.includes('taishan_huolin'));
 }
 
+function makeFloorRng(seed) {
+  let s = (seed * 2654435761) >>> 0;
+  return () => {
+    s = (s + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function pickUniqueFrom(arr, count, rng) {
+  const pool = [...arr];
+  const res = [];
+  while (res.length < count && pool.length > 0) {
+    const idx = Math.floor(rng() * pool.length);
+    res.push(pool.splice(idx, 1)[0]);
+  }
+  return res;
+}
+
+const ENDLESS_OBSTACLE_PRESETS = [
+  [[2,2],[2,6],[5,2],[5,6]],
+  [[2,3],[2,5],[5,3],[5,5]],
+  [[3,2],[3,6],[6,2],[6,6]],
+  [[2,4],[4,2],[4,6],[6,4]],
+  [[2,2],[2,6],[4,4],[6,2],[6,6]]
+];
+const ENDLESS_TITLES = [
+  '無盡劫火・破陣試煉',
+  '太初問道・心魔連營',
+  '深淵鏡像・群雄圍殺',
+  '天道無涯・絕學對轟',
+  '萬世歸一・深淵王座'
+];
+const ENDLESS_MIRROR_POOL = [
+  { tpl: 'elite',      mirrorTpl: 'p_lu',        name: '深淵幻影・子路',   eliteSkill: 'crush' },
+  { tpl: 'elite',      mirrorTpl: 'p_zhonggong', name: '深淵幻影・仲弓',   eliteSkill: 'rally' },
+  { tpl: 'cavalry',    mirrorTpl: 'p_nanzi',     name: '深淵幻影・南子' },
+  { tpl: 'archer',     mirrorTpl: 'p_zixia',     name: '深淵幻影・子夏' },
+  { tpl: 'strategist', mirrorTpl: 'p_hui',       name: '深淵幻影・顏回' },
+  { tpl: 'cavalry',    mirrorTpl: 'p_agu',       name: '深淵幻影・阿谷' }
+];
+
+function generateEndlessFloor(floorNum) {
+  const rng = makeFloorRng(floorNum * 997 + 131);
+  const over = floorNum - 20;
+  const isBossTier = (floorNum % 5 === 0);
+  const scale = Number((5.0 + over * 0.24 + (isBossTier ? 0.16 : 0)).toFixed(2));
+  const affixCount = (floorNum >= 25 || isBossTier) ? 3 : 2;
+  const affixes = pickUniqueFrom(Object.keys(DATA_TOWER_AFFIXES), affixCount, rng);
+  const hexObj = DATA_HEXAGRAMS[Math.floor(rng() * DATA_HEXAGRAMS.length)];
+  const dutyUnits = pickUniqueFrom(ALL_PLAYER_IDS, 3, rng);
+  const obstacles = ENDLESS_OBSTACLE_PRESETS[Math.floor(rng() * ENDLESS_OBSTACLE_PRESETS.length)];
+  const playerSlots = [[7,4],[7,3],[7,5],[8,4],[8,3],[8,5]];
+
+  const enemies = [];
+  if (isBossTier) {
+    enemies.push({ tpl: 'boss', name: `${floorNum}F・太初天魔`, r: 0, c: 3 });
+    enemies.push({ tpl: 'boss', name: `${floorNum}F・幻影孔子`, r: 0, c: 5, mirrorTpl: 'p_kong' });
+    enemies.push({ tpl: 'elite', name: `${floorNum}F・深淵左將`, r: 2, c: 2, eliteSkill: 'crush' });
+    enemies.push({ tpl: 'elite', name: `${floorNum}F・深淵右將`, r: 2, c: 6, eliteSkill: 'rally' });
+    enemies.push({ tpl: 'strategist', name: `${floorNum}F・天機秘策甲`, r: 1, c: 3 });
+    enemies.push({ tpl: 'strategist', name: `${floorNum}F・天機秘策乙`, r: 1, c: 5 });
+    enemies.push({ tpl: 'cavalry', name: `${floorNum}F・劫火玄騎甲`, r: 1, c: 0 });
+    enemies.push({ tpl: 'cavalry', name: `${floorNum}F・劫火玄騎乙`, r: 1, c: 8 });
+  } else {
+    const useMirror = rng() < 0.55;
+    enemies.push({ tpl: 'boss', name: `${floorNum}F・深淵魔尊`, r: 0, c: 4 });
+    if (useMirror) {
+      const m1 = ENDLESS_MIRROR_POOL[Math.floor(rng() * 2)];
+      const m2 = ENDLESS_MIRROR_POOL[2 + Math.floor(rng() * 4)];
+      enemies.push({ ...m1, r: 2, c: 3 });
+      enemies.push({ tpl: 'elite', name: `${floorNum}F・無盡校尉`, r: 2, c: 5, eliteSkill: rng() < 0.5 ? 'rally' : 'crush' });
+      enemies.push({ ...m2, r: 1, c: 1 });
+    } else {
+      enemies.push({ tpl: 'elite', name: `${floorNum}F・無盡破陣將`, r: 2, c: 3, eliteSkill: 'crush' });
+      enemies.push({ tpl: 'elite', name: `${floorNum}F・無盡督戰將`, r: 2, c: 5, eliteSkill: 'rally' });
+      enemies.push({ tpl: 'cavalry', name: `${floorNum}F・深淵突騎甲`, r: 1, c: 1 });
+    }
+    enemies.push({ tpl: 'cavalry', name: `${floorNum}F・深淵突騎乙`, r: 1, c: 7 });
+    enemies.push({ tpl: 'strategist', name: `${floorNum}F・深淵策士甲`, r: 0, c: 2 });
+    enemies.push({ tpl: 'strategist', name: `${floorNum}F・深淵策士乙`, r: 0, c: 6 });
+    enemies.push({ tpl: 'archer', name: `${floorNum}F・深淵神射`, r: 1, c: 4 });
+  }
+
+  const title = isBossTier
+    ? ENDLESS_TITLES[4]
+    : ENDLESS_TITLES[(floorNum - 21) % 4];
+
+  return {
+    floor: floorNum,
+    realm: '無盡深淵',
+    isEndless: true,
+    isBossTier,
+    name: title,
+    scale,
+    hex: hexObj.id,
+    affixes,
+    dutyUnits,
+    obstacles,
+    playerSlots,
+    enemies
+  };
+}
+
+function getTowerFloorDef(floorNum) {
+  if (floorNum <= 20) return DATA_TOWER_FLOORS.find(f => f.floor === floorNum) || null;
+  return generateEndlessFloor(floorNum);
+}
+
 function openTowerEntry() {
   if (!isTowerUnlocked()) {
     showInkDialog({
@@ -10112,7 +10264,7 @@ function openTowerEntry() {
     return;
   }
   const maxC = saveData.tower?.maxCleared || 0;
-  selectedTowerRealm = Math.min(3, Math.floor(maxC / 5));
+  selectedTowerRealm = maxC >= 20 ? 4 : Math.min(3, Math.floor(maxC / 5));
   switchScene('tower');
 }
 
@@ -10122,12 +10274,35 @@ function switchTowerRealm(idx) {
 }
 
 function buildTowerStageObj(fl) {
+  let reinforcements = [];
+  if (fl.floor >= 21) {
+    reinforcements = [
+      { tpl: 'elite',      name: `${fl.floor}F・深淵伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: `${fl.floor}F・深淵伏騎`, r: 4, c: 0 },
+      { tpl: 'strategist', name: `${fl.floor}F・深淵秘策`, r: 4, c: 8 }
+    ];
+    if (fl.floor % 5 === 0) {
+      reinforcements.push({ tpl: 'elite', name: `${fl.floor}F・深淵督將`, r: 2, c: 4, eliteSkill: 'rally' });
+    }
+  } else if (fl.floor >= 15) {
+    reinforcements = [
+      { tpl: 'elite',      name: `${fl.floor}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 4, c: 0 },
+      { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 4, c: 8 }
+    ];
+  } else if (fl.floor >= 6) {
+    reinforcements = [
+      { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 3, c: 0 },
+      { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 3, c: 8 }
+    ];
+  }
   return {
     id: `tower_${fl.floor}`,
     isTowerFloor: true,
+    isEndless: Boolean(fl.isEndless),
     floor: fl.floor,
     milestone: Boolean(fl.milestone),
-    cityLabel: `天道塔・${fl.floor}F`,
+    cityLabel: fl.isEndless ? `無盡深淵・${fl.floor}F` : `天道塔・${fl.floor}F`,
     region: `天道之塔・${fl.realm}`,
     name: `第 ${fl.floor} 層・${fl.name}`,
     enemyScale: fl.scale,
@@ -10141,23 +10316,12 @@ function buildTowerStageObj(fl) {
     dutyUnits: fl.dutyUnits,
     playerSlots: fl.playerSlots,
     enemySpawns: fl.enemies,
-    reinforcements: fl.floor >= 15
-      ? [
-          { tpl: 'elite',      name: `${fl.floor}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
-          { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 4, c: 0 },
-          { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 4, c: 8 }
-        ]
-      : (fl.floor >= 6
-          ? [
-              { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 3, c: 0 },
-              { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 3, c: 8 }
-            ]
-          : [])
+    reinforcements
   };
 }
 
 function startTowerFloor(floorNum) {
-  const fl = DATA_TOWER_FLOORS.find(f => f.floor === floorNum);
+  const fl = getTowerFloorDef(floorNum);
   if (!fl) return;
   const maxC = saveData.tower?.maxCleared || 0;
   if (floorNum > maxC + 1) {
@@ -10168,7 +10332,7 @@ function startTowerFloor(floorNum) {
 }
 
 function startNextTowerFloor() {
-  if (!activeStage || !activeStage.isTowerFloor || activeStage.floor >= 20) return;
+  if (!activeStage || !activeStage.isTowerFloor) return;
   startTowerFloor(activeStage.floor + 1);
 }
 
@@ -10196,8 +10360,9 @@ function showTowerAffixDialog() {
 function renderTowerScene() {
   const maxC = saveData.tower?.maxCleared || 0;
   const claimed = saveData.tower?.claimedMilestones || [];
-  document.getElementById('towerProgressText').textContent =
-    `目前最高突破：${maxC} / 20 層${saveData.tower?.titleUnlocked ? '｜👑【萬世師表】已加冕' : ''}`;
+  document.getElementById('towerProgressText').textContent = maxC > 20
+    ? `歷史最高紀錄：無盡第 ${maxC} 層｜👑【萬世師表】`
+    : `目前最高突破：${maxC} / 20 層${saveData.tower?.titleUnlocked ? '｜👑【萬世師表】無盡深淵已開啟' : ''}`;
 
   const msRow = document.getElementById('towerMilestoneRow');
   msRow.innerHTML = TOWER_REALMS.map(r => {
@@ -10205,19 +10370,60 @@ function renderTowerScene() {
     return `<div class="tower-ms-pill ${done ? 'done' : ''}">${done ? '✅ ' : '🎁 '}${r.msLabel}</div>`;
   }).join('');
 
-  TOWER_REALMS.forEach(r => {
-    const b = document.getElementById('towerRealm_' + r.idx);
-    if (b) b.classList.toggle('active', r.idx === selectedTowerRealm);
-  });
+  for (let idx = 0; idx <= 4; idx++) {
+    const b = document.getElementById('towerRealm_' + idx);
+    if (b) b.classList.toggle('active', idx === selectedTowerRealm);
+  }
 
-  const realm = TOWER_REALMS[selectedTowerRealm] || TOWER_REALMS[0];
-  const floors = DATA_TOWER_FLOORS.filter(f => f.floor >= realm.range[0] && f.floor <= realm.range[1]);
   const list = document.getElementById('towerFloorList');
   list.innerHTML = '';
+
+  let floors = [];
+  if (selectedTowerRealm === 4) {
+    if (maxC < 20) {
+      list.innerHTML = `
+        <div class="tower-endless-hero">
+          <div style="font-family:var(--font-serif); font-size:0.98rem; font-weight:900; color:#e2b8ff;">🔒 無盡天道・21F+ 深淵尚未解鎖</div>
+          <div style="font-size:0.76rem; color:#d6cebf; line-height:1.6;">
+            需先突破第 20 層<strong>【天道終極試煉・萬世師表】</strong>並取得終極神兵<strong>【太初・獲麟神劍】</strong>，方能踏入無上限的無盡深淵！<br>
+            深淵內每層自動遞增敵軍強度、隨機抽出 <strong>2～3 個天命詞條 ＋ 兩翼分波伏兵</strong>，並記錄您的歷史最高突破層數。
+          </div>
+          <button class="btn sm gold" onclick="switchTowerRealm(3)">↩ 前往從心境（16-20F）</button>
+        </div>`;
+      return;
+    }
+    const nextEndless = Math.max(21, maxC + 1);
+    const hero = document.createElement('div');
+    hero.className = 'tower-endless-hero';
+    hero.innerHTML = `
+      <div class="row-between">
+        <div>
+          <div style="font-family:var(--font-serif); font-size:0.96rem; font-weight:900; color:#f0d4ff; letter-spacing:1px;">🔥 無盡天道・21F+ 無上限深淵</div>
+          <div style="font-size:0.73rem; color:#d6cebf; margin-top:2px;">
+            歷史最高紀錄：<strong style="color:#ecd29b;">${maxC > 20 ? `第 ${maxC} 層` : '尚未突破（已登頂 20F）'}</strong>｜每 5 層首破全軍 +1 悟道點
+          </div>
+        </div>
+        <button class="btn sm primary" onclick="startTowerFloor(${nextEndless})">⚔ 挑戰 ${nextEndless}F</button>
+      </div>
+      <div style="font-size:0.71rem; color:#bdb5a6; line-height:1.45;">
+        每層固定生成 2～3 天命詞條、強度遞增 +24%/層、殘敵 ≤2 或首領半血觸發 3～4 員伏兵增援，專為【太初・獲麟神劍】與神仙陣容打造的極限試刀場！
+      </div>`;
+    list.appendChild(hero);
+
+    const startF = Math.max(21, maxC - 1);
+    const endF = nextEndless + 2;
+    for (let fn = startF; fn <= endF; fn++) {
+      floors.push(generateEndlessFloor(fn));
+    }
+  } else {
+    const realm = TOWER_REALMS[selectedTowerRealm] || TOWER_REALMS[0];
+    floors = DATA_TOWER_FLOORS.filter(f => f.floor >= realm.range[0] && f.floor <= realm.range[1]);
+  }
 
   floors.forEach(fl => {
     const cleared = fl.floor <= maxC;
     const unlocked = fl.floor <= maxC + 1;
+    const isFrontier = (fl.isEndless && fl.floor === maxC + 1);
     const hexObj = DATA_HEXAGRAMS.find(h => h.id === fl.hex) || DATA_HEXAGRAMS[0];
     const affixHtml = fl.affixes.map(aid => {
       const a = DATA_TOWER_AFFIXES[aid];
@@ -10233,14 +10439,22 @@ function renderTowerScene() {
     if (fl.floor === 5)  msNote = '🎁 首通突破：全軍永久 +2 六藝點 ＋ 束脩×3';
     if (fl.floor === 10) msNote = '🎁 首通突破：超越兵器【春秋筆・真】（攻+24・擊殺再動）';
     if (fl.floor === 15) msNote = '🎁 首通突破：超越禮器【杏壇古琴・真】（2格回氣回血）';
-    if (fl.floor === 20) msNote = '👑 首通登頂：終極神兵【太初・獲麟神劍】＋【萬世師表】';
+    if (fl.floor === 20) msNote = '👑 首通登頂：終極神兵【太初・獲麟神劍】＋【萬世師表】＋ 解鎖無盡 21F+';
+    if (fl.isEndless && fl.isBossTier) msNote = '🏆 每五層深淵王座首破：全軍永久 +1 悟道點 ＋ 束脩×2 ＋ 簞食瓢飲×2';
 
+    const reinfCnt = fl.floor >= 21 ? (fl.floor % 5 === 0 ? 4 : 3) : (fl.floor >= 15 ? 3 : (fl.floor >= 6 ? 2 : 0));
     const card = document.createElement('div');
-    card.className = 'tower-floor-card' + (cleared ? ' cleared' : '') + (fl.milestone ? ' boss-floor' : '') + (!unlocked ? ' locked' : '');
+    card.className = 'tower-floor-card'
+      + (fl.isEndless ? ' endless-floor' : '')
+      + (cleared ? ' cleared' : '')
+      + ((fl.milestone || fl.isBossTier) ? ' boss-floor' : '')
+      + (!unlocked ? ' locked' : '');
     card.innerHTML = `
       <div class="row-between">
         <div>
-          <span class="pill ${fl.milestone ? 'gold' : 'player'}" style="font-size:0.66rem;">第 ${fl.floor} 層${fl.milestone ? '・守關' : ''}</span>
+          <span class="pill ${(fl.milestone || fl.isBossTier || isFrontier) ? 'gold' : 'player'}" style="font-size:0.66rem;">
+            ${fl.isEndless ? '無盡 ' : ''}第 ${fl.floor} 層${(fl.milestone || fl.isBossTier) ? '・王座' : (isFrontier ? '・極限' : '')}
+          </span>
           <strong style="font-family:var(--font-serif); font-size:0.92rem; color:#fff; margin-left:4px;">${fl.name}</strong>
         </div>
         <span style="font-size:0.7rem; color:#e86b64; font-weight:800;">${Math.round(fl.scale * 100)}%｜${hexObj.name}</span>
@@ -10251,7 +10465,7 @@ function renderTowerScene() {
       </div>
       ${msNote ? `<div style="font-size:0.72rem; color:#ecd29b; font-weight:800;">${msNote}${cleared ? '（已領取）' : ''}</div>` : ''}
       <div class="row-between" style="margin-top:2px;">
-        <span style="font-size:0.7rem; color:#9a9284;">敵軍 ${fl.enemies.length} 員｜獎勵 ${600 + fl.floor * 90}兩 / ${180 + fl.floor * 25} EXP</span>
+        <span style="font-size:0.7rem; color:#9a9284;">敵軍 ${fl.enemies.length} 員${reinfCnt ? `＋伏兵${reinfCnt}` : ''}｜獎勵 ${600 + fl.floor * 90}兩 / ${180 + fl.floor * 25} EXP</span>
         <button class="btn sm ${unlocked ? 'primary' : ''}" ${unlocked ? '' : 'disabled'} onclick="startTowerFloor(${fl.floor})">
           ${cleared ? '⚔ 再次挑戰' : (unlocked ? '⚔ 立即登塔' : '🔒 未解鎖')}
         </button>
