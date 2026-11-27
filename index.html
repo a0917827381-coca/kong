@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.21 — 暗黑水墨・無盡天道21F+深淵版</title>
+<title>《論語戰棋》v1.22 — 暗黑水墨・1AP完整再動與空間攔截版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -699,6 +699,36 @@
     content: ""; position: absolute; inset: 6px;
     background: rgba(212, 175, 106, 0.32);
     border: 3px solid #d4af6a; border-radius: 6px;
+  }
+  /* v1.22 空間攔截：重盾 ZOC 阻滯格 & 弓手張弓警戒區 */
+  .tile.zoc-tile {
+    box-shadow: inset 0 0 0 2px rgba(212, 175, 106, 0.42);
+  }
+  .tile.zoc-tile::after {
+    content: "阻";
+    position: absolute; left: 8px; top: 6px;
+    font-family: var(--font-serif); font-size: 18px; font-weight: 900;
+    color: rgba(236, 210, 155, 0.72);
+    background: rgba(92, 25, 23, 0.78); border: 1px solid rgba(212, 175, 106, 0.55);
+    border-radius: 3px; padding: 0 4px; line-height: 1.25;
+  }
+  .tile.overwatch-zone {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      rgba(200, 62, 55, 0.16) 0px,
+      rgba(200, 62, 55, 0.16) 8px,
+      transparent 8px,
+      transparent 18px
+    );
+    box-shadow: inset 0 0 0 2px rgba(232, 90, 84, 0.55);
+  }
+  .tile.overwatch-zone::after {
+    content: "戒";
+    position: absolute; right: 8px; top: 6px;
+    font-family: var(--font-serif); font-size: 18px; font-weight: 900;
+    color: #ffd9d6;
+    background: rgba(145, 28, 24, 0.88); border: 1px solid #f09c97;
+    border-radius: 3px; padding: 0 4px; line-height: 1.25;
   }
   .tile.selected-tile { box-shadow: inset 0 0 0 5px var(--gold); }
   .tile.preview-target {
@@ -2760,7 +2790,8 @@
       </div>
       <div class="guide-block">
         <div class="g-head">二、行動點 (AP) 與浩然氣</div>
-        • <strong>行動與調息二選一</strong>：移動後未出招可「待機調息 (+20氣)」，未移動直接「原地調息」加倍為 <strong>+40 浩然氣</strong>；直接按<strong>【結束回合】</strong>時，所有尚未出招的我方武將也會自動觸發對應調息！本回合已出招後即不可再調息。<br>
+        • <strong>1 AP ＝ 1 次移動 ＋ 1 次行動</strong>：每名武將每回合擁有 1 AP（移動不扣 AP，出招或調息消耗 1 AP）；顏回補血、孔子巽卦與春秋筆可觸發<strong>完整再動（可走可打）</strong>，顏回補血更可將滿 AP 友軍疊加至 <strong>2 AP</strong>！<br>
+        • <strong>調息回氣</strong>：移動後未出招可「待機調息 (+20氣)」，未移動直接「原地調息」加倍為 <strong>+40 浩然氣</strong>；直接按<strong>【結束回合】</strong>時，尚未出招的我方武將也會自動調息。<br>
         • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
         • <strong>雙重強制勝利條件</strong>：列國 15 關皆設有「第一條件（如登堂入室、全師而返、兵貴神速、擒賊擒王、順天應人、克己復禮等）＋ 敵軍全滅」雙條件，缺一不可！點擊戰場上方條件條可隨時查看詳情。<br>
         • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
@@ -2799,8 +2830,8 @@
       <div class="guide-block">
         <div class="g-head">硬核戰棋・敵軍兵種與威脅</div>
         敵軍隨關卡進度大幅成長，且享有<strong>暴擊、集火殘血與專屬戰技</strong>，切忌無腦衝陣：<br>
-        • <strong>【兵】近戰盾兵</strong>：前排卡位，高防禦。<br>
-        • <strong>【弓】遠程弓手</strong>：會拉開 2～3 格距離風箏並優先狙擊顏回與脆皮。<br>
+        • <strong>【兵】近戰盾兵（ZOC 阻滯）</strong>：高防禦，且周圍 1 格帶有<strong>【阻】控制區</strong>，我軍踏入即強制停步無法繞過切後排（控場或擊退可解除）。<br>
+        • <strong>【弓】遠程弓手（張弓警戒）</strong>：拉開 2～3 格風箏；若本回合未攻擊會進入<strong>【戒】張弓警戒</strong>，我軍在其射程內移動將遭攔截射擊並破防！<br>
         • <strong>【策】敵軍策士</strong>：會幫殘血敵軍<strong>回血＋加攻</strong>，或對我方施放<strong>破防</strong>，建議優先點殺！<br>
         • <strong>【騎】敵軍輕騎</strong>：高達 5 格機動力，專切後排軟甲單位，需用前排或石碑卡住路線。<br>
         • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技；同回合承受第 1 次大絕／合體技後會進入<strong>【絕學警覺】</strong>（本回合後續大絕／合體技減傷 50% 且免暈）。<br>
@@ -6514,7 +6545,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     bonusCrit: (inner.num || 0) * 0.08 + eqB.crit, outerTalents: { ...outer },
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
     basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
-    ap: tpl.isTower ? 0 : 2, maxAp: tpl.isTower ? 0 : 2, moved: false, acted: Boolean(tpl.isTower), hasActedThisTurn: false, chunqiuPendingExtra: false,
+    ap: tpl.isTower ? 0 : 1, maxAp: tpl.isTower ? 0 : 1, moved: false, acted: Boolean(tpl.isTower), hasActedThisTurn: false, chunqiuPendingExtra: false, postMoveOnly: false, overwatch: false,
     isTower: Boolean(tpl.isTower),
     stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
     internalBleedTurns: 0, vulnerableTurns: 0, confusedTurns: 0, frozenTurns: 0,
@@ -6690,6 +6721,22 @@ function getLockedComboHints(u, readyComboId = null) {
   return hints.slice(0, 2);
 }
 
+function isEnemyShieldZocTile(r, c, movingUnit) {
+  if (!movingUnit || movingUnit.team !== 'player') return false;
+  return units.some(e =>
+    e.team === 'enemy' && e.hp > 0 && e.enemyType === 'soldier' &&
+    !e.stunned && e.sleepTurns <= 0 && e.frozenTurns <= 0 &&
+    manhattan(r, c, e.r, e.c) === 1
+  );
+}
+
+function getActiveOverwatchArchers() {
+  return units.filter(e =>
+    e.team === 'enemy' && e.hp > 0 && e.overwatch &&
+    !e.stunned && e.sleepTurns <= 0 && e.frozenTurns <= 0
+  );
+}
+
 function computeReachable(unit) {
   const maxMove = getEffectiveStats(unit).move, dist = new Map(), parent = new Map(), pq = [{ r: unit.r, c: unit.c, cost: 0 }];
   dist.set(keyOf(unit.r, unit.c), 0);
@@ -6697,6 +6744,8 @@ function computeReachable(unit) {
   while (pq.length) {
     pq.sort((a, b) => a.cost - b.cost); const cur = pq.shift();
     if (cur.cost > dist.get(keyOf(cur.r, cur.c))) continue;
+    // v1.22 重盾【ZOC 阻滯】：踏入敵方盾兵周圍 1 格即停步，無法繞過切後排
+    if (cur.cost > 0 && isEnemyShieldZocTile(cur.r, cur.c, unit)) continue;
     for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
       const nr = cur.r+dr, nc = cur.c+dc;
       if (nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE||grid[nr][nc]===1||grid[nr][nc]===3) continue;
@@ -6861,8 +6910,8 @@ function onTileClick(r, c) {
     actionMode = 'move';
     pendingAction = null;
     targetableTiles.clear();
-    if (clicked.team === 'player' && !clicked.stunned && clicked.sleepTurns <= 0 && (clicked.ap > 0 || canKongHexFlip(clicked))) {
-      if (clicked.ap > 0 && !clicked.moved) {
+    if (clicked.team === 'player' && !clicked.stunned && clicked.sleepTurns <= 0 && (clicked.ap > 0 || clicked.postMoveOnly || canKongHexFlip(clicked))) {
+      if ((clicked.ap > 0 || clicked.postMoveOnly) && !clicked.moved) {
         reachableTiles = computeReachable(clicked);
         showCmdPopover = false;
       } else {
@@ -6945,7 +6994,11 @@ function doWait() {
   const isInPlace = !u.moved;
   const baseGain = isInPlace ? 40 : 20;
   const gain = baseGain + (getHex().bonusQi || 0);
-  u.ap = 0; u.moved = true; u.acted = true; u.hasActedThisTurn = true;
+  u.ap = Math.max(0, u.ap - 1);
+  u.postMoveOnly = false;
+  u.hasActedThisTurn = true;
+  if (u.ap > 0) { u.moved = false; u.acted = false; }
+  else { u.moved = true; u.acted = true; }
   u.qi = Math.min(100, u.qi + gain);
   AudioManager.play('guqin');
   spawnFloatText(u.r, u.c, isInPlace ? `原地調息 +${gain}氣` : `待機調息 +${gain}氣`, isInPlace ? 'taiji' : 'info');
@@ -6956,29 +7009,66 @@ function doWait() {
 async function moveUnitSmooth(unit, path, isPlayer) {
   setState(STATE.ANIMATION_BUSY);
   showCmdPopover = false; pendingAction = null;
-  if (isPlayer) pendingMove = { unitId: unit.id, origR: unit.r, origC: unit.c, origFacingLeft: unit.facingLeft, prevAp: unit.ap };
+  if (isPlayer && !unit.postMoveOnly) pendingMove = { unitId: unit.id, origR: unit.r, origC: unit.c, origFacingLeft: unit.facingLeft, prevAp: unit.ap };
   unit.animState = 'walk'; unit.animFrame = 0; reachableTiles.clear(); targetableTiles.clear();
   renderGrid(); renderFloatingUi(); renderPreviewBanner();
+  let stepsWalked = 0;
   for (const step of path) {
     if (step.c < unit.c) unit.facingLeft = true; else if (step.c > unit.c) unit.facingLeft = false;
     unit.r = step.r; unit.c = step.c;
+    stepsWalked++;
     AudioManager.play('move');
     renderUnits();
     focusCameraOn(step.r, step.c);
     await sleep(145);
+
+    // v1.22 敵軍弓手【張弓警戒】攔截射擊
+    if (isPlayer && !unit.isTower && unit.stealthTurns <= 0 && unit.hp > 0) {
+      const owArchers = getActiveOverwatchArchers().filter(a => manhattan(a.r, a.c, unit.r, unit.c) <= getEffectiveStats(a).range);
+      for (const archer of owArchers) {
+        if (unit.hp <= 0) break;
+        archer.overwatch = false;
+        pendingMove = null; // 觸發伏擊戰鬥後不可悔步
+        focusCameraOn(archer.r, archer.c);
+        spawnFloatText(archer.r, archer.c, '🏹 張弓攔截！', 'dmg');
+        await playAnimWithHitSync(archer, 'attack', async () => {
+          await playAttackVfx(archer, unit);
+          const owDmg = calcDamage(getEffectiveStats(archer).atk * 0.85, getEffectiveStats(unit).def, false, unit);
+          await applyDamage(unit, owDmg, false, false, archer);
+          if (unit.hp > 0) {
+            unit.defBreakTurns = Math.max(unit.defBreakTurns, 2);
+            spawnFloatText(unit.r, unit.c, '警戒破防！', 'info');
+          }
+          addLog(`⚠ ${archer.name} 觸發【張弓警戒】攔截移動中的 ${unit.name}，造成 ${owDmg} 傷並附加破防！`, 'enemy');
+        });
+        renderGrid(); renderUnits();
+        await sleep(120);
+      }
+      if (unit.hp <= 0) {
+        if (!checkVictoryOrDefeat()) {
+          selectedUnitId = null;
+          setState(STATE.PLAYER_TURN);
+          renderAll();
+        }
+        return;
+      }
+    }
   }
   unit.animState = 'idle'; unit.animFrame = 0; updateUnitVisualFrame(unit);
   if (isPlayer) {
     unit.moved = true;
-    unit.moveDistThisTurn = (unit.moveDistThisTurn || 0) + path.length;
+    unit.moveDistThisTurn = (unit.moveDistThisTurn || 0) + stepsWalked;
+    if (stepsWalked > 0 && isEnemyShieldZocTile(unit.r, unit.c, unit)) {
+      spawnFloatText(unit.r, unit.c, '🛡 盾陣阻滯！', 'info');
+    }
     updateGoalProgress();
-    if (unit.acted) {
-      // 打帶跑純撤退位移完成，直接結束行動，不開啟指令窗亦不可調息
-      unit.ap = 0;
+    if (unit.postMoveOnly) {
+      // 冉有【策馬奔襲】打帶跑純撤退位移完成
+      unit.postMoveOnly = false;
       pendingMove = null;
       showCmdPopover = false;
     } else {
-      unit.ap = Math.max(0, unit.ap - 1);
+      // v1.22 1 AP ＝ 1 次移動 ＋ 1 次行動：移動不消耗 AP，走完直接彈出指令窗
       showCmdPopover = true;
     }
     focusCameraOn(unit.r, unit.c);
@@ -7217,7 +7307,7 @@ async function executePlayerCounter(defender, attacker, choice) {
         if (attacker.hp > 0) { attacker.stunned = true; spawnFloatText(attacker.r, attacker.c, '暈眩！', 'info'); }
       } else if (sk.type === 'bribe') {
         AudioManager.play('taiji');
-        attacker.team = 'player'; attacker.color = '#0d9488'; attacker.ap = 2; attacker.moved = false; attacker.acted = false; attacker.qi = 0; attacker.basicId = 'kong_basic'; attacker.name = '倒戈·' + attacker.name;
+        attacker.team = 'player'; attacker.color = '#0d9488'; attacker.ap = 1; attacker.maxAp = 1; attacker.moved = false; attacker.acted = false; attacker.postMoveOnly = false; attacker.overwatch = false; attacker.qi = 0; attacker.basicId = 'kong_basic'; attacker.name = '倒戈·' + attacker.name;
         spawnFloatText(attacker.r, attacker.c, '反手倒戈！', 'taiji'); renderUnits();
       } else if (sk.type === 'sleep') {
         AudioManager.play('bell'); attacker.sleepTurns = 2; spawnFloatText(attacker.r, attacker.c, '晝寢2回合', 'info');
@@ -7405,8 +7495,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(tr, tc, a.r, a.c) <= 1).forEach(a => {
           if (huiEx) clearUnitDebuffs(a);
           const h = Math.min(a.maxHp - a.hp, Math.round(45 * (huiEx ? 1.35 : 1) * multStarve * hex.yinBoost * hex.healMult));
-          a.hp += h; a.ap = Math.min(a.maxAp, a.ap + 1); a.acted = false;
-          spawnFloatText(a.r, a.c, `${huiEx ? '淨化' : ''}+${h}HP/+1AP`, 'heal');
+          a.hp += h; a.ap = Math.min(2, a.ap + 1); a.acted = false; a.moved = false; a.postMoveOnly = false;
+          spawnFloatText(a.r, a.c, `${huiEx ? '淨化' : ''}+${h}HP/+1AP(共${a.ap})`, 'heal');
         });
       } else if (sk.type === 'charge_stun') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e;
@@ -7418,7 +7508,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         if (e.hp > 0) { if (hasActiveAffix('stoic_wood') || e.ultAlert) spawnFloatText(e.r, e.c, e.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); } }
       } else if (sk.type === 'bribe') {
         const e = getUnitAt(tr, tc); if (!e) return; AudioManager.play('taiji');
-        e.team = 'player'; e.color = '#0d9488'; e.ap = 2; e.moved = false; e.acted = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
+        e.team = 'player'; e.color = '#0d9488'; e.ap = 1; e.maxAp = 1; e.moved = false; e.acted = false; e.postMoveOnly = false; e.overwatch = false; e.qi = 0; e.basicId = 'kong_basic'; e.name = '倒戈·' + e.name;
         spawnFloatText(e.r, e.c, '千金倒戈！', 'taiji'); renderUnits();
       } else if (sk.type === 'sleep') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
@@ -7913,23 +8003,32 @@ async function executePlayerAction(unit, mode, tr, tc) {
     await executeEnemyCounter(primaryEnemy, unit);
   }
   unit.hasActedThisTurn = true;
+  unit.ap = Math.max(0, unit.ap - 1);
   if (unit.chunqiuPendingExtra && unit.hp > 0) {
-    // 【春秋筆・真】擊殺再動：可再次出招（不可待機洗氣）
+    // 【春秋筆・真】擊殺再動：完整再動（可走可打）
     unit.chunqiuPendingExtra = false;
+    unit.ap = Math.min(2, unit.ap + 1);
+  }
+  if (unit.hp > 0 && unit.ap > 0) {
+    // 仍有剩餘 AP（疊加 2 AP 或觸發再動）：完整重置移動與行動，可再走再打！
     unit.acted = false;
-    unit.ap = Math.max(1, unit.ap);
+    unit.moved = false;
+    unit.postMoveOnly = false;
+    reachableTiles = computeReachable(unit);
+    spawnFloatText(unit.r, unit.c, `完整再動(剩${unit.ap}AP)`, 'taiji');
   } else if (grantPostMove && unit.hp > 0) {
-    // 冉有【策馬奔襲】打帶跑：攻擊後僅保留 1 次純移動撤退機會，不可再調息
+    // 冉有【策馬奔襲】打帶跑：AP 耗盡後額外附贈 1 次純移動撤退（不佔 AP）
     unit.acted = true;
     unit.moved = false;
-    unit.ap = 1;
+    unit.ap = 0;
+    unit.postMoveOnly = true;
     reachableTiles = computeReachable(unit);
     spawnFloatText(unit.r, unit.c, '打帶跑！可再移動', 'taiji');
   } else {
-    // 正常出招後（無論原地或移動後）直接結束本回合行動，絕不殘留 AP
     unit.acted = true;
     unit.moved = true;
     unit.ap = 0;
+    unit.postMoveOnly = false;
   }
   actionMode = 'move';
   lastPlayerAction = { unitId: unit.id, name: unit.name, yinYang: getEffectiveYinYang(unit) };
@@ -8302,6 +8401,8 @@ async function endPlayerTurn() {
 
   for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
+    enemy.overwatch = false;
+    let enemyAttackedThisTurn = false;
     focusCameraOn(enemy.r, enemy.c);
     await sleep(220);
 
@@ -8448,6 +8549,7 @@ async function endPlayerTurn() {
     // E. 常規攻擊 / 菁英破陣重擊 / 策士破防（開放敵軍暴擊與集火優先級）
     const inRange = players.filter(u => manhattan(enemy.r, enemy.c, u.r, u.c) <= eRange);
     if (!usedSpecialSkill && inRange.length) {
+      enemyAttackedThisTurn = true;
       const pickAtkTarget = list => {
         if (taunter && list.includes(taunter)) return taunter;
         return [...list].sort((a, b) => {
@@ -8502,6 +8604,13 @@ async function endPlayerTurn() {
         await executePlayerCounter(atkT, enemy, counterChoice);
         if (checkVictoryOrDefeat()) return;
       }
+    } else if (!usedSpecialSkill && enemy.hp > 0 && enemy.enemyType === 'archer' && !enemyAttackedThisTurn && !enemy.stunned && enemy.sleepTurns <= 0 && enemy.frozenTurns <= 0) {
+      // v1.22 弓手【張弓警戒】：回合結束未攻擊時進入警戒，我軍在其射程內移動即觸發攔截射擊
+      enemy.overwatch = true;
+      AudioManager.play('bell');
+      spawnFloatText(enemy.r, enemy.c, '🏹 張弓警戒！', 'dmg');
+      addLog(`⚠ ${enemy.name} 進入【張弓警戒】！踏入其射程移動將遭攔截射擊並破防！`, 'enemy');
+      renderGrid(); renderUnits();
     }
     await sleep(130);
   }
@@ -8534,7 +8643,7 @@ async function endPlayerTurn() {
   lastPlayerAction = null;
   units.forEach(u => {
     if (u.hp <= 0) return;
-    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false; u.ultAlert = false;
+    u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.postMoveOnly = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false; u.ultAlert = false;
     ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
       if (u[k] > 0) u[k]--;
     });
@@ -8935,7 +9044,9 @@ async function executeWeibianSanzhuo(idx) {
         if (p.ap <= 0) {
           p.ap = 1;
           p.acted = false;
-          spawnFloatText(p.r, p.c, '+1AP +15氣', 'taiji');
+          p.moved = false;
+          p.postMoveOnly = false;
+          spawnFloatText(p.r, p.c, '完整再動 +15氣', 'taiji');
         } else {
           spawnFloatText(p.r, p.c, '+15氣', 'info');
         }
@@ -9056,10 +9167,16 @@ function renderGrid() {
   ensureGridPool();
   if (!tileDomPool) return;
   const sel = getUnitById(selectedUnitId);
+  const activeShields = units.filter(e => e.team === 'enemy' && e.hp > 0 && e.enemyType === 'soldier' && !e.stunned && e.sleepTurns <= 0 && e.frozenTurns <= 0);
+  const owArchers = getActiveOverwatchArchers().map(a => ({ r: a.r, c: a.c, rng: getEffectiveStats(a).range }));
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
       const t = tileDomPool[r][c], k = keyOf(r, c);
       let cls = 'tile ' + (grid[r][c] === 1 ? 'wall' : grid[r][c] === 3 ? 'fence' : grid[r][c] === 2 ? 'water' : ((r + c) % 2 === 0 ? 'plain' : 'plain alt'));
+      if (grid[r][c] !== 1 && grid[r][c] !== 3) {
+        if (activeShields.some(s => manhattan(r, c, s.r, s.c) === 1)) cls += ' zoc-tile';
+        if (owArchers.some(a => manhattan(r, c, a.r, a.c) <= a.rng && !(a.r === r && a.c === c))) cls += ' overwatch-zone';
+      }
       if (sel && sel.r === r && sel.c === c) cls += ' selected-tile';
       if (actionMode === 'move' && reachableTiles.has(k)) cls += ' move-range';
       if (actionMode === 'basic' && targetableTiles.has(k)) cls += ' attack-range';
@@ -9130,7 +9247,7 @@ function renderUnitCanvas(nowTs = performance.now()) {
     ctx.save();
     if (isDead) ctx.globalAlpha = 0.54;
     else if (u.stealthTurns > 0) ctx.globalAlpha = 0.45;
-    else if (u.team === 'player' && u.ap <= 0) ctx.globalAlpha = 0.65;
+    else if (u.team === 'player' && u.ap <= 0 && !u.postMoveOnly) ctx.globalAlpha = 0.65;
 
     ctx.translate(drawX + 64, drawY + 64);
     if (u.facingLeft) ctx.scale(-scale, scale);
@@ -9181,7 +9298,7 @@ function renderUnits() {
     if (anc.style.zIndex !== zi) anc.style.zIndex = zi;
     anc.classList.toggle('dead', isDead);
     anc.classList.toggle('selected', !isDead && u.id === selectedUnitId);
-    anc.classList.toggle('exhausted', !isDead && u.team === 'player' && u.ap <= 0);
+    anc.classList.toggle('exhausted', !isDead && u.team === 'player' && u.ap <= 0 && !u.postMoveOnly);
     anc.classList.toggle('invincible', !isDead && u.invincibleTurns > 0);
     anc.classList.toggle('lockhp', !isDead && u.lockHpTurns > 0);
     anc.classList.toggle('sleeping', !isDead && u.sleepTurns > 0);
@@ -9227,6 +9344,7 @@ function renderUnits() {
     const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
+    if (u.overwatch && !u.stunned && u.sleepTurns <= 0 && u.frozenTurns <= 0) flags.push('戒');
     if (u.ultAlert) flags.push('警');
     if (u.invincibleTurns > 0) flags.push('無敵');
     if (u.lockHpTurns > 0) flags.push('鎖血');
@@ -9265,7 +9383,7 @@ function renderUnits() {
     if (eH.yy.textContent !== yyShort) eH.yy.textContent = yyShort;
     if (u.team === 'player' && !u.isTower) {
       eH.ap.style.display = '';
-      const apTxt = String(u.ap);
+      const apTxt = u.postMoveOnly ? '退' : String(u.ap);
       if (eH.ap.textContent !== apTxt) eH.ap.textContent = apTxt;
     } else {
       eH.ap.style.display = 'none';
