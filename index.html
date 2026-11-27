@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.24 — 暗黑水墨・再動完全解放版</title>
+<title>《論語戰棋》v1.25 — 暗黑水墨・並聯佔點收尾優化版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -5636,14 +5636,16 @@ let reachableTiles = new Map(), targetableTiles = new Set(), lastPlayerAction = 
 let battleGoalState = {
   tileReached: false, allyDied: false, taijiCount: 0,
   firstKillChecked: false, firstKillSuccess: false,
-  kongHpViolated: false, comboUses: 0, failedReason: null
+  kongHpViolated: false, comboUses: 0, failedReason: null,
+  clearedWaitTileNotified: false
 };
 
 function resetBattleGoalState() {
   battleGoalState = {
     tileReached: false, allyDied: false, taijiCount: 0,
     firstKillChecked: false, firstKillSuccess: false,
-    kongHpViolated: false, comboUses: 0, failedReason: null
+    kongHpViolated: false, comboUses: 0, failedReason: null,
+    clearedWaitTileNotified: false
   };
 }
 
@@ -7368,6 +7370,11 @@ async function moveUnitSmooth(unit, path, isPlayer) {
       spawnFloatText(unit.r, unit.c, '🛡 盾陣阻滯！', 'info');
     }
     updateGoalProgress();
+    if (checkVictoryOrDefeat()) {
+      pendingMove = null;
+      showCmdPopover = false;
+      return;
+    }
     if (unit.postMoveOnly) {
       // 冉有【策馬奔襲】打帶跑純撤退位移完成
       unit.postMoveOnly = false;
@@ -8770,9 +8777,13 @@ async function endPlayerTurn() {
     }
   }
 
-  setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await showTurnBanner('enemy', turnNumber);
+  const aliveEnemiesForTurn = units.filter(u => u.team === 'enemy' && u.hp > 0);
+  const skipEmptyEnemyTurn = (aliveEnemiesForTurn.length === 0);
+  if (!skipEmptyEnemyTurn) {
+    setState(STATE.ENEMY_TURN); AudioManager.play('bell'); addLog(`--- 第 ${turnNumber} 回合：敵軍行動 ---`, 'enemy'); await showTurnBanner('enemy', turnNumber);
+  }
 
-  for (const enemy of units.filter(u => u.team === 'enemy' && u.hp > 0)) {
+  for (const enemy of aliveEnemiesForTurn) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
     enemy.overwatch = false;
     let enemyAttackedThisTurn = false;
@@ -9068,7 +9079,7 @@ async function endPlayerTurn() {
   }
   if (gameState !== STATE.GAME_OVER) {
     setState(STATE.PLAYER_TURN); renderAll();
-    showTurnBanner('player', turnNumber);
+    if (!skipEmptyEnemyTurn) showTurnBanner('player', turnNumber);
   }
   } catch (err) {
     console.error('endPlayerTurn error:', err);
@@ -9130,8 +9141,14 @@ function checkVictoryOrDefeat() {
     }
     if (goal) {
       if (goal.type === 'reach_tile' && !battleGoalState.tileReached) {
-        triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：已全滅敵軍，但未先抵達【${goal.tileName}】！</strong><br>請先派任一武將踏上目標格再完成清場。`);
-        return true;
+        if (!battleGoalState.clearedWaitTileNotified) {
+          battleGoalState.clearedWaitTileNotified = true;
+          AudioManager.play('taiji');
+          focusCameraOn(goal.r, goal.c);
+          spawnFloatText(goal.r, goal.c, `🚩 敵已全滅！踏上${goal.tileName}即勝`, 'taiji');
+          addLog(`🚩 敵軍已全滅！請派任一武將踏上【${goal.tileName}】完成佔領（已自動跳過敵軍回合）。`, 'taiji');
+        }
+        return false;
       }
       if (goal.type === 'taiji_count' && battleGoalState.taijiCount < goal.targetCount) {
         triggerBattleDefeat('條件未達成', `<strong style="color:#ff8a84;">【${goal.title}】失敗：清場時僅觸發 ${battleGoalState.taijiCount}/${goal.targetCount} 次【太極合擊】！</strong><br>請善用陽先手＋相鄰陰出手順序累積合擊。`);
