@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.22 — 暗黑水墨・1AP完整再動與空間攔截版</title>
+<title>《論語戰棋》v1.23 — 暗黑水墨・單體斬首強化與水墨奧義特效版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -1417,124 +1417,233 @@
     font-size: 0.63rem;
   }
 
-  /* 大絕招 / 合體奧義全屏水墨 Cut-in 演出 */
+  /* v1.23 低階機友善・水墨飛白捲軸 & 合體斜切對開 Cut-in（純 GPU transform/opacity） */
   .cutin-backdrop {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 46%, rgba(18, 12, 10, 0.45) 0%, rgba(4, 4, 5, 0.84) 100%);
+    background: rgba(5, 5, 7, 0.78);
     pointer-events: none;
     z-index: 96;
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: cutinFade 0.62s ease-out forwards;
+    overflow: hidden;
+    animation: cutinFade 0.78s ease-out forwards;
+  }
+  .cutin-bg-glyph {
+    position: absolute;
+    font-family: var(--font-serif);
+    font-size: 11.5rem;
+    font-weight: 900;
+    color: rgba(236, 210, 155, 0.14);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+    transform: rotate(-8deg) scale(1.25);
+    animation: cutinGlyphPop 0.78s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   .cutin-band {
-    width: 100%;
-    padding: 12px 14px;
-    background: linear-gradient(90deg, transparent 0%, rgba(16, 14, 12, 0.96) 10%, rgba(36, 18, 15, 0.98) 50%, rgba(16, 14, 12, 0.96) 90%, transparent 100%);
-    border-top: 2px solid var(--gold);
-    border-bottom: 2px solid var(--gold);
-    box-shadow: 0 0 38px rgba(200, 62, 55, 0.48), inset 0 0 24px rgba(212, 175, 106, 0.14);
+    position: relative;
+    width: 108%;
+    padding: 15px 18px;
+    background: linear-gradient(90deg, rgba(8, 8, 9, 0.96) 0%, rgba(46, 17, 14, 0.98) 48%, rgba(12, 11, 10, 0.96) 100%);
+    border-top: 3px solid var(--gold);
+    border-bottom: 3px solid var(--gold);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 12px;
-    transform: skewY(-2deg);
-    animation: cutinSlide 0.62s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    transform: skewY(-3deg);
+    animation: cutinSlide 0.78s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-  .cutin-band.combo {
-    background: linear-gradient(90deg, transparent 0%, rgba(18, 15, 10, 0.96) 10%, rgba(56, 38, 14, 0.98) 50%, rgba(18, 15, 10, 0.96) 90%, transparent 100%);
-    border-top-color: var(--gold-bright);
-    border-bottom-color: var(--gold-bright);
-    box-shadow: 0 0 46px rgba(212, 175, 106, 0.55), inset 0 0 28px rgba(236, 210, 155, 0.2);
+  .cutin-band::before {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; top: 4px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(236, 210, 155, 0.65), transparent);
+  }
+  .cutin-band::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 4px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(200, 62, 55, 0.75), transparent);
   }
   .cutin-portraits {
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     flex-shrink: 0;
   }
   .cutin-portraits .sprite-avatar-frame.lg {
-    width: 64px;
-    height: 64px;
-    border-color: var(--gold-bright);
-    box-shadow: 0 0 16px rgba(212, 175, 106, 0.45);
+    width: 82px;
+    height: 82px;
+    border: 2.5px solid var(--gold-bright);
+    background: radial-gradient(circle at 50% 45%, #3d2c1b 0%, #14110e 80%);
   }
   .cutin-text {
     display: flex;
     flex-direction: column;
-    gap: 3px;
+    gap: 4px;
     min-width: 0;
   }
   .cutin-sub {
     font-family: var(--font-serif);
-    font-size: 0.72rem;
+    font-size: 0.76rem;
     font-weight: 800;
-    letter-spacing: 2px;
-    color: #d6c8ad;
+    letter-spacing: 3px;
+    color: #e8cfa0;
   }
   .cutin-title {
     font-family: var(--font-serif);
-    font-size: 1.42rem;
+    font-size: 1.56rem;
     font-weight: 900;
     letter-spacing: 3px;
-    color: var(--gold-bright);
-    text-shadow: 0 3px 12px rgba(0, 0, 0, 0.95), 0 0 12px rgba(200, 62, 55, 0.55);
+    color: #fff6e0;
+    text-shadow: 0 3px 0 #4a120f, 0 5px 12px rgba(0, 0, 0, 0.95);
     white-space: nowrap;
   }
   .cutin-seal {
-    width: 34px;
-    height: 34px;
+    width: 40px;
+    height: 40px;
     border-radius: 4px;
-    background: rgba(152, 28, 24, 0.96);
-    border: 2px double #ecd29b;
-    color: #fdf4e3;
+    background: #a8231e;
+    border: 2.5px double #ecd29b;
+    color: #fff7e6;
     font-family: var(--font-serif);
-    font-size: 0.95rem;
+    font-size: 1.15rem;
     font-weight: 900;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    transform: rotate(-8deg);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.75);
+    transform: rotate(-9deg);
+  }
+  /* 合體奧義專屬：雙人斜切對開 ＋ 中央巨印 */
+  .cutin-split-wrap {
+    position: relative;
+    width: 100%;
+    height: 164px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: skewY(-4deg);
+    border-top: 3px solid var(--gold-bright);
+    border-bottom: 3px solid var(--gold-bright);
+    overflow: hidden;
+    background: #120e0b;
+    animation: cutinSlide 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .cutin-split-half {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 56%;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+  }
+  .cutin-split-half.left {
+    left: 0;
+    justify-content: flex-start;
+    background: linear-gradient(125deg, #1b2d30 0%, #0f1719 72%, transparent 100%);
+    animation: cutinLeftIn 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .cutin-split-half.right {
+    right: 0;
+    justify-content: flex-end;
+    background: linear-gradient(-125deg, #421714 0%, #1a0b0a 72%, transparent 100%);
+    animation: cutinRightIn 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  .cutin-split-half .sprite-avatar-frame.lg {
+    width: 88px;
+    height: 88px;
+    border: 2.5px solid var(--gold-bright);
+  }
+  .cutin-split-center {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    text-align: center;
+    padding: 8px 16px;
+    background: rgba(14, 12, 10, 0.86);
+    border: 2px solid var(--gold);
+    border-radius: 6px;
+    animation: cutinSealSlam 0.86s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .cutin-combo-stamp {
+    background: #9e221d;
+    border: 2px double #fff0cc;
+    color: #fff8e8;
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    padding: 4px 14px;
+    border-radius: 4px;
   }
   @keyframes cutinFade {
     0% { opacity: 0; }
-    15% { opacity: 1; }
-    80% { opacity: 1; }
+    14% { opacity: 1; }
+    82% { opacity: 1; }
     100% { opacity: 0; }
   }
   @keyframes cutinSlide {
-    0% { transform: skewY(-2deg) translateX(-40px) scaleY(0.8); opacity: 0; }
-    18% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
-    82% { transform: skewY(-2deg) translateX(0) scaleY(1); opacity: 1; }
-    100% { transform: skewY(-2deg) translateX(30px) scaleY(0.95); opacity: 0; }
+    0% { transform: skewY(-3deg) translateX(-48px) scaleY(0.75); opacity: 0; }
+    18% { transform: skewY(-3deg) translateX(0) scaleY(1); opacity: 1; }
+    82% { transform: skewY(-3deg) translateX(0) scaleY(1); opacity: 1; }
+    100% { transform: skewY(-3deg) translateX(36px) scaleY(0.95); opacity: 0; }
+  }
+  @keyframes cutinGlyphPop {
+    0% { transform: rotate(-12deg) scale(1.7); opacity: 0; }
+    22% { transform: rotate(-8deg) scale(1.1); opacity: 1; }
+    80% { transform: rotate(-7deg) scale(1.0); opacity: 0.9; }
+    100% { transform: rotate(-6deg) scale(0.95); opacity: 0; }
+  }
+  @keyframes cutinLeftIn {
+    0% { transform: translateX(-60px); opacity: 0; }
+    20% { transform: translateX(0); opacity: 1; }
+    82% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(-20px); opacity: 0; }
+  }
+  @keyframes cutinRightIn {
+    0% { transform: translateX(60px); opacity: 0; }
+    20% { transform: translateX(0); opacity: 1; }
+    82% { transform: translateX(0); opacity: 1; }
+    100% { transform: translateX(20px); opacity: 0; }
+  }
+  @keyframes cutinSealSlam {
+    0% { transform: scale(1.75) rotate(-6deg); opacity: 0; }
+    22% { transform: scale(0.96) rotate(0deg); opacity: 1; }
+    32% { transform: scale(1.03) rotate(0deg); opacity: 1; }
+    84% { transform: scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: scale(0.92); opacity: 0; }
   }
 
-
-  /* v1.4 大絕戰場暗場聚光 & 0.07秒黑白閃墨 Impact Frame */
+  /* v1.23 大絕戰場暗場聚光 & 純色高反差閃墨 Impact Frame（移除高耗能 mix-blend-mode） */
   .board-viewport.ult-spotlight::before {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(10, 10, 12, 0.14) 15%, rgba(4, 4, 6, 0.62) 100%);
+    background: rgba(5, 6, 8, 0.56);
     pointer-events: none;
     z-index: 54;
-    transition: opacity 0.25s ease;
   }
   .impact-flash {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 50% 50%, rgba(255, 250, 238, 0.88) 0%, rgba(16, 15, 13, 0.72) 100%);
-    mix-blend-mode: hard-light;
+    background: #fff8ea;
     pointer-events: none;
     z-index: 97;
-    animation: impactFlashAnim 0.085s ease-out forwards;
+    animation: impactFlashAnim 0.09s linear forwards;
+  }
+  .impact-flash.ink {
+    background: #0c0b0a;
   }
   @keyframes impactFlashAnim {
-    0% { opacity: 0.95; }
+    0% { opacity: 0.88; }
+    45% { opacity: 0.55; }
     100% { opacity: 0; }
   }
 
@@ -2732,7 +2841,8 @@
   <div class="modal-sheet">
     <h3>☰ 軍情日誌與戰場補給</h3>
     <button class="btn gold" style="width:100%;" onclick="closeModal('battleToolsModal'); openItemModal()">🎒 戰場補給道具（蓍草 / 傷藥 / 簞食瓢飲）</button>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:5px;">
+      <button class="btn sm" id="btnVfxQuality" onclick="toggleVfxQuality()">⚡ 特效：標準</button>
       <button class="btn sm" onclick="closeModal('battleToolsModal'); openGuideModal()">📖 兵法手冊</button>
       <button class="btn sm danger" onclick="closeModal('battleToolsModal'); retreatToMap()">🏳 撤退回輿圖</button>
     </div>
@@ -3134,77 +3244,77 @@ const DATA_HEXAGRAMS = [
 
 const DATA_SKILLS = {
   // 1. 孔子
-  kong_basic: { name: '六藝兼通', range: 1, rangeText: '近戰 1 格(克制)', qiCost: 0, type: 'kong_adaptive', mult: 1.05, desc: '近戰劍擊（+25 氣），自動克制弱點：對重甲盾兵附加破防，對遠程／法師附加沉默 1 回合。' },
+  kong_basic: { name: '六藝兼通', range: 1, rangeText: '近戰 1 格(克制)', qiCost: 0, type: 'kong_adaptive', mult: 1.25, desc: '近戰劍擊（1.25×攻，+25 氣），自動克制弱點：對重甲盾兵附加破防，對遠程／法師附加沉默 1 回合。' },
   kong_skill: { name: '有教無類', range: 3, rangeText: '周圍 3 格友軍', qiCost: 50, type: 'aoe_buff', desc: '消耗 50 氣：清除周圍 3 格內友軍負面狀態，賦予「受教」全屬性 +15%（2回合）並回復 20 HP。' },
-  kong_ult:   { name: '朝聞道，夕死可矣', range: 5, rangeText: '直線 5 格貫穿', qiCost: 100, type: 'line_true', desc: '消耗 100 氣：燃燒當前 80% HP，對直線 5 格造成巨量真實傷害；若擊殺敵軍則保留 1 HP 並無敵 1 回合。' },
+  kong_ult:   { name: '朝聞道，夕死可矣', range: 5, rangeText: '直線 5 格貫穿', qiCost: 100, type: 'line_true', desc: '消耗 100 氣：燃燒當前 80% HP，對直線 5 格造成（攻擊×2.2＋燒血×1.1）毀滅真實傷害；若擊殺敵軍則保留 1 HP 並無敵 1 回合。' },
 
   // 2. 顏回
-  hui_basic:  { name: '聞一知十', range: 2, rangeText: '遠程 2 格(追擊)', qiCost: 0, type: 'hui_echo', mult: 1.0, desc: '遠程文氣攻擊（+25 氣）；若目標已有負面狀態，額外追加 1 次相同傷害的「連帶領悟」打擊。' },
+  hui_basic:  { name: '聞一知十', range: 2, rangeText: '遠程 2 格(追擊)', qiCost: 0, type: 'hui_echo', mult: 1.15, desc: '遠程文氣攻擊（1.15×攻，+25 氣）；若目標已有負面狀態，額外追加 1 次相同傷害的「連帶領悟」打擊。' },
   hui_skill:  { name: '一簞食，一瓢飲', range: 2, rangeText: '自身+2格友軍', qiCost: 40, type: 'heal_ap_aoe', desc: '消耗 40 氣：為目標及周圍 1 格友軍回復 HP 並 +1 行動點（陳蔡絕糧禁補豁免且效果翻倍）。' },
   hui_ult:    { name: '不遷怒，不貳過', range: 0, rangeText: '全軍領域(3回合)', qiCost: 100, type: 'domain', desc: '消耗 100 氣：展開 3 回合【心齋領域】，全軍免疫控制並獲得一次「抵擋致命傷轉為回血」。' },
 
   // 3. 子路
-  lu_basic:   { name: '長纓突刺', range: 2, rangeText: '突刺 2 格(貫穿)', qiCost: 0, type: 'pierce', mult: 1.0, desc: '射程 2 格長戟突刺（+25 氣），攻擊後若敵人背後為空地則直接貫穿位移 1 格。' },
-  lu_skill:   { name: '暴虎馮河', range: 4, rangeText: '無視地形衝鋒4格', qiCost: 50, type: 'charge_stun', mult: 1.4, desc: '消耗 50 氣：無視地形障礙直線衝鋒 4 格撞擊路徑敵軍並暈眩 1 回合，自身防禦 -30%（2回合）。' },
+  lu_basic:   { name: '長纓突刺', range: 2, rangeText: '突刺 2 格(貫穿)', qiCost: 0, type: 'pierce', mult: 1.30, desc: '射程 2 格長戟突刺（1.3×攻，+25 氣），攻擊後若敵人背後為空地則直接貫穿位移 1 格。' },
+  lu_skill:   { name: '暴虎馮河', range: 4, rangeText: '無視地形衝鋒4格', qiCost: 50, type: 'charge_stun', mult: 2.1, desc: '消耗 50 氣：無視地形直線衝鋒 4 格重擊目標（2.1×攻、穿防 30%）並暈眩 1 回合，自身防禦 -30%（2回合）。' },
   lu_ult:     { name: '結纓而死', range: 0, rangeText: '自身(HP<30%)', qiCost: 100, type: 'self_berserk', hpBelowPct: 0.30, desc: '僅限 HP < 30% 發動！2 回合內鎖血 1 點、攻擊翻倍、每次受擊必發動 150% 反擊。' },
 
   // 4. 子貢
-  gong_basic: { name: '億則屢中', range: 2, rangeText: '遠程 2 格(高暴)', qiCost: 0, type: 'damage_gold', mult: 0.95, extraCrit: 0.25, desc: '算籌遠程精準打擊（+25% 暴擊率），命中 50% 機率額外榨取 +120 兩軍資金。' },
+  gong_basic: { name: '億則屢中', range: 2, rangeText: '遠程 2 格(高暴)', qiCost: 0, type: 'damage_gold', mult: 1.15, extraCrit: 0.25, desc: '算籌遠程精準打擊（1.15×攻、+25% 暴擊率），命中 50% 機率額外榨取 +120 兩軍資金。' },
   gong_skill: { name: '千金散盡', range: 3, rangeText: '敵兵 3 格(≤40%血)', qiCost: 50, goldCost: 300, type: 'bribe', desc: '消耗 50 氣＋300 兩：收買血量 ≤ 40% 的非 Boss 敵軍，立刻倒戈成為我方單位！' },
   gong_ult:   { name: '結駟連騎', range: 2, rangeText: '空地召喚2戰車+盾', qiCost: 100, goldCost: 200, type: 'summon_chariots', desc: '消耗 100 氣＋200 兩：召喚最多 2 支【僱傭戰車】入場助戰，並為我方全軍賦予 45 點護盾。' },
 
   // 5. 閔子騫
-  min_basic:  { name: '克己復禮', range: 1, rangeText: '近戰 1 格(防禦)', qiCost: 0, type: 'min_guard', mult: 0.95, desc: '持盾近戰打擊（+25 氣），攻擊後進入防禦姿態，受到傷害減少 25%（1 回合）。' },
+  min_basic:  { name: '克己復禮', range: 1, rangeText: '近戰 1 格(防禦)', qiCost: 0, type: 'min_guard', mult: 1.15, desc: '持盾近戰打擊（1.15×攻，+25 氣），攻擊後進入防禦姿態，受到傷害減少 25%（1 回合）。' },
   min_skill:  { name: '孝感動天', range: 2, rangeText: '友軍 2 格(分傷)', qiCost: 45, type: 'link_guard', desc: '消耗 45 氣：與一名友軍建立 2 回合【共患難】連結，替其承受 70% 傷害並將承傷轉為自身浩然氣。' },
   min_ult:    { name: '蘆衣順母', range: 3, rangeText: '周圍 3 格極寒凍結', qiCost: 100, type: 'frost_domain', desc: '消耗 100 氣：自身防禦暫時歸零（1回合），凍結周圍 3 格內所有敵軍移動力降為 0 且攻擊 -30%（2回合）。' },
 
   // 6. 冉伯牛
-  boniu_basic:{ name: '診脈點穴', range: 1, rangeText: '近戰 1 格(內傷)', qiCost: 0, type: 'boniu_bleed', mult: 0.95, desc: '點穴攻擊（+25 氣），附加【內傷】狀態（每回合損失 5% 最大生命值，持續 3 回合）。' },
+  boniu_basic:{ name: '診脈點穴', range: 1, rangeText: '近戰 1 格(內傷)', qiCost: 0, type: 'boniu_bleed', mult: 1.15, desc: '點穴攻擊（1.15×攻，+25 氣），附加【內傷】狀態（每回合損失 5% 最大生命值，持續 3 回合）。' },
   boniu_skill:{ name: '斯人也而有斯疾也', range: 3, rangeText: '周圍 3 格吸狀態', qiCost: 45, type: 'absorb_debuffs', desc: '消耗 45 氣：吸收周圍 3 格內所有友軍的負面狀態轉移到自己身上，每吸收 1 個回復自身 15% HP。' },
   boniu_ult:  { name: '天喪予', range: 3, rangeText: '周圍 3 格反彈引爆', qiCost: 100, type: 'detonate_debuffs', desc: '消耗 100 氣：引爆自身背負的所有負面狀態，將 Debuff 連同雙倍厄運真傷反彈給 3 格內敵軍，自身淨化回血。' },
 
   // 7. 仲弓
-  zhong_basic:{ name: '南面而立', range: 1, rangeText: '近戰 1 格(未移+30%)', qiCost: 0, type: 'zhong_still', mult: 1.0, desc: '重劍劈砍（+25 氣）；若本回合尚未移動，傷害 +30% 並將敵軍擊退 1 格。' },
+  zhong_basic:{ name: '南面而立', range: 1, rangeText: '近戰 1 格(未移+50%)', qiCost: 0, type: 'zhong_still', mult: 1.30, desc: '重劍劈砍（1.3×攻，+25 氣）；若本回合尚未移動，傷害 +50% 並將敵軍擊退 1 格。' },
   zhong_skill:{ name: '居敬行簡', range: 0, rangeText: '自身(宗廟之器)', qiCost: 45, type: 'fortress_stance', desc: '消耗 45 氣：進入 2 回合【宗廟之器】狀態，移動力降為 0，但防禦力提升 80%！' },
   zhong_ult:  { name: '犁牛之子', range: 3, rangeText: '周圍 3 格嘲諷反傷', qiCost: 100, type: 'taunt_thorns', desc: '消耗 100 氣：嘲諷周圍 3 格敵軍強制攻擊自己，並獲得等同防禦力 200% 的【角力反傷護盾】。' },
 
   // 8. 冉有
-  ranyou_basic:{ name: '策馬奔襲', range: 1, rangeText: '近戰 1 格(打帶跑)', qiCost: 0, type: 'hit_and_run', mult: 1.0, desc: '騎乘突擊（+25 氣），攻擊後若仍有行動餘裕可再次移動（打帶跑）。' },
+  ranyou_basic:{ name: '策馬奔襲', range: 1, rangeText: '近戰 1 格(打帶跑)', qiCost: 0, type: 'hit_and_run', mult: 1.25, desc: '騎乘突擊（1.25×攻，+25 氣），攻擊後可額外再移動 1 次（打帶跑）。' },
   ranyou_skill:{ name: '足民之策', range: 2, rangeText: '空地 2 格建箭塔/柵欄', qiCost: 45, type: 'build_tower', desc: '消耗 45 氣：在 2 格內空地建造【瞭望箭塔】（回合結束自動射擊附近敵軍）並在旁設防。' },
   ranyou_ult:  { name: '季氏伐顓臾', range: 3, rangeText: '指定 3×3 區域轟炸', qiCost: 100, type: 'siege_3x3', desc: '消耗 100 氣：對指定 3×3 區域發動攻城齊射，造成巨量物理傷害並徹底摧毀區域內的障礙與石碑！' },
 
   // 9. 宰我
-  wo_basic:   { name: '利口辯辭', range: 2, rangeText: '遠程 2 格(40%混亂)', qiCost: 0, type: 'wo_confuse', mult: 0.95, desc: '遠程音波攻擊（+25 氣），40% 機率使敵人陷入【混亂 1 回合】（隨機攻擊最近單位）。' },
+  wo_basic:   { name: '利口辯辭', range: 2, rangeText: '遠程 2 格(40%混亂)', qiCost: 0, type: 'wo_confuse', mult: 1.15, desc: '遠程音波攻擊（1.15×攻，+25 氣），40% 機率使敵人陷入【混亂 1 回合】（隨機攻擊最近單位）。' },
   wo_skill:   { name: '朽木不可雕也', range: 3, rangeText: '敵軍 3 格(睡眠)', qiCost: 50, type: 'sleep', desc: '消耗 50 氣：使目標陷入【睡眠 2 回合】無法行動，受擊驚醒時承受 1.5 倍暴擊。' },
   wo_ult:     { name: '三寸不爛之舌', range: 3, rangeText: '扇形 3 格內訌', qiCost: 100, type: 'infight', desc: '消耗 100 氣：令目標及周圍 1 格敵軍陷入【內訌】，強制於我方回合內互相普攻！' },
 
   // 10. 子游
-  ziyou_basic:{ name: '弦歌之聲', range: 2, rangeText: '遠程 2 格(濺射補血)', qiCost: 0, type: 'ziyou_song', mult: 0.95, desc: '彈奏琴瑟遠程攻擊（+25 氣），同時為目標身旁 2 格內最虛弱的我方單位回復 18 HP。' },
+  ziyou_basic:{ name: '弦歌之聲', range: 2, rangeText: '遠程 2 格(濺射補血)', qiCost: 0, type: 'ziyou_song', mult: 1.15, desc: '彈奏琴瑟遠程攻擊（1.15×攻，+25 氣），同時為目標身旁 2 格內最虛弱的我方單位回復 18 HP。' },
   ziyou_skill:{ name: '武城弦歌', range: 3, rangeText: '周圍 3 格加速加暴', qiCost: 45, type: 'wucheng_buff', desc: '消耗 45 氣：周圍 3 格內友軍移動 +2、暴擊 +20%（2回合），並解除混亂與暈眩。' },
   ziyou_ult:  { name: '君子學道則愛人', range: 0, rangeText: '全場雅樂共鳴', qiCost: 100, type: 'ya_music_all', desc: '消耗 100 氣：對全場敵軍造成音波傷害，敵軍越多，我方全體獲得的攻擊力加成越高（2回合）。' },
 
   // 11. 子夏
-  zixia_basic:{ name: '百步穿楊', range: 4, rangeText: '超遠 4 格(穿甲30%)', qiCost: 0, type: 'armor_pierce', mult: 1.0, desc: '射程 4 格精準弓箭射擊（+25 氣），無視目標 30% 防禦力。' },
-  zixia_skill:{ name: '切問而近思', range: 4, rangeText: '敵軍 4 格(易傷35%)', qiCost: 45, type: 'mark_vuln', desc: '消耗 45 氣：剖析敵將弱點，使其 2 回合內承受所有傷害提升 35% 且無法閃避。' },
-  zixia_ult:  { name: '博學而篤志', range: 7, rangeText: '貫穿全圖直線神箭', qiCost: 100, type: 'full_line_arrow', desc: '消耗 100 氣：射出貫穿全圖的經義神箭，對直線上所有敵人造成高額穿透傷害並清除敵方強化。' },
+  zixia_basic:{ name: '百步穿楊', range: 4, rangeText: '超遠 4 格(穿甲45%)', qiCost: 0, type: 'armor_pierce', mult: 1.35, desc: '射程 4 格精準狙擊（1.35×攻，+25 氣），無視目標 45% 防禦力。' },
+  zixia_skill:{ name: '切問而近思', range: 4, rangeText: '敵軍 4 格(1.35×+易傷)', qiCost: 45, type: 'mark_vuln', mult: 1.35, desc: '消耗 45 氣：射出穿甲破綻箭（1.35×攻、穿防 45%）並附加 2 回合【易傷 +35%】且無法閃避！' },
+  zixia_ult:  { name: '博學而篤志', range: 7, rangeText: '貫穿全圖(單體貫心)', qiCost: 100, type: 'full_line_arrow', desc: '消耗 100 氣：全圖直線神箭（2.35×攻、穿防 60% 必暴＋清強化）；若僅命中 1 敵觸發【貫心一箭】傷害再 ×1.35！' },
 
   // 12. 南子（歷史女角）
-  nanzi_basic:{ name: '環佩玎璫', range: 2, rangeText: '遠程 2 格(破防降抗)', qiCost: 0, type: 'nanzi_chime', mult: 0.95, desc: '玉佩聲波攻擊（+25 氣），降低目標防禦與暴擊抵抗 2 回合。' },
-  nanzi_skill:{ name: '帷幕之眼', range: 3, rangeText: '隱身+魅惑敵軍', qiCost: 50, type: 'stealth_charm', desc: '消耗 50 氣：自身進入【隱身 1 回合】（敵軍無法鎖定），並魅惑目標使其混亂自相殘殺 1 回合。' },
+  nanzi_basic:{ name: '環佩玎璫', range: 2, rangeText: '遠程 2 格(破防降抗)', qiCost: 0, type: 'nanzi_chime', mult: 1.15, desc: '玉佩聲波攻擊（1.15×攻，+25 氣），降低目標防禦與暴擊抵抗 2 回合。' },
+  nanzi_skill:{ name: '帷幕之眼', range: 3, rangeText: '暗刃1.25×+隱身魅惑', qiCost: 50, type: 'stealth_charm', mult: 1.25, desc: '消耗 50 氣：投出環佩暗刃（1.25×攻），使自身進入【隱身】並魅惑目標陷入混亂 1 回合！' },
   nanzi_ult:  { name: '子見南子', range: 0, rangeText: '全場動搖+暗殺連擊', qiCost: 100, type: 'nanzi_assassinate', desc: '消耗 100 氣：令全場敵軍陷入【心神動搖】（防禦 -40%），隨即對所有動搖敵軍發動暗殺連擊！' },
 
   // 13. 泰山婦人（歷史女角）
-  taishan_basic:{ name: '哀歌泣血', range: 2, rangeText: '遠程 2 格(驅散增傷)', qiCost: 0, type: 'taishan_wail', mult: 1.0, desc: '怨念打擊（+25 氣），目標身上每有 1 個增益或狀態，傷害提升 25%。' },
+  taishan_basic:{ name: '哀歌泣血', range: 2, rangeText: '遠程 2 格(驅散增傷)', qiCost: 0, type: 'taishan_wail', mult: 1.15, desc: '怨念打擊（1.15×攻，+25 氣），目標身上每有 1 個增益或狀態，傷害提升 25%。' },
   taishan_skill:{ name: '苛政猛於虎', range: 0, rangeText: '敵方全體詛咒', qiCost: 50, type: 'harsh_tax_curse', desc: '消耗 50 氣：為敵方全體施加 2 回合【苛政】詛咒，敵軍行動時即遭幽冥猛虎撕咬承受 28 真實傷害。' },
   taishan_ult:  { name: '三世之怨', range: 3, rangeText: '3格三虎吞噬回血', qiCost: 100, type: 'three_tigers', desc: '消耗 100 氣：召喚三頭幽冥猛虎撲擊目標及周圍 1 格，吞噬敵軍護盾與強化並轉化為自身生命！' },
 
   // 14. 阿谷處女（歷史女角）
-  agu_basic:  { name: '浣紗拂水', range: 1, rangeText: '近戰 1 格(+30%閃避)', qiCost: 0, type: 'agu_dodge', mult: 1.05, desc: '靈巧近戰打擊（+25 氣），攻擊後自身獲得 +30% 閃避率，持續 1 回合。' },
+  agu_basic:  { name: '浣紗拂水', range: 1, rangeText: '近戰 1 格(+30%閃避)', qiCost: 0, type: 'agu_dodge', mult: 1.30, desc: '靈巧近戰打擊（1.3×攻，+25 氣），攻擊後自身獲得 +30% 閃避率，持續 1 回合。' },
   agu_skill:  { name: '贈佩試心', range: 0, rangeText: '自身(80%閃避反擊)', qiCost: 45, type: 'counter_stance', desc: '消耗 45 氣：進入 1 回合【機鋒反擊】架勢，80% 機率完全閃避敵方攻擊並立刻反擊！' },
-  agu_ult:    { name: '阿谷清流', range: 3, rangeText: '敵陣5段清流穿梭', qiCost: 100, type: 'agu_five_hits', desc: '消耗 100 氣：化作清流在敵陣中連續穿梭打擊最多 5 次，洗去敵軍所有強化狀態並返回原位。' },
+  agu_ult:    { name: '阿谷清流', range: 3, rangeText: '敵陣5段清流穿梭', qiCost: 100, type: 'agu_five_hits', desc: '消耗 100 氣：化作清流在敵陣中連續穿梭 5 段（每段 0.72×攻、穿防 35% 且獨立判定暴擊），洗去敵軍所有強化！' },
 
   // 15. 顏徵在（歷史女角）
-  yan_basic:  { name: '俎豆禮容', range: 2, rangeText: '遠程 2 格(克心魔)', qiCost: 0, type: 'yan_purify', mult: 1.0, desc: '溫和禮法光波（+25 氣），對首領／心魔系敵人造成雙倍淨化傷害！' },
+  yan_basic:  { name: '俎豆禮容', range: 2, rangeText: '遠程 2 格(克心魔)', qiCost: 0, type: 'yan_purify', mult: 1.15, desc: '溫和禮法光波（1.15×攻，+25 氣），對首領／心魔系敵人造成雙倍淨化傷害！' },
   yan_skill:  { name: '慈母教誨', range: 3, rangeText: '友軍 3 格(護盾免控)', qiCost: 45, type: 'mother_shield', desc: '消耗 45 氣：為友軍賦予 65 點【禮容護盾】並清除負面狀態，護盾期間免疫控制。' },
   yan_ult:    { name: '聖母庇佑', range: 0, rangeText: '復活陣亡友軍+全軍光環', qiCost: 100, type: 'revive_aura', desc: '消耗 100 氣：復活一名本場陣亡的我方武將（50% HP），若無人陣亡則全軍回血 45% 並附加正氣光環！' }
 };
@@ -3263,7 +3373,7 @@ const TALENTS_OUTER = [
 // 全部 7 組跨角色羈絆合體奧義
 const BOND_PAIRS = [
   { id: 'kong_hui',     name: '孔子 × 顏回',        comboName: '吾與點也', unlockLv: 2, desc: '相鄰滿氣：全軍滿血淨化、其餘友軍滿氣＋全場聖光審判真傷' },
-  { id: 'kong_lu',      name: '孔子 × 子路',        comboName: '死生有命', unlockLv: 2, desc: '相鄰滿氣：子路跨圖雷霆突貫115傷暈眩＋孔子瞬移' },
+  { id: 'kong_lu',      name: '孔子 × 子路',        comboName: '死生有命', unlockLv: 2, desc: '相鄰滿氣：雙人合攻 2.2× 穿防 50% 必暴斬首＋暈眩＋孔子瞬移！' },
   { id: 'gong_wo',      name: '子貢 × 宰我',        comboName: '端木賜問', unlockLv: 2, desc: '夾擊或相鄰滿氣：強制扣目標50%現血＋懷疑人生3回合' },
   { id: 'ziyou_zixia',  name: '子游 × 子夏',        comboName: '文學雙璧', unlockLv: 2, desc: '距離≤3滿氣：天籟聚攏全敵＋萬箭齊發毀滅清場' },
   { id: 'trio',         name: '孔門三傑(孔/路/回)',  comboName: '君子固窮', unlockLv: 2, desc: '全軍均血<25%：全軍血量百分比反轉＋無敵3回合＋雙倍攻' },
@@ -3846,26 +3956,76 @@ function getEquipWearers(eqId) {
 }
 
 const AudioManager = {
+  noiseBuf: null,
+  ensureCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    if (!this.noiseBuf) {
+      const len = Math.floor(audioCtx.sampleRate * 0.35);
+      const buf = audioCtx.createBuffer(1, len, audioCtx.sampleRate);
+      const ch = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) ch[i] = Math.random() * 2 - 1;
+      this.noiseBuf = buf;
+    }
+    return audioCtx;
+  },
+  playTone(ctx, type, f1, f2, dur, peak, delay = 0) {
+    const t0 = ctx.currentTime + delay;
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(f1, t0);
+    if (f2 !== f1) osc.frequency.exponentialRampToValueAtTime(Math.max(24, f2), t0 + dur * 0.85);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.linearRampToValueAtTime(peak, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + dur + 0.02);
+  },
+  playNoise(ctx, freq, q, dur, peak, delay = 0) {
+    const t0 = ctx.currentTime + delay;
+    const src = ctx.createBufferSource();
+    src.buffer = this.noiseBuf;
+    const flt = ctx.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.setValueAtTime(freq, t0); flt.Q.setValueAtTime(q, t0);
+    const g = ctx.createGain();
+    g.gain.setValueAtTime(peak, t0);
+    g.gain.exponentialRampToValueAtTime(0.0008, t0 + dur);
+    src.connect(flt); flt.connect(g); g.connect(ctx.destination);
+    src.start(t0); src.stop(t0 + dur + 0.02);
+  },
   play(type) {
     if (!soundEnabled) return;
     try {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
-      osc.connect(gain); gain.connect(audioCtx.destination);
-      const now = audioCtx.currentTime;
-      const p = {
-        move:  { t: 'sine',     f1: 310, f2: 450, d: 0.07, g: 0.06 },
-        undo:  { t: 'sine',     f1: 420, f2: 260, d: 0.09, g: 0.07 },
-        slash: { t: 'sawtooth', f1: 210, f2: 52,  d: 0.14, g: 0.15 },
-        guqin: { t: 'triangle', f1: 440, f2: 660, d: 0.26, g: 0.12 },
-        bell:  { t: 'sine',     f1: 262, f2: 524, d: 0.34, g: 0.12 },
-        taiji: { t: 'triangle', f1: 392, f2: 784, d: 0.42, g: 0.16 },
-        ult:   { t: 'sawtooth', f1: 130, f2: 720, d: 0.48, g: 0.16 }
-      }[type] || { t: 'sine', f1: 300, f2: 400, d: 0.08, g: 0.06 };
-      osc.type = p.t; osc.frequency.setValueAtTime(p.f1, now);
-      osc.frequency.exponentialRampToValueAtTime(p.f2, now + p.d * 0.8);
-      gain.gain.setValueAtTime(p.g, now); gain.gain.exponentialRampToValueAtTime(0.001, now + p.d);
-      osc.start(now); osc.stop(now + p.d);
+      const ctx = this.ensureCtx();
+      if (type === 'ult') {
+        // 戰鼓重擊 + 古鐘長鳴 + 劍氣破空
+        this.playTone(ctx, 'sine', 115, 36, 0.42, 0.24, 0);
+        this.playTone(ctx, 'triangle', 293.66, 293.66, 0.65, 0.12, 0.03);
+        this.playTone(ctx, 'sine', 587.33, 584, 0.55, 0.08, 0.03);
+        this.playNoise(ctx, 1400, 1.4, 0.22, 0.11, 0.02);
+      } else if (type === 'thunder') {
+        this.playTone(ctx, 'sine', 130, 32, 0.36, 0.24, 0);
+        this.playNoise(ctx, 900, 0.9, 0.28, 0.16, 0);
+      } else if (type === 'slash') {
+        this.playTone(ctx, 'sawtooth', 220, 56, 0.13, 0.13, 0);
+        this.playNoise(ctx, 2200, 1.8, 0.11, 0.11, 0);
+      } else if (type === 'taiji') {
+        // 五聲音階（宮商角徵羽）快撥古琴琶音
+        [261.63, 293.66, 329.63, 392.0, 523.25].forEach((hz, i) => {
+          this.playTone(ctx, 'triangle', hz, hz * 1.004, 0.34, 0.09, i * 0.045);
+        });
+      } else if (type === 'guqin') {
+        [329.63, 392.0, 440.0].forEach((hz, i) => {
+          this.playTone(ctx, 'triangle', hz, hz, 0.26, 0.09, i * 0.04);
+        });
+      } else if (type === 'bell') {
+        this.playTone(ctx, 'sine', 261.63, 260, 0.45, 0.12, 0);
+        this.playTone(ctx, 'sine', 523.25, 520, 0.36, 0.06, 0);
+      } else if (type === 'undo') {
+        this.playTone(ctx, 'sine', 420, 260, 0.09, 0.07, 0);
+      } else {
+        this.playTone(ctx, 'sine', 310, 450, 0.07, 0.06, 0);
+      }
     } catch (e) {}
   }
 };
@@ -5720,11 +5880,34 @@ function playAnimWithHitSync(unit, stateName, onHitCallback) {
   });
 }
 function triggerHitstop(ms = 60) { hitstopUntil = performance.now() + ms; }
-function triggerCameraShake(px = 4, ms = 200) {
-  const wrap = document.getElementById('boardWrapper'), start = performance.now();
+function isEcoVfx() {
+  return Boolean(saveData && saveData.vfxQuality === 'eco');
+}
+function syncVfxQualityBtn() {
+  const b = document.getElementById('btnVfxQuality');
+  if (b) b.textContent = isEcoVfx() ? '⚡ 特效：省電' : '⚡ 特效：標準';
+}
+function toggleVfxQuality() {
+  saveData.vfxQuality = isEcoVfx() ? 'high' : 'eco';
+  persistSave();
+  syncVfxQualityBtn();
+}
+function triggerCameraShake(px = 4, ms = 200, dirX = 0, dirY = 0) {
+  const wrap = document.getElementById('boardWrapper');
+  if (!wrap) return;
+  const start = performance.now();
+  const hasDir = (dirX !== 0 || dirY !== 0);
   function step(now) {
-    if (now - start < ms) { wrap.style.transform = `translate(${(Math.random()*2-1)*px}px,${(Math.random()*2-1)*px}px)`; requestAnimationFrame(step); }
-    else wrap.style.transform = '';
+    const el = now - start;
+    if (el < ms) {
+      const decay = 1 - el / ms;
+      const ox = hasDir ? (dirX * px * decay * Math.cos(el * 0.06) + (Math.random() - 0.5) * px * 0.5 * decay) : ((Math.random() * 2 - 1) * px * decay);
+      const oy = hasDir ? (dirY * px * decay * Math.cos(el * 0.06) + (Math.random() - 0.5) * px * 0.5 * decay) : ((Math.random() * 2 - 1) * px * decay);
+      wrap.style.transform = `translate3d(${ox.toFixed(1)}px,${oy.toFixed(1)}px,0)`;
+      requestAnimationFrame(step);
+    } else {
+      wrap.style.transform = '';
+    }
   }
   requestAnimationFrame(step);
 }
@@ -5732,6 +5915,7 @@ function triggerCameraShake(px = 4, ms = 200) {
 const VfxEngine = {
   effects: [],
   particles: [],
+  remnants: [],
   hasDrawn: false,
 
   tileCenter(r, c) {
@@ -5746,12 +5930,37 @@ const VfxEngine = {
     }
     this.effects = [];
     this.particles = [];
+    this.remnants = [];
     const cvs = document.getElementById('vfxCanvas');
     if (cvs) cvs.getContext('2d').clearRect(0, 0, cvs.width, cvs.height);
     this.hasDrawn = false;
   },
 
+  spawnGroundScar(r, c, kind = 'crack', color = '#d4af6a', dur = 1.25) {
+    if (isEcoVfx()) return;
+    const p = this.tileCenter(r, c);
+    if (this.remnants.length >= 12) this.remnants.shift();
+    this.remnants.push({ x: p.x, y: p.y, kind, color, t: 0, dur, seed: Math.random() * 6.28 });
+  },
+
+  spawnInkGlyph(r, c, ch, color = '#ecd29b', dur = 0.72) {
+    const p = this.tileCenter(r, c);
+    this.effects.push({ type: 'inkGlyph', x: p.x, y: p.y, ch, color, t: 0, dur });
+  },
+
+  spawnBambooSlip(r, c, color = '#ecd29b') {
+    const p = this.tileCenter(r, c);
+    this.effects.push({ type: 'bambooSlip', x: p.x, y: p.y, color, t: 0, dur: 0.45 });
+  },
+
   addParticles(x, y, count, opts = {}) {
+    const eco = isEcoVfx();
+    const maxCap = eco ? 24 : 50;
+    const actualCount = eco ? Math.max(2, Math.ceil(count * 0.45)) : count;
+    if (this.particles.length + actualCount > maxCap) {
+      this.particles.splice(0, Math.min(this.particles.length, (this.particles.length + actualCount) - maxCap));
+    }
+    count = actualCount;
     const colors = opts.colors || ['#0e0f10', '#d4af6a', '#c83e37', '#eae3d5'];
     const baseAngle = opts.baseAngle !== undefined ? opts.baseAngle : null;
     const spread = opts.spread || Math.PI * 2;
@@ -5984,7 +6193,7 @@ const VfxEngine = {
   updateAndRender(dt) {
     const cvs = document.getElementById('vfxCanvas');
     if (!cvs) return;
-    if (this.effects.length === 0 && this.particles.length === 0) {
+    if (this.effects.length === 0 && this.particles.length === 0 && this.remnants.length === 0) {
       if (this.hasDrawn) {
         cvs.getContext('2d').clearRect(0, 0, cvs.width, cvs.height);
         this.hasDrawn = false;
@@ -5996,6 +6205,43 @@ const VfxEngine = {
     this.hasDrawn = true;
     ctx.save();
     ctx.scale(0.5, 0.5);
+
+    // 0. 繪製地面餘韻（焦墨裂痕、八卦殘陣、血爪焦印，1.2 秒淡去）
+    for (let i = this.remnants.length - 1; i >= 0; i--) {
+      const rm = this.remnants[i];
+      rm.t += dt;
+      if (rm.t >= rm.dur) { this.remnants.splice(i, 1); continue; }
+      const alpha = Math.max(0, 1 - Math.pow(rm.t / rm.dur, 1.6));
+      ctx.save();
+      ctx.translate(rm.x, rm.y);
+      ctx.globalAlpha = alpha * 0.72;
+      if (rm.kind === 'crack') {
+        ctx.strokeStyle = '#070708'; ctx.lineWidth = 7; ctx.lineCap = 'round';
+        for (let k = 0; k < 6; k++) {
+          const a = rm.seed + k * 1.05;
+          ctx.beginPath(); ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * 26, Math.sin(a) * 26);
+          ctx.lineTo(Math.cos(a + 0.18) * 56, Math.sin(a + 0.18) * 56);
+          ctx.stroke();
+        }
+        ctx.strokeStyle = rm.color; ctx.lineWidth = 2.4;
+        for (let k = 0; k < 6; k++) {
+          const a = rm.seed + k * 1.05;
+          ctx.beginPath(); ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(a) * 24, Math.sin(a) * 24);
+          ctx.lineTo(Math.cos(a + 0.18) * 50, Math.sin(a + 0.18) * 50);
+          ctx.stroke();
+        }
+      } else if (rm.kind === 'bagua') {
+        ctx.rotate(rm.t * 0.45);
+        ctx.strokeStyle = rm.color; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(0, 0, 54, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([10, 8]);
+        ctx.beginPath(); ctx.arc(0, 0, 38, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.restore();
+    }
 
     // 1. 更新並繪製特效主體
     for (let i = this.effects.length - 1; i >= 0; i--) {
@@ -6176,7 +6422,8 @@ const VfxEngine = {
         ctx.strokeStyle = '#090a0b';
         ctx.lineWidth = curW + 18;
         ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-        // 中層主光柱
+        // 中層主光柱（lighter 疊加輝光，無 shadowBlur 負擔）
+        ctx.globalCompositeOperation = 'lighter';
         ctx.strokeStyle = e.color;
         ctx.lineWidth = curW;
         ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
@@ -6209,7 +6456,8 @@ const VfxEngine = {
           ctx.lineWidth = Math.max(3, pillarW * 0.12);
           ctx.stroke();
         } else {
-          // 貫天聖光／沖天光柱
+          // 貫天聖光／沖天光柱（lighter 疊加輝光）
+          ctx.globalCompositeOperation = 'lighter';
           const grad = ctx.createLinearGradient(e.x - pillarW, e.y, e.x + pillarW, e.y);
           grad.addColorStop(0, 'rgba(10,10,12,0)');
           grad.addColorStop(0.25, '#0b0c0d');
@@ -6259,12 +6507,37 @@ const VfxEngine = {
         const alpha = 1 - prog;
         ctx.globalAlpha = Math.max(0, alpha);
         ctx.lineCap = 'round';
-        ctx.strokeStyle = '#0b0c0d'; ctx.lineWidth = (1 - prog * 0.5) * 20;
+        ctx.strokeStyle = '#0b0c0d'; ctx.lineWidth = (1 - prog * 0.5) * 22;
         ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-        ctx.strokeStyle = e.color; ctx.lineWidth = (1 - prog * 0.55) * 10;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.strokeStyle = e.color; ctx.lineWidth = (1 - prog * 0.55) * 12;
         ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
-        ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = (1 - prog * 0.7) * 3.5;
+        ctx.strokeStyle = '#fffaf0'; ctx.lineWidth = (1 - prog * 0.7) * 4;
         ctx.beginPath(); ctx.moveTo(e.x1, e.y1); ctx.lineTo(e.x2, e.y2); ctx.stroke();
+      } else if (e.type === 'inkGlyph') {
+        const alpha = prog < 0.2 ? prog / 0.2 : (1 - Math.pow((prog - 0.2) / 0.8, 1.4));
+        const sc = prog < 0.2 ? (1.6 - prog * 3.0) : (1.0 + prog * 0.12);
+        ctx.translate(e.x, e.y);
+        ctx.scale(sc, sc);
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.font = '900 84px "Noto Serif TC", "KaiTi", serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#09090b'; ctx.lineWidth = 10;
+        ctx.strokeText(e.ch, 0, 0);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = e.color;
+        ctx.fillText(e.ch, 0, 0);
+      } else if (e.type === 'bambooSlip') {
+        const alpha = prog < 0.25 ? prog / 0.25 : (1 - (prog - 0.25) / 0.75);
+        ctx.translate(e.x, e.y);
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.fillStyle = 'rgba(20, 16, 12, 0.85)';
+        ctx.strokeStyle = e.color; ctx.lineWidth = 3;
+        ctx.fillRect(-16, -34, 32, 68);
+        ctx.strokeRect(-16, -34, 32, 68);
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.fillStyle = '#fff5dc';
+        ctx.fillRect(-4, -22, 8, 44);
       }
       ctx.restore();
 
@@ -6342,29 +6615,56 @@ async function playAttackVfx(attacker, target) {
   }
 }
 
+const ULT_GLYPH_MAP = {
+  p_kong: '道', p_lu: '死', p_hui: '仁', p_gong: '義', p_wo: '舌',
+  p_min: '孝', p_boniu: '命', p_zhonggong: '敬', p_ranyou: '伐',
+  p_ziyou: '樂', p_zixia: '貫', p_nanzi: '魅', p_taishan: '怨',
+  p_agu: '清', p_yanzhengzai: '慈'
+};
+
 function playCutin(unitList, titleText, subText = '絕學奧義', isCombo = false) {
   return new Promise(resolve => {
     const sLayer = document.getElementById('screenVfxLayer');
     if (!sLayer) { resolve(); return; }
     sLayer.querySelectorAll('.cutin-backdrop').forEach(el => el.remove());
-    const avatars = unitList.slice(0, 3).map(u => buildAvatarHtml(u.tplKey || u.id, 'lg', false)).join('');
     const wrap = document.createElement('div');
     wrap.className = 'cutin-backdrop';
-    wrap.innerHTML = `
-      <div class="cutin-band ${isCombo ? 'combo' : ''}">
-        <div class="cutin-portraits">${avatars}</div>
-        <div class="cutin-text">
-          <div class="cutin-sub">${subText}</div>
-          <div class="cutin-title">${titleText}</div>
-        </div>
-        <span class="cutin-seal">${isCombo ? '合' : '絕'}</span>
-      </div>`;
+    const dur = isCombo ? 840 : 760;
+
+    if (isCombo && unitList.length >= 2) {
+      const leftAv = buildAvatarHtml(unitList[0].tplKey || unitList[0].id, 'lg', false);
+      const rightAv = buildAvatarHtml(unitList[1].tplKey || unitList[1].id, 'lg', false);
+      wrap.innerHTML = `
+        <div class="cutin-bg-glyph">合</div>
+        <div class="cutin-split-wrap">
+          <div class="cutin-split-half left">${leftAv}</div>
+          <div class="cutin-split-half right">${rightAv}</div>
+          <div class="cutin-split-center">
+            <div class="cutin-sub">${subText}</div>
+            <div class="cutin-combo-stamp">${titleText}</div>
+          </div>
+        </div>`;
+    } else {
+      const mainU = unitList[0];
+      const glyph = (mainU && ULT_GLYPH_MAP[mainU.id]) || (mainU && mainU.char) || '絕';
+      const avatars = unitList.slice(0, 2).map(u => buildAvatarHtml(u.tplKey || u.id, 'lg', false)).join('');
+      wrap.innerHTML = `
+        <div class="cutin-bg-glyph">${glyph}</div>
+        <div class="cutin-band">
+          <div class="cutin-portraits">${avatars}</div>
+          <div class="cutin-text">
+            <div class="cutin-sub">${subText}</div>
+            <div class="cutin-title">${titleText}</div>
+          </div>
+          <span class="cutin-seal">${glyph}</span>
+        </div>`;
+    }
     sLayer.appendChild(wrap);
     refreshAllSpriteCanvases();
     setTimeout(() => {
       wrap.remove();
       resolve();
-    }, 620);
+    }, dur);
   });
 }
 
@@ -6425,7 +6725,7 @@ function showTurnBanner(side, turn) {
 }
 
 function toggleArtGuides() { showGuides = !showGuides; const vp = document.getElementById('boardViewport'); if (vp) vp.classList.toggle('show-guides', showGuides); const bg = document.getElementById('btnToggleGuides'); if (bg) bg.textContent = `格子基準框：${showGuides ? '開' : '關'}`; }
-function openBattleToolsModal() { document.getElementById('battleToolsModal').classList.add('show'); }
+function openBattleToolsModal() { syncVfxQualityBtn(); document.getElementById('battleToolsModal').classList.add('show'); }
 function openItemModal() { renderItemModal(); document.getElementById('itemModal').classList.add('show'); }
 
 function hasActiveAffix(affixId) {
@@ -6642,7 +6942,7 @@ function getAvailableCombo(u) {
 
   // 2. 死生有命 (孔+路)
   if ((saveData.bonds.kong_lu || 1) >= 2 && kong && lu && manhattan(kong.r, kong.c, lu.r, lu.c) === 1 && kong.qi >= 100 && lu.qi >= 100 && (u.id === 'p_kong' || u.id === 'p_lu'))
-    return { id: 'combo_kong_lu', name: '死生有命', partners: [kong, lu], needTarget: true, desc: '子路跨圖雷霆突貫115傷暈眩＋孔子瞬移！' };
+    return { id: 'combo_kong_lu', name: '死生有命', partners: [kong, lu], needTarget: true, desc: '雙人合攻 2.2× 穿防 50% 必暴斬首＋暈眩＋孔子瞬移！' };
 
   // 3. 端木賜問 (貢+我)
   if ((saveData.bonds.gong_wo || 1) >= 2 && gong && wo && manhattan(gong.r, gong.c, wo.r, wo.c) <= 2 && gong.qi >= 100 && wo.qi >= 100 && (u.id === 'p_gong' || u.id === 'p_wo'))
@@ -7255,7 +7555,7 @@ async function executePlayerCounter(defender, attacker, choice) {
       const effYY = getEffectiveYinYang(defender);
       const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
       let pen = (syn.earthSky && defender.id === 'p_kong') ? 0.30 : 0;
-      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
+      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.45);
       let mult = sk.mult || 1.0;
       if (sk.type === 'yan_purify' && attacker.enemyType === 'boss') mult *= 2.0;
       if (sk.type === 'taishan_wail') {
@@ -7302,7 +7602,7 @@ async function executePlayerCounter(defender, attacker, choice) {
       spawnVfx(attacker.r, attacker.c, true, '反擊・' + sk.name);
       if (sk.type === 'charge_stun') {
         defender.defBreakTurns = 2; triggerCameraShake(5, 180);
-        const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(attacker).def, Math.random() < (hex.critRate + 0.1), attacker);
+        const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(attacker).def * 0.7, Math.random() < (hex.critRate + 0.1), attacker);
         await applyDamage(attacker, dmg, false, false, null);
         if (attacker.hp > 0) { attacker.stunned = true; spawnFloatText(attacker.r, attacker.c, '暈眩！', 'info'); }
       } else if (sk.type === 'bribe') {
@@ -7401,9 +7701,9 @@ async function executePlayerAction(unit, mode, tr, tc) {
       const effYY = getEffectiveYinYang(unit);
       const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
       let pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
-      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.30);
+      if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.45);
       let mult = sk.mult || 1.0;
-      if (sk.type === 'zhong_still' && !unit.moved) mult *= (unit.equip && unit.equip.weapon === 'ex_zhonggong' ? 1.5 : 1.3);
+      if (sk.type === 'zhong_still' && !unit.moved) mult *= (unit.equip && unit.equip.weapon === 'ex_zhonggong' ? 1.75 : 1.5);
       if (unit.stealthTurns > 0 && unit.equip && unit.equip.weapon === 'ex_nanzi') mult *= 1.4;
       if (sk.type === 'yan_purify' && enemy.enemyType === 'boss') mult *= 2.0;
       if (sk.type === 'taishan_wail') {
@@ -7504,7 +7804,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const stopR = e.r - dr, stopC = e.c - dc;
         if (stopR >= 0 && stopR < GRID_SIZE && stopC >= 0 && stopC < GRID_SIZE && !getUnitAt(stopR, stopC)) { unit.r = stopR; unit.c = stopC; }
         unit.defBreakTurns = 2; renderUnits(); triggerCameraShake(5, 180);
-        await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def, Math.random() < (hex.critRate + 0.1), e), false, false, unit);
+        const csCrit = Math.random() < (hex.critRate + 0.15);
+        await applyDamage(e, calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(e).def * 0.7, csCrit, e), csCrit, false, unit);
         if (e.hp > 0) { if (hasActiveAffix('stoic_wood') || e.ultAlert) spawnFloatText(e.r, e.c, e.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else { e.stunned = true; spawnFloatText(e.r, e.c, '暈眩！', 'info'); } }
       } else if (sk.type === 'bribe') {
         const e = getUnitAt(tr, tc); if (!e) return; AudioManager.play('taiji');
@@ -7576,11 +7877,20 @@ async function executePlayerAction(unit, mode, tr, tc) {
         });
       } else if (sk.type === 'mark_vuln') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
-        e.vulnerableTurns = 2; spawnFloatText(e.r, e.c, '易傷+35%！', 'info');
+        await VfxEngine.fireProjectile(unit.r, unit.c, e.r, e.c, 'arrow', '#8ec9c2');
+        e.vulnerableTurns = 2;
+        const mvCrit = Boolean((unit.equip && unit.equip.weapon === 'ex_zixia') || Math.random() < (hex.critRate + (unit.bonusCrit || 0)));
+        const mvDmg = calcDamage(stats.atk * 1.35, getEffectiveStats(e).def * 0.55, mvCrit, e);
+        await applyDamage(e, mvDmg, mvCrit, false, unit);
+        if (e.hp > 0) spawnFloatText(e.r, e.c, '易傷+35%！', 'info');
       } else if (sk.type === 'stealth_charm') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('guqin');
-        unit.stealthTurns = (unit.equip && unit.equip.weapon === 'ex_nanzi') ? 2 : 1; e.confusedTurns = 1;
-        spawnFloatText(unit.r, unit.c, `隱身${unit.stealthTurns}回合！`, 'info'); spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji');
+        unit.stealthTurns = (unit.equip && unit.equip.weapon === 'ex_nanzi') ? 2 : 1;
+        VfxEngine.spawnCrossSlash(e.r, e.c, '#e0827c', true);
+        const scDmg = calcDamage(stats.atk * 1.25, getEffectiveStats(e).def * 0.85, false, e);
+        await applyDamage(e, scDmg, false, false, unit);
+        spawnFloatText(unit.r, unit.c, `隱身${unit.stealthTurns}回合！`, 'info');
+        if (e.hp > 0) { e.confusedTurns = 1; spawnFloatText(e.r, e.c, '魅惑混亂！', 'taiji'); }
       } else if (sk.type === 'harsh_tax_curse') {
         AudioManager.play('bell');
         const curseTargets = units.filter(e => e.team === 'enemy' && e.hp > 0);
@@ -7619,16 +7929,26 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c); let killed = false;
         const endR = Math.max(0, Math.min(GRID_SIZE - 1, unit.r + dr * 5));
         const endC = Math.max(0, Math.min(GRID_SIZE - 1, unit.c + dc * 5));
-        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(7, 260);
-        VfxEngine.spawnBeam(unit.r, unit.c, endR, endC, '#ecd29b', 54);
+        // 蓄力竹簡沿直線亮起
+        for (let st = 1; st <= 5; st++) {
+          const nr = unit.r + dr * st, nc = unit.c + dc * st;
+          if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+          VfxEngine.spawnBambooSlip(nr, nc, '#ecd29b');
+        }
+        await sleep(170);
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(70); triggerCameraShake(9, 280, dc, dr);
+        VfxEngine.spawnBeam(unit.r, unit.c, endR, endC, '#ecd29b', 62);
+        VfxEngine.spawnInkGlyph(Math.round((unit.r + endR) / 2), Math.round((unit.c + endC) / 2), '道', '#ecd29b', 0.8);
+        const trueDmg = Math.round(stats.atk * 2.2 + burn * 1.1);
         for (let st = 1; st <= 5; st++) {
           const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
+          VfxEngine.spawnGroundScar(nr, nc, 'crack', '#ecd29b', 1.3);
           const occ = getUnitAt(nr, nc);
           if (occ && occ.team === 'enemy') {
-            focusCameraOn(nr, nc); await sleep(120);
             primaryEnemy = occ;
             VfxEngine.spawnSkyPillar(nr, nc, '#ecd29b', false);
-            await applyDamage(occ, 105 + Math.round(burn * 0.6), false, true, unit);
+            await applyDamage(occ, trueDmg, false, true, unit);
             if (occ.hp <= 0) killed = true;
           }
         }
@@ -7636,6 +7956,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         if (killed) {
           unit.hp = Math.max(1, unit.hp); unit.invincibleTurns = 1;
           VfxEngine.spawnSkyPillar(unit.r, unit.c, '#ecd29b', false);
+          VfxEngine.spawnGroundScar(unit.r, unit.c, 'bagua', '#ecd29b', 1.4);
           spawnFloatText(unit.r, unit.c, '聖人無敵', 'taiji');
         }
       } else if (sk.type === 'self_berserk') {
@@ -7751,22 +8072,29 @@ async function executePlayerAction(unit, mode, tr, tc) {
       } else if (sk.type === 'full_line_arrow') {
         const dr = Math.sign(tr - unit.r), dc = Math.sign(tc - unit.c);
         let lastR = unit.r, lastC = unit.c;
+        const lineTargets = [];
         for (let st = 1; st <= GRID_SIZE; st++) {
           const nr = unit.r + dr * st, nc = unit.c + dc * st;
           if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
           lastR = nr; lastC = nc;
-        }
-        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(7, 260);
-        VfxEngine.spawnBeam(unit.r, unit.c, lastR, lastC, '#8ec9c2', 44);
-        for (let st = 1; st <= GRID_SIZE; st++) {
-          const nr = unit.r + dr * st, nc = unit.c + dc * st; if (nr < 0 || nr >= GRID_SIZE || nc < 0 || nc >= GRID_SIZE) break;
           const occ = getUnitAt(nr, nc);
-          if (occ && occ.team === 'enemy') {
-            focusCameraOn(nr, nc); await sleep(130);
-            primaryEnemy = occ; occ.buffTurns = 0; occ.shield = 0;
-            VfxEngine.spawnCrossSlash(nr, nc, '#8ec9c2', false);
-            await applyDamage(occ, calcDamage(stats.atk * 1.75, getEffectiveStats(occ).def * 0.5, true, occ), true, false, unit);
+          if (occ && occ.team === 'enemy') lineTargets.push(occ);
+        }
+        const singleBonus = (lineTargets.length === 1) ? 1.35 : 1.0;
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(68); triggerCameraShake(8, 260, dc, dr);
+        VfxEngine.spawnBeam(unit.r, unit.c, lastR, lastC, '#8ec9c2', 52);
+        for (const occ of lineTargets) {
+          focusCameraOn(occ.r, occ.c);
+          primaryEnemy = occ; occ.buffTurns = 0; occ.shield = 0;
+          VfxEngine.spawnCrossSlash(occ.r, occ.c, '#8ec9c2', false);
+          VfxEngine.spawnGroundScar(occ.r, occ.c, 'crack', '#8ec9c2', 1.2);
+          if (singleBonus > 1) {
+            VfxEngine.spawnInkGlyph(occ.r, occ.c, '貫', '#8ec9c2', 0.72);
+            spawnFloatText(occ.r, occ.c, '貫心一箭！', 'taiji');
           }
+          await applyDamage(occ, calcDamage(stats.atk * 2.35 * singleBonus, getEffectiveStats(occ).def * 0.4, true, occ), true, false, unit);
+          await sleep(100);
         }
         focusCameraOn(unit.r, unit.c);
       } else if (sk.type === 'nanzi_assassinate') {
@@ -7807,17 +8135,25 @@ async function executePlayerAction(unit, mode, tr, tc) {
       } else if (sk.type === 'agu_five_hits') {
         const targets = units.filter(x => x.team === 'enemy' && x.hp > 0 && manhattan(tr, tc, x.r, x.c) <= 2);
         let prevR = unit.r, prevC = unit.c;
+        const critCh = hex.critRate + (unit.bonusCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0);
         for (let i = 0; i < 5; i++) {
           const aliveT = targets.filter(t => t.hp > 0); if (!aliveT.length) break;
           const pick = aliveT[i % aliveT.length]; primaryEnemy = pick;
           focusCameraOn(pick.r, pick.c);
           VfxEngine.spawnDashTrail(prevR, prevC, pick.r, pick.c, '#8ec9c2');
-          VfxEngine.spawnSlash(pick.r, pick.c, (i * 1.1) - 1.2, '#8ec9c2', i === 4);
-          if (i === 4) triggerImpactFrame();
+          VfxEngine.spawnSlash(pick.r, pick.c, (i * 1.2) - 1.4, '#8ec9c2', i === 4);
+          if (i === 4) {
+            AudioManager.play('thunder');
+            triggerImpactFrame(); triggerCameraShake(7, 220);
+            VfxEngine.spawnCrossSlash(pick.r, pick.c, '#8ec9c2', false);
+            VfxEngine.spawnInkGlyph(pick.r, pick.c, '清', '#8ec9c2', 0.7);
+            VfxEngine.spawnGroundScar(pick.r, pick.c, 'crack', '#8ec9c2', 1.2);
+          }
           pick.buffTurns = 0; pick.shield = 0;
-          await applyDamage(pick, calcDamage(stats.atk * 0.65, getEffectiveStats(pick).def * 0.7, false, pick), false, false, unit);
+          const hitCrit = Math.random() < critCh;
+          await applyDamage(pick, calcDamage(stats.atk * 0.72, getEffectiveStats(pick).def * 0.65, hitCrit, pick), hitCrit, false, unit);
           prevR = pick.r; prevC = pick.c;
-          await sleep(95);
+          await sleep(85);
         }
         VfxEngine.spawnDashTrail(prevR, prevC, unit.r, unit.c, '#8ec9c2');
         focusCameraOn(unit.r, unit.c);
@@ -7873,9 +8209,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
         }
         renderUnits();
       } else if (cdef.id === 'combo_kong_hui') {
+        const prevZoom = camZoomMode;
+        if (camZoomMode !== 'overview') toggleCameraZoom();
         const aliveAllies = units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower);
         const aliveCnt = aliveAllies.length;
-        VfxEngine.spawnDomain(unit.r, unit.c, '#ecd29b', 2.8, true);
+        AudioManager.play('taiji');
+        VfxEngine.spawnTaiji(4, 4);
+        VfxEngine.spawnDomain(4, 4, '#ecd29b', 4.4, true);
+        VfxEngine.spawnGroundScar(4, 4, 'bagua', '#ecd29b', 1.5);
         aliveAllies.forEach(p => {
           const isCaster = cdef.partners.includes(p);
           p.hp = p.maxHp;
@@ -7885,31 +8226,40 @@ async function executePlayerAction(unit, mode, tr, tc) {
           spawnFloatText(p.r, p.c, isCaster ? '滿血淨化！' : '滿血滿氣！', 'heal');
         });
         renderUnits();
-        await sleep(220);
-        // 鏡頭逐一跟拍：每位敵軍頭頂依序劈下聖光審判柱
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
-          if (e.hp <= 0) continue;
-          focusCameraOn(e.r, e.c);
-          await sleep(165);
-          primaryEnemy = e;
-          triggerImpactFrame(); triggerHitstop(55); triggerCameraShake(6, 170);
+        await sleep(240);
+        // 全盤齊射貫天聖光審判（1.2秒內一次爆發）
+        const targets = units.filter(x => x.team === 'enemy' && x.hp > 0);
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(9, 280);
+        targets.forEach(e => {
           VfxEngine.spawnSkyPillar(e.r, e.c, '#ecd29b', false);
+          VfxEngine.spawnGroundScar(e.r, e.c, 'crack', '#ecd29b', 1.3);
+        });
+        for (const e of targets) {
+          if (e.hp <= 0) continue;
+          primaryEnemy = e;
           await applyDamage(e, 50 + aliveCnt * 12, false, true, unit);
-          await sleep(120);
         }
+        await sleep(180);
+        if (prevZoom !== camZoomMode) toggleCameraZoom();
         focusCameraOn(unit.r, unit.c);
       } else if (cdef.id === 'combo_kong_lu') {
         const kong = getUnitById('p_kong'), lu = getUnitById('p_lu'), enemy = getUnitAt(tr, tc); if (!enemy) return; primaryEnemy = enemy;
         const oldLuR = lu ? lu.r : unit.r, oldLuC = lu ? lu.c : unit.c;
-        focusCameraOn(enemy.r, enemy.c); await sleep(150);
-        VfxEngine.spawnDashTrail(oldLuR, oldLuC, enemy.r, enemy.c, '#f0a45d');
+        focusCameraOn(enemy.r, enemy.c); await sleep(140);
+        VfxEngine.spawnDashTrail(oldLuR, oldLuC, enemy.r, enemy.c, '#e85a54');
         const a1 = findEmptyAdjacent(enemy.r, enemy.c); if (a1 && lu) { lu.r = a1.r; lu.c = a1.c; }
-        const a2 = findEmptyAdjacent(lu.r, lu.c); if (a2 && kong) { kong.r = a2.r; kong.c = a2.c; }
+        const a2 = findEmptyAdjacent(lu.r, lu.c); if (a2 && kong) { kong.r = a2.r; kong.c = a2.c; VfxEngine.spawnGroundScar(kong.r, kong.c, 'bagua', '#ecd29b', 1.4); }
         renderUnits();
-        triggerImpactFrame(); triggerHitstop(70); triggerCameraShake(8, 280);
-        VfxEngine.spawnSkyPillar(enemy.r, enemy.c, '#f0a45d', true);
-        VfxEngine.spawnSlash(enemy.r, enemy.c, -0.4, '#ecd29b', true);
-        await applyDamage(enemy, 115, true, false, lu);
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(75); triggerCameraShake(10, 300, Math.sign(enemy.c - oldLuC), Math.sign(enemy.r - oldLuR));
+        VfxEngine.spawnSkyPillar(enemy.r, enemy.c, '#e85a54', true);
+        VfxEngine.spawnCrossSlash(enemy.r, enemy.c, '#f0a45d', false);
+        VfxEngine.spawnInkGlyph(enemy.r, enemy.c, '命', '#f0a45d', 0.85);
+        VfxEngine.spawnGroundScar(enemy.r, enemy.c, 'crack', '#e85a54', 1.5);
+        const comboAtk = (kong ? getEffectiveStats(kong).atk : 0) + (lu ? getEffectiveStats(lu).atk : stats.atk);
+        const execDmg = calcDamage(comboAtk * 2.2, getEffectiveStats(enemy).def * 0.5, true, enemy);
+        await applyDamage(enemy, execDmg, true, false, lu || unit);
         if (enemy.hp > 0) { if (hasActiveAffix('stoic_wood') || enemy.ultAlert) spawnFloatText(enemy.r, enemy.c, enemy.ultAlert ? '警覺免暈！' : '剛毅免疫！', 'info'); else enemy.stunned = true; }
       } else if (cdef.id === 'combo_gong_wo') {
         const enemy = getUnitAt(tr, tc); if (!enemy) return; primaryEnemy = enemy;
@@ -7922,9 +8272,12 @@ async function executePlayerAction(unit, mode, tr, tc) {
         await applyDamage(enemy, cut, false, true, unit);
         if (enemy.hp > 0) spawnFloatText(enemy.r, enemy.c, '懷疑人生3回合！', 'taiji');
       } else if (cdef.id === 'combo_ziyou_zixia') {
+        const prevZoom = camZoomMode;
+        if (camZoomMode !== 'overview') toggleCameraZoom();
         const enemies = units.filter(x => x.team === 'enemy' && x.hp > 0);
-        focusCameraOn(4, 4); await sleep(160);
-        VfxEngine.spawnDomain(4, 4, '#8ec9c2', 3.4, false);
+        AudioManager.play('taiji');
+        VfxEngine.spawnDomain(4, 4, '#8ec9c2', 3.8, false);
+        VfxEngine.spawnGroundScar(4, 4, 'bagua', '#8ec9c2', 1.4);
         for (const e of enemies) {
           const pullR = e.r + Math.sign(4 - e.r), pullC = e.c + Math.sign(4 - e.c);
           if (grid[pullR]?.[pullC] === 0 && !getUnitAt(pullR, pullC)) {
@@ -7933,32 +8286,44 @@ async function executePlayerAction(unit, mode, tr, tc) {
           }
         }
         renderUnits();
-        await sleep(160);
-        VfxEngine.spawnArrowRain(4, 4, 36, '#8ec9c2');
-        await sleep(240);
-        // 逐一點名箭雨收割
+        await sleep(170);
+        VfxEngine.spawnArrowRain(4, 4, isEcoVfx() ? 18 : 34, '#8ec9c2');
+        await sleep(220);
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(8, 260);
+        enemies.forEach(e => {
+          if (e.hp > 0) {
+            VfxEngine.spawnCrossSlash(e.r, e.c, '#8ec9c2', false);
+            VfxEngine.spawnGroundScar(e.r, e.c, 'crack', '#8ec9c2', 1.2);
+          }
+        });
         for (const e of enemies) {
           if (e.hp <= 0) continue;
-          focusCameraOn(e.r, e.c); await sleep(140);
           primaryEnemy = e;
-          triggerImpactFrame(); triggerCameraShake(5, 160);
-          VfxEngine.spawnCrossSlash(e.r, e.c, '#8ec9c2', false);
-          await applyDamage(e, 95, true, false, unit);
-          await sleep(100);
+          await applyDamage(e, calcDamage(stats.atk * 1.9, getEffectiveStats(e).def * 0.6, true, e), true, false, unit);
         }
+        await sleep(160);
+        if (prevZoom !== camZoomMode) toggleCameraZoom();
         focusCameraOn(unit.r, unit.c);
       } else if (cdef.id === 'combo_kong_nanzi') {
-        // 鏡頭逐一跟拍：每位敵軍頭頂依序劈下九天神雷
-        for (const e of units.filter(x => x.team === 'enemy' && x.hp > 0)) {
-          if (e.hp <= 0) continue;
-          focusCameraOn(e.r, e.c);
-          await sleep(165);
-          primaryEnemy = e; e.confusedTurns = 1;
-          triggerImpactFrame(); triggerHitstop(55); triggerCameraShake(7, 180);
+        const prevZoom = camZoomMode;
+        if (camZoomMode !== 'overview') toggleCameraZoom();
+        const targets = units.filter(x => x.team === 'enemy' && x.hp > 0);
+        AudioManager.play('thunder');
+        triggerImpactFrame(); triggerHitstop(65); triggerCameraShake(9, 280);
+        VfxEngine.spawnInkGlyph(4, 4, '天', '#e0827c', 0.8);
+        targets.forEach(e => {
+          e.confusedTurns = 1;
           VfxEngine.spawnSkyPillar(e.r, e.c, '#e0827c', true);
-          await applyDamage(e, 105, true, false, unit);
-          await sleep(120);
+          VfxEngine.spawnGroundScar(e.r, e.c, 'crack', '#e0827c', 1.3);
+        });
+        for (const e of targets) {
+          if (e.hp <= 0) continue;
+          primaryEnemy = e;
+          await applyDamage(e, calcDamage(stats.atk * 1.95, getEffectiveStats(e).def * 0.55, true, e), true, false, unit);
         }
+        await sleep(180);
+        if (prevZoom !== camZoomMode) toggleCameraZoom();
         focusCameraOn(unit.r, unit.c);
       } else if (cdef.id === 'combo_lu_taishan') {
         focusCameraOn(tr, tc); await sleep(150);
@@ -9630,8 +9995,13 @@ function computePreviewInfo(u, mode, tr, tc) {
     const sk = DATA_SKILLS[u.basicId];
     const effYY = getEffectiveYinYang(u);
     const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
-    const pen = (syn.earthSky && u.id === 'p_kong') ? 0.30 : 0;
-    const dmg = calcDamage(stats.atk * sk.mult * elemM, getEffectiveStats(target).def * (1 - pen), false, target);
+    let pen = (syn.earthSky && u.id === 'p_kong') ? 0.30 : 0;
+    if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.45);
+    let bMult = sk.mult || 1.0;
+    if (sk.type === 'zhong_still' && !u.moved) bMult *= (u.equip && u.equip.weapon === 'ex_zhonggong' ? 1.75 : 1.5);
+    if (u.stealthTurns > 0 && u.equip && u.equip.weapon === 'ex_nanzi') bMult *= 1.4;
+    if (sk.type === 'yan_purify' && target.enemyType === 'boss') bMult *= 2.0;
+    const dmg = calcDamage(stats.atk * bMult * elemM, getEffectiveStats(target).def * (1 - pen), false, target);
     const critPct = Math.round((hex.critRate + (u.bonusCrit || 0)) * 100);
     const tStats = getEffectiveStats(target);
     const dist = manhattan(u.r, u.c, target.r, target.c);
@@ -9654,7 +10024,7 @@ function computePreviewInfo(u, mode, tr, tc) {
   if (mode === 'skill') {
     const sk = DATA_SKILLS[u.skillId];
     if (sk.type === 'charge_stun' && target) {
-      const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(target).def, false, target);
+      const dmg = calcDamage(stats.atk * sk.mult * hex.yangBoost, getEffectiveStats(target).def * 0.7, false, target);
       const critPct = Math.round((hex.critRate + 0.1) * 100);
       return {
         title: `✦ ${sk.name} → ${target.name}`,
