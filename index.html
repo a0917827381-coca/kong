@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.25 — 暗黑水墨・並聯佔點收尾優化版</title>
+<title>《論語戰棋》v1.26 — 暗黑水墨・天道多波奇襲增援版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -2945,7 +2945,7 @@
         • <strong>【策】敵軍策士</strong>：會幫殘血敵軍<strong>回血＋加攻</strong>，或對我方施放<strong>破防</strong>，建議優先點殺！<br>
         • <strong>【騎】敵軍輕騎</strong>：高達 5 格機動力，專切後排軟甲單位，需用前排或石碑卡住路線。<br>
         • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技；同回合承受第 1 次大絕／合體技後會進入<strong>【絕學警覺】</strong>（本回合後續大絕／合體技減傷 50% 且免暈）。<br>
-        • <strong>首領半血反撲與分波伏兵</strong>：首領首次跌至 50% 血會強制鎖血並震退 3 格內我軍＋清除增益；第 3 關起（含隱藏支線與天道之塔 6F 以上）設有<strong>第二波伏兵增援</strong>（殘敵 ≤2 或首領半血時自兩翼殺出並自帶 40 護盾），切忌開局梭哈所有大絕與翻卦！
+        • <strong>首領半血反撲與多波奇襲伏兵</strong>：首領首次跌至 50% 血會強制鎖血並震退 3 格內我軍＋清除增益；主線中後期與天道之塔設有<strong>1～3 波伏兵增援</strong>，伏兵進場自帶<strong>最大生命 25%～30% 護盾</strong>，若於我方回合現身更附帶<strong>【奇襲減傷 50%】</strong>，若於敵軍回合開頭現身則<strong>當回合立即行動</strong>；高層伏兵弓手進場即刻張弓警戒，切忌開局梭哈所有大絕！
       </div>
       <div class="guide-block">
         <div class="g-head">卡關時的整備建議</div>
@@ -5758,7 +5758,7 @@ function showBattleGoalDialog() {
       </div>
       <div style="background:#141311; border:1px solid #4b5563; border-radius:6px; padding:8px 10px;">
         <div style="color:#eae3d5; font-weight:900;">② 【敵軍全滅】</div>
-        <div>擊破戰場上所有敵軍（目前剩餘 <strong>${eAlive}</strong> 名${hasPendingReinforcements() ? ` ＋ <strong style="color:#f0a45d;">未現身伏兵 ${activeStage.reinforcements.length} 名</strong>` : ''}）。</div>
+        <div>擊破戰場上所有敵軍（目前剩餘 <strong>${eAlive}</strong> 名${hasPendingReinforcements() ? ` ＋ <strong style="color:#f0a45d;">未現身伏兵 ${getPendingReinforcementCount()} 名（剩 ${getPendingReinforcementWaveCount()} 波）</strong>` : ''}）。</div>
       </div>`,
     actions: [{ label: '明白了', cls: 'primary' }]
   });
@@ -6763,7 +6763,7 @@ function launchStage(stageObj) {
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
   turnNumber = 1; hexFlipRemaining = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
-  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false; activeUltOrCombo = false; ultAlertPendingIds.clear(); reinforcementsSpawned = false;
+  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false; activeUltOrCombo = false; ultAlertPendingIds.clear(); reinforcementWaveIdx = 0;
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
   if (activeStage.modifiers && activeStage.modifiers.lockHexagram) {
@@ -6857,7 +6857,7 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     tauntTurns: 0, dodgeTurns: 0, dodgeCounterTurns: 0, stealthTurns: 0,
     linkGuardianId: null, linkTurns: 0,
     shield: 0, thornsShield: 0,
-    ultAlert: false, invincibleTurns: 0, lockHpTurns: 0, fatalShield: Boolean(prog && prog.equip && prog.equip.weapon === 'ex_hui'), taiChuFatalReady: Boolean(prog && prog.equip && prog.equip.weapon === 'tai_chu_sword'), chunqiuExtraUsed: false, phase: 1,
+    ultAlert: false, ambushGuard: false, invincibleTurns: 0, lockHpTurns: 0, fatalShield: Boolean(prog && prog.equip && prog.equip.weapon === 'ex_hui'), taiChuFatalReady: Boolean(prog && prog.equip && prog.equip.weapon === 'tai_chu_sword'), chunqiuExtraUsed: false, phase: 1,
     equip: prog ? { ...prog.equip } : { weapon: 'none', ritual: 'none', book: 'none' },
     spriteSheetKey: tpl.spriteSheetKey || 'assets/sprites/default.png',
     animState: 'idle', animFrame: 0, animTimer: 0,
@@ -8457,10 +8457,32 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
 let activeSkillPen40 = false;
 let activeUltOrCombo = false;
 let ultAlertPendingIds = new Set();
-let reinforcementsSpawned = false;
+let reinforcementWaveIdx = 0;
+
+function getStageReinforcementWaves(st = activeStage) {
+  if (!st) return [];
+  if (Array.isArray(st.reinforcementWaves) && st.reinforcementWaves.length > 0) return st.reinforcementWaves;
+  if (Array.isArray(st.reinforcements) && st.reinforcements.length > 0) return [st.reinforcements];
+  return [];
+}
 
 function hasPendingReinforcements() {
-  return Boolean(activeStage && activeStage.reinforcements && activeStage.reinforcements.length > 0 && !reinforcementsSpawned);
+  const waves = getStageReinforcementWaves();
+  return reinforcementWaveIdx < waves.length;
+}
+
+function getPendingReinforcementWaveCount() {
+  const waves = getStageReinforcementWaves();
+  return Math.max(0, waves.length - reinforcementWaveIdx);
+}
+
+function getPendingReinforcementCount() {
+  const waves = getStageReinforcementWaves();
+  let total = 0;
+  for (let i = reinforcementWaveIdx; i < waves.length; i++) {
+    total += (waves[i] ? waves[i].length : 0);
+  }
+  return total;
 }
 
 function findNearestEmptyTile(r, c) {
@@ -8481,55 +8503,76 @@ function findNearestEmptyTile(r, c) {
   return null;
 }
 
-function showAmbushBanner(count) {
+function showAmbushBanner(count, waveNum, totalWaves, fromEnemyTurn) {
   return new Promise(resolve => {
     const sLayer = document.getElementById('screenVfxLayer');
     if (!sLayer) { resolve(); return; }
     sLayer.querySelectorAll('.turn-banner').forEach(el => el.remove());
     const div = document.createElement('div');
     div.className = 'turn-banner enemy';
-    div.innerHTML = `<div class="turn-banner-title">伏兵四起！</div><div class="turn-banner-sub">第二波增援 ×${count} 自兩翼殺出（附 40 點伏兵護盾）</div>`;
+    const waveLabel = totalWaves > 1 ? `第 ${waveNum}/${totalWaves} 波伏兵` : '伏兵增援';
+    const modeHint = fromEnemyTurn ? '敵回合奇襲・立即行動！' : '附百分比護盾＋奇襲減傷50%';
+    div.innerHTML = `<div class="turn-banner-title">伏兵四起！</div><div class="turn-banner-sub">${waveLabel} ×${count} 殺出（${modeHint}）</div>`;
     sLayer.appendChild(div);
     setTimeout(() => { div.remove(); resolve(); }, 1050);
   });
 }
 
-function spawnReinforcementsCore() {
+function spawnReinforcementsCore(fromEnemyTurn = false) {
   if (!hasPendingReinforcements()) return [];
-  reinforcementsSpawned = true;
+  const waves = getStageReinforcementWaves();
+  const waveList = waves[reinforcementWaveIdx] || [];
+  const curWaveNum = reinforcementWaveIdx + 1;
+  reinforcementWaveIdx++;
   const stageScale = activeStage.enemyScale || 1.0;
+  const isHighTower = Boolean(activeStage.isTowerFloor && activeStage.floor >= 16);
+  const isMidTower = Boolean(activeStage.isTowerFloor && activeStage.floor >= 11);
+  const shieldPct = isHighTower ? 0.30 : 0.25;
   const spawned = [];
-  activeStage.reinforcements.forEach((sp, idx) => {
+  waveList.forEach((sp, idx) => {
     const spot = findNearestEmptyTile(sp.r, sp.c);
     if (!spot) return;
-    const u = instantiateUnit(DATA_UNITS[sp.tpl], spot.r, spot.c, `e_reinf_${sp.tpl}_${idx}_${Date.now()}`, null, stageScale, sp.eliteSkill || null, sp.mirrorTpl || null);
+    const u = instantiateUnit(DATA_UNITS[sp.tpl], spot.r, spot.c, `e_reinf_w${curWaveNum}_${sp.tpl}_${idx}_${Date.now()}`, null, stageScale, sp.eliteSkill || null, sp.mirrorTpl || null);
     if (sp.name) u.name = sp.name;
-    u.shield = (u.shield || 0) + 40;
+    const bonusSh = Math.max(45, Math.round(u.maxHp * shieldPct));
+    u.shield = (u.shield || 0) + bonusSh;
     if (hasActiveAffix('hollow_fierce')) u.shield += 30;
+    // 我方回合中觸發的伏兵自帶【奇襲減傷 50%】，撐過本回合避免剛現身就被順手秒殺
+    if (!fromEnemyTurn) u.ambushGuard = true;
+    // 天道之塔 11F+（或指定 instantOverwatch）伏兵弓手進場即刻【張弓警戒】封鎖空間
+    if (!fromEnemyTurn && u.enemyType === 'archer' && (isMidTower || sp.instantOverwatch)) {
+      u.overwatch = true;
+    }
+    u._spawnShieldAmt = bonusSh;
     units.push(u);
     spawned.push(u);
   });
   return spawned;
 }
 
-async function checkAndSpawnReinforcements(forceTrigger = false) {
+async function checkAndSpawnReinforcements(forceTrigger = false, fromEnemyTurn = false) {
   if (!hasPendingReinforcements()) return false;
   const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
-  if (!forceTrigger && eAlive > 2) return false;
-  const spawned = spawnReinforcementsCore();
+  const threshold = fromEnemyTurn ? 3 : 2;
+  if (!forceTrigger && eAlive > threshold) return false;
+  const totalWaves = getStageReinforcementWaves().length;
+  const waveNum = reinforcementWaveIdx + 1;
+  const spawned = spawnReinforcementsCore(fromEnemyTurn);
   if (!spawned.length) return false;
   AudioManager.play('ult');
   triggerCameraShake(6, 220);
-  await showAmbushBanner(spawned.length);
+  await showAmbushBanner(spawned.length, waveNum, totalWaves, fromEnemyTurn);
   for (const u of spawned) {
     focusCameraOn(u.r, u.c);
     VfxEngine.spawnSkyPillar(u.r, u.c, '#c83e37', false);
-    spawnFloatText(u.r, u.c, '伏兵現身！+40盾', 'dmg');
+    const shTag = `+${u._spawnShieldAmt || 45}盾${u.ambushGuard ? '/減傷' : ''}${u.overwatch ? '/戒' : ''}`;
+    spawnFloatText(u.r, u.c, `伏兵！${shTag}`, 'dmg');
     renderUnits();
-    await sleep(160);
+    await sleep(145);
   }
+  renderGrid();
   renderBattleTop();
-  addLog(`⚠ 【分波伏兵增援】${spawned.map(u => u.name).join('、')} 自兩翼殺出，全員自帶 40 點伏兵護盾！`, 'enemy');
+  addLog(`⚠ 【第 ${waveNum}/${totalWaves} 波伏兵增援】${spawned.map(u => u.name).join('、')} 殺出（${fromEnemyTurn ? '敵回合奇襲立即行動' : '附百分比護盾＋首回合奇襲減傷50%'}）！`, 'enemy');
   return true;
 }
 function calcDamage(atk, def, isCrit, target) {
@@ -8591,6 +8634,11 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   // 【太初・獲麟神劍】所有攻擊額外追加 35% 無視防禦真實傷害
   if (!isTrue && attacker && attacker.equip && attacker.equip.weapon === 'tai_chu_sword') {
     finalDmg += Math.max(12, Math.round(finalDmg * 0.35));
+  }
+  // v1.26 伏兵【奇襲減傷】：進場當回合尚未行動前承受所有傷害減免 50%
+  if (target.team === 'enemy' && target.ambushGuard) {
+    finalDmg = Math.max(1, Math.round(finalDmg * 0.5));
+    spawnFloatText(target.r, target.c, '奇襲減傷50%', 'info');
   }
   // v1.19 菁英／首領【絕學警覺】：同回合後續大絕／合體技傷害減免 50%
   if (activeUltOrCombo && target.team === 'enemy' && (target.enemyType === 'elite' || target.enemyType === 'boss')) {
@@ -8777,6 +8825,16 @@ async function endPlayerTurn() {
     }
   }
 
+  // v1.26 敵軍回合開頭奇襲判定：若殘敵 ≤3 或天道之塔達增援回合節點，於敵回合直接殺出並立即行動！
+  if (hasPendingReinforcements()) {
+    const curE = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
+    const towerTurnTrigger = Boolean(activeStage && activeStage.isTowerFloor && turnNumber >= 2 + reinforcementWaveIdx * 2);
+    if (curE <= 3 || towerTurnTrigger) {
+      setState(STATE.ENEMY_TURN);
+      await checkAndSpawnReinforcements(true, true);
+    }
+  }
+
   const aliveEnemiesForTurn = units.filter(u => u.team === 'enemy' && u.hp > 0);
   const skipEmptyEnemyTurn = (aliveEnemiesForTurn.length === 0);
   if (!skipEmptyEnemyTurn) {
@@ -8786,6 +8844,7 @@ async function endPlayerTurn() {
   for (const enemy of aliveEnemiesForTurn) {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
     enemy.overwatch = false;
+    enemy.ambushGuard = false;
     let enemyAttackedThisTurn = false;
     focusCameraOn(enemy.r, enemy.c);
     await sleep(220);
@@ -9507,7 +9566,7 @@ function renderBattleTop() {
       const sEl = document.getElementById('goalPillSecondary');
       const eAlive = units.filter(u => u.team === 'enemy' && u.hp > 0).length;
       if (pEl) { pEl.className = 'goal-pill ' + gView.cls; pEl.textContent = gView.text; }
-      const pendReinf = hasPendingReinforcements() ? activeStage.reinforcements.length : 0;
+      const pendReinf = getPendingReinforcementCount();
       const allCleared = (eAlive === 0 && pendReinf === 0);
       if (sEl) { sEl.className = 'goal-pill secondary ' + (allCleared ? 'done' : ''); sEl.textContent = `${allCleared ? '☑' : '☐'} 全滅(剩${eAlive}${pendReinf ? `+伏${pendReinf}` : ''})`; }
     } else {
@@ -9735,6 +9794,7 @@ function renderUnits() {
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
     if (u.overwatch && !u.stunned && u.sleepTurns <= 0 && u.frozenTurns <= 0) flags.push('戒');
+    if (u.ambushGuard) flags.push('襲');
     if (u.ultAlert) flags.push('警');
     if (u.invincibleTurns > 0) flags.push('無敵');
     if (u.lockHpTurns > 0) flags.push('鎖血');
@@ -10786,29 +10846,80 @@ function switchTowerRealm(idx) {
   renderTowerScene();
 }
 
-function buildTowerStageObj(fl) {
-  let reinforcements = [];
-  if (fl.floor >= 21) {
-    reinforcements = [
-      { tpl: 'elite',      name: `${fl.floor}F・深淵伏將`, r: 0, c: 4, eliteSkill: 'crush' },
-      { tpl: 'cavalry',    name: `${fl.floor}F・深淵伏騎`, r: 4, c: 0 },
-      { tpl: 'strategist', name: `${fl.floor}F・深淵秘策`, r: 4, c: 8 }
+function getTowerReinforcementWaves(floorNum) {
+  if (floorNum >= 21) {
+    const w1 = [
+      { tpl: 'soldier',    name: `${floorNum}F・深淵重盾`, r: 3, c: 2 },
+      { tpl: 'archer',     name: `${floorNum}F・深淵戒弓`, r: 1, c: 8, instantOverwatch: true },
+      { tpl: 'strategist', name: `${floorNum}F・深淵秘策`, r: 2, c: 0 }
     ];
-    if (fl.floor % 5 === 0) {
-      reinforcements.push({ tpl: 'elite', name: `${fl.floor}F・深淵督將`, r: 2, c: 4, eliteSkill: 'rally' });
+    const w2 = [
+      { tpl: 'elite',      name: `${floorNum}F・深淵伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: `${floorNum}F・深淵伏騎甲`, r: 4, c: 0 },
+      { tpl: 'cavalry',    name: `${floorNum}F・深淵伏騎乙`, r: 4, c: 8 },
+      { tpl: 'archer',     name: `${floorNum}F・深淵神射`, r: 0, c: 1, instantOverwatch: true }
+    ];
+    if (floorNum % 5 === 0) {
+      const w3 = [
+        { tpl: 'elite',      name: `${floorNum}F・深淵督將`, r: 0, c: 3, eliteSkill: 'rally' },
+        { tpl: 'soldier',    name: `${floorNum}F・王座鐵盾`, r: 2, c: 5 },
+        { tpl: 'strategist', name: `${floorNum}F・王座暗策`, r: 1, c: 7 },
+        { tpl: 'cavalry',    name: `${floorNum}F・王座玄騎`, r: 5, c: 0 }
+      ];
+      return [w1, w2, w3];
     }
-  } else if (fl.floor >= 15) {
-    reinforcements = [
-      { tpl: 'elite',      name: `${fl.floor}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
-      { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 4, c: 0 },
-      { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 4, c: 8 }
+    return [w1, w2];
+  }
+  if (floorNum >= 16) {
+    const w1 = [
+      { tpl: 'soldier',    name: `${floorNum}F・天道重盾`, r: 3, c: 2 },
+      { tpl: 'archer',     name: `${floorNum}F・天道戒弓`, r: 1, c: 8, instantOverwatch: true },
+      { tpl: 'strategist', name: `${floorNum}F・天道秘策`, r: 2, c: 0 }
     ];
-  } else if (fl.floor >= 6) {
-    reinforcements = [
-      { tpl: 'cavalry',    name: `${fl.floor}F・天道伏騎`, r: 3, c: 0 },
-      { tpl: 'strategist', name: `${fl.floor}F・天道秘策`, r: 3, c: 8 }
+    const w2 = [
+      { tpl: 'elite',      name: `${floorNum}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+      { tpl: 'cavalry',    name: `${floorNum}F・天道伏騎`, r: 4, c: 0 },
+      { tpl: 'archer',     name: `${floorNum}F・天道伏弩`, r: 4, c: 8, instantOverwatch: true }
+    ];
+    if (floorNum === 20) {
+      const w3 = [
+        { tpl: 'elite',      name: '20F・天門督將', r: 0, c: 4, eliteSkill: 'rally' },
+        { tpl: 'soldier',    name: '20F・天門重盾', r: 2, c: 3 },
+        { tpl: 'strategist', name: '20F・天門秘策', r: 1, c: 6 }
+      ];
+      return [w1, w2, w3];
+    }
+    return [w1, w2];
+  }
+  if (floorNum >= 11) {
+    return [
+      [
+        { tpl: 'soldier',    name: `${floorNum}F・天道重盾`, r: 3, c: 1 },
+        { tpl: 'archer',     name: `${floorNum}F・天道戒弓`, r: 1, c: 8, instantOverwatch: true },
+        { tpl: 'strategist', name: `${floorNum}F・天道秘策`, r: 3, c: 8 }
+      ],
+      [
+        { tpl: 'elite',      name: `${floorNum}F・天道伏將`, r: 0, c: 4, eliteSkill: 'crush' },
+        { tpl: 'cavalry',    name: `${floorNum}F・天道伏騎`, r: 4, c: 0 },
+        { tpl: 'strategist', name: `${floorNum}F・天道暗策`, r: 4, c: 8 }
+      ]
     ];
   }
+  if (floorNum >= 6) {
+    return [[
+      { tpl: 'soldier',    name: `${floorNum}F・天道盾伏`, r: 3, c: 2 },
+      { tpl: 'cavalry',    name: `${floorNum}F・天道伏騎`, r: 3, c: 0 },
+      { tpl: 'strategist', name: `${floorNum}F・天道秘策`, r: 3, c: 8 }
+    ]];
+  }
+  return [[
+    { tpl: 'cavalry', name: `${floorNum}F・天道伏騎`, r: 3, c: 0 },
+    { tpl: 'archer',  name: `${floorNum}F・天道伏弓`, r: 2, c: 8, instantOverwatch: true }
+  ]];
+}
+
+function buildTowerStageObj(fl) {
+  const reinforcementWaves = getTowerReinforcementWaves(fl.floor);
   return {
     id: `tower_${fl.floor}`,
     isTowerFloor: true,
@@ -10829,7 +10940,7 @@ function buildTowerStageObj(fl) {
     dutyUnits: fl.dutyUnits,
     playerSlots: fl.playerSlots,
     enemySpawns: fl.enemies,
-    reinforcements
+    reinforcementWaves
   };
 }
 
@@ -10919,7 +11030,7 @@ function renderTowerScene() {
         <button class="btn sm primary" onclick="startTowerFloor(${nextEndless})">⚔ 挑戰 ${nextEndless}F</button>
       </div>
       <div style="font-size:0.71rem; color:#bdb5a6; line-height:1.45;">
-        每層固定生成 2～3 天命詞條、強度遞增 +24%/層、殘敵 ≤2 或首領半血觸發 3～4 員伏兵增援，專為【太初・獲麟神劍】與神仙陣容打造的極限試刀場！
+        每層固定生成 2～3 天命詞條、強度遞增 +24%/層，並配置 <strong>2～3 波奇襲伏兵</strong>（百分比護盾＋重盾阻滯＋進場警戒弓＋敵回合奇襲立即行動），專為【太初・獲麟神劍】與神仙陣容打造的極限試刀場！
       </div>`;
     list.appendChild(hero);
 
@@ -10955,7 +11066,9 @@ function renderTowerScene() {
     if (fl.floor === 20) msNote = '👑 首通登頂：終極神兵【太初・獲麟神劍】＋【萬世師表】＋ 解鎖無盡 21F+';
     if (fl.isEndless && fl.isBossTier) msNote = '🏆 每五層深淵王座首破：全軍永久 +1 悟道點 ＋ 束脩×2 ＋ 簞食瓢飲×2';
 
-    const reinfCnt = fl.floor >= 21 ? (fl.floor % 5 === 0 ? 4 : 3) : (fl.floor >= 15 ? 3 : (fl.floor >= 6 ? 2 : 0));
+    const twWaves = getTowerReinforcementWaves(fl.floor);
+    const reinfWaveCnt = twWaves.length;
+    const reinfCnt = twWaves.reduce((s, w) => s + w.length, 0);
     const card = document.createElement('div');
     card.className = 'tower-floor-card'
       + (fl.isEndless ? ' endless-floor' : '')
@@ -10978,7 +11091,7 @@ function renderTowerScene() {
       </div>
       ${msNote ? `<div style="font-size:0.72rem; color:#ecd29b; font-weight:800;">${msNote}${cleared ? '（已領取）' : ''}</div>` : ''}
       <div class="row-between" style="margin-top:2px;">
-        <span style="font-size:0.7rem; color:#9a9284;">敵軍 ${fl.enemies.length} 員${reinfCnt ? `＋伏兵${reinfCnt}` : ''}｜獎勵 ${600 + fl.floor * 90}兩 / ${180 + fl.floor * 25} EXP</span>
+        <span style="font-size:0.7rem; color:#9a9284;">敵軍 ${fl.enemies.length} 員${reinfCnt ? `＋伏兵${reinfCnt}(${reinfWaveCnt}波)` : ''}｜獎勵 ${600 + fl.floor * 90}兩 / ${180 + fl.floor * 25} EXP</span>
         <button class="btn sm ${unlocked ? 'primary' : ''}" ${unlocked ? '' : 'disabled'} onclick="startTowerFloor(${fl.floor})">
           ${cleared ? '⚔ 再次挑戰' : (unlocked ? '⚔ 立即登塔' : '🔒 未解鎖')}
         </button>
