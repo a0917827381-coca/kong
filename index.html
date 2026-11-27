@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.23 — 暗黑水墨・單體斬首強化與水墨奧義特效版</title>
+<title>《論語戰棋》v1.24 — 暗黑水墨・再動完全解放版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -7289,7 +7289,7 @@ function selectMode(mode) {
 function doWait() {
   if (gameState !== STATE.PLAYER_TURN) return;
   const u = getUnitById(selectedUnitId);
-  if (!u || u.team !== 'player' || u.ap <= 0 || u.acted || u.hasActedThisTurn) return;
+  if (!u || u.team !== 'player' || u.ap <= 0 || u.acted) return;
   pendingMove = null; pendingAction = null; showCmdPopover = false;
   const isInPlace = !u.moved;
   const baseGain = isInPlace ? 40 : 20;
@@ -7297,13 +7297,19 @@ function doWait() {
   u.ap = Math.max(0, u.ap - 1);
   u.postMoveOnly = false;
   u.hasActedThisTurn = true;
-  if (u.ap > 0) { u.moved = false; u.acted = false; }
-  else { u.moved = true; u.acted = true; }
   u.qi = Math.min(100, u.qi + gain);
   AudioManager.play('guqin');
   spawnFloatText(u.r, u.c, isInPlace ? `原地調息 +${gain}氣` : `待機調息 +${gain}氣`, isInPlace ? 'taiji' : 'info');
   addLog(`${u.name} ${isInPlace ? '原地專注調息（加倍）' : '移動後待機調息'}，回復 +${gain} 浩然氣。`, 'player');
-  reachableTiles.clear(); targetableTiles.clear(); actionMode = 'move'; renderAll();
+  targetableTiles.clear(); actionMode = 'move';
+  if (u.ap > 0) {
+    u.moved = false; u.acted = false;
+    reachableTiles = computeReachable(u);
+  } else {
+    u.moved = true; u.acted = true;
+    reachableTiles.clear();
+  }
+  renderAll();
 }
 
 async function moveUnitSmooth(unit, path, isPlayer) {
@@ -8723,11 +8729,11 @@ async function endPlayerTurn() {
 
   try {
 
-  // v1.14 結束回合自動調息：未移動且未出招 -> 原地調息(+40氣)；已移動但未出招 -> 待機調息(+20氣)
+  // v1.24 結束回合自動調息（含再動剩餘 AP）：未移動 -> 原地調息(+40氣)；已移動 -> 待機調息(+20氣)
   const autoRestUnits = units.filter(u =>
     u.team === 'player' && u.hp > 0 && !u.isTower &&
     !u.stunned && u.sleepTurns <= 0 &&
-    !u.acted && !u.hasActedThisTurn && u.ap > 0
+    !u.acted && u.ap > 0
   );
   if (autoRestUnits.length > 0) {
     const bonusQi = getHex().bonusQi || 0;
@@ -8735,8 +8741,10 @@ async function endPlayerTurn() {
     const restLogs = [];
     autoRestUnits.forEach(u => {
       const isInPlace = !u.moved;
-      const gain = (isInPlace ? 40 : 20) + bonusQi;
-      u.ap = 0; u.moved = true; u.acted = true; u.hasActedThisTurn = true;
+      const firstGain = (isInPlace ? 40 : 20) + bonusQi;
+      const extraGain = Math.max(0, u.ap - 1) * (40 + bonusQi);
+      const gain = firstGain + extraGain;
+      u.ap = 0; u.moved = true; u.acted = true; u.hasActedThisTurn = true; u.postMoveOnly = false;
       u.qi = Math.min(100, u.qi + gain);
       spawnFloatText(u.r, u.c, isInPlace ? `原地調息 +${gain}氣` : `待機調息 +${gain}氣`, isInPlace ? 'taiji' : 'info');
       restLogs.push(`${u.name}(${isInPlace ? '原地' : '待機'}+${gain}氣)`);
@@ -9845,7 +9853,7 @@ function renderFloatingUi() {
     const pill = document.createElement('button');
     pill.className = 'quick-action-pill';
     pill.id = 'quickActionPill';
-    pill.textContent = u.hasActedThisTurn ? '⚔ 原地再動出招' : `⚔ 原地出招 / 調息(+${40 + (getHex().bonusQi || 0)}氣)`;
+    pill.textContent = u.hasActedThisTurn ? `⚔ 再動出招 / 調息(+${40 + (getHex().bonusQi || 0)}氣)` : `⚔ 原地出招 / 調息(+${40 + (getHex().bonusQi || 0)}氣)`;
     pill.onclick = e => { e.stopPropagation(); openInPlaceCmdMenu(); };
     layer.appendChild(pill);
     cachedQuickPill = pill;
@@ -9928,7 +9936,7 @@ function renderFloatingUi() {
       </button>`;
     }
 
-    if (!u.acted && !u.hasActedThisTurn && u.ap > 0) {
+    if (!u.acted && u.ap > 0) {
       const waitGain = (u.moved ? 20 : 40) + (getHex().bonusQi || 0);
       const waitLbl = u.moved ? `🧘 待機調息（+${waitGain}氣）` : `🧘 原地調息（加倍 +${waitGain}氣）`;
       htmlStr += `<button class="cmd-btn wait" onclick="doWait()">${waitLbl}</button>`;
