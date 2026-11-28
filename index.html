@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>《論語戰棋》v1.26 — 暗黑水墨・天道多波奇襲增援版</title>
+<title>《論語戰棋》v1.28 — 暗黑水墨・敵軍全面進化與首領死域版</title>
 <style>
   :root {
     --bg: #0c0d0e;
@@ -729,6 +729,28 @@
     color: #ffd9d6;
     background: rgba(145, 28, 24, 0.88); border: 1px solid #f09c97;
     border-radius: 3px; padding: 0 4px; line-height: 1.25;
+  }
+  /* v1.28 首領【赤紅死域】預警蓄力格 */
+  .tile.boss-danger-zone {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(200, 32, 32, 0.34) 0px,
+      rgba(200, 32, 32, 0.34) 10px,
+      rgba(74, 12, 12, 0.42) 10px,
+      rgba(74, 12, 12, 0.42) 20px
+    );
+    box-shadow: inset 0 0 0 4px #ff4d4f, inset 0 0 26px rgba(220, 38, 38, 0.65);
+    animation: targetPulse 0.75s infinite ease-in-out;
+  }
+  .tile.boss-danger-zone::after {
+    content: "死域";
+    position: absolute; inset: 22px;
+    border: 2px dashed rgba(255, 168, 168, 0.92);
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-serif); font-size: 24px; font-weight: 900;
+    color: #ffe3e3; text-shadow: 0 2px 8px #000;
+    background: rgba(120, 14, 14, 0.45);
   }
   .tile.selected-tile { box-shadow: inset 0 0 0 5px var(--gold); }
   .tile.preview-target {
@@ -1965,6 +1987,101 @@
   .forge-ing.miss { border-color: #7a2621; color: #e89c97; background: #24100f; }
 
 
+  /* ==================== v1.27 八卦玉簡星盤樣式 ==================== */
+  .jade-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+  }
+  .jade-slot-card {
+    position: relative;
+    background: radial-gradient(circle at 50% 28%, #262016 0%, #131314 78%, #0d0e0f 100%);
+    border: 1.5px solid #594b34;
+    border-radius: 8px;
+    padding: 8px 5px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.55);
+  }
+  .jade-slot-card.locked {
+    opacity: 0.55;
+    border-style: dashed;
+    background: #101112;
+  }
+  .jade-slot-card.awakened {
+    border-color: #ecd29b;
+    background: radial-gradient(circle at 50% 28%, #3b2a12 0%, #19140c 78%, #0f0d0a 100%);
+    box-shadow: inset 0 0 18px rgba(236, 210, 155, 0.25), 0 0 12px rgba(212, 175, 106, 0.28);
+  }
+  .jade-slot-card.glow-lv {
+    box-shadow: inset 0 0 14px rgba(110, 168, 161, 0.22), 0 0 8px rgba(212, 175, 106, 0.22);
+  }
+  .jade-slot-tap {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: inherit;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .jade-slot-tap:disabled { cursor: not-allowed; }
+  .jade-trigram-orb {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1.5px solid #8c6d3b;
+    background: radial-gradient(circle at 38% 34%, #382c1a 0%, #141210 85%);
+    color: var(--gold-bright);
+    font-family: var(--font-serif);
+    font-size: 0.98rem;
+    font-weight: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  }
+  .jade-slot-card.awakened .jade-trigram-orb {
+    background: linear-gradient(135deg, #a82822, #5e1410);
+    border-color: #fff0cc;
+    color: #fff6e0;
+  }
+  .jade-slot-name {
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    font-weight: 900;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+  .jade-slot-sub {
+    font-size: 0.6rem;
+    color: #9dd4cc;
+    line-height: 1.2;
+  }
+  .jade-slot-upbtn {
+    width: 100%;
+    margin-top: 2px;
+    padding: 3px 4px;
+    min-height: 24px;
+    font-size: 0.63rem;
+    font-weight: 900;
+    border-radius: 4px;
+    border: 1px solid #8c6d3b;
+    background: linear-gradient(180deg, #473317 0%, #2b1e0d 100%);
+    color: var(--gold-bright);
+    cursor: pointer;
+  }
+  .jade-slot-upbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+
   /* ==================== v1.18 水墨圖示格系統（去報表化・點擊中央彈窗詳解） ==================== */
   .stat-ribbon {
     display: grid;
@@ -2609,8 +2726,12 @@
             </div>
             <div style="font-weight:800; color:#6ea8a1; font-size:0.78rem;">內圈・六藝盤（基礎屬性）</div>
             <div id="innerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
-            <div style="font-weight:800; color:#d4af6a; font-size:0.78rem; margin-top:2px;">外圈・八卦命格盤（天時與連攜）</div>
-            <div id="outerTalentGrid" style="display:grid; grid-template-columns:1fr 1fr; gap:6px;"></div>
+            <div class="row-between" style="margin-top:4px;">
+              <div style="font-weight:800; color:#d4af6a; font-size:0.78rem;">外圈・八卦玉簡星盤（三才卦槽）</div>
+              <span style="font-size:0.66rem; color:#8ec9c2;" id="jadeResonanceHint">本命覺醒・天時共鳴</span>
+            </div>
+            <div style="font-size:0.68rem; color:#9a9284; line-height:1.35;">點卦槽鑲嵌／更換【論語玉簡】；配戴同本命卦解鎖覺醒，天時同卦享全傷+15%/耗氣-15%。悟道點可為卦槽無上限開光！</div>
+            <div id="outerTalentGrid" class="jade-slot-grid"></div>
           </div>
         </div>
       </div>
@@ -2805,6 +2926,8 @@
     <div class="stat-ribbon" id="cdStatsGrid"></div>
     <div class="section-divider">配戴神兵（點擊檢視詞條）</div>
     <div class="ink-icon-grid" id="cdEquipSummary"></div>
+    <div class="section-divider">八卦玉簡星盤（點擊檢視詞條）</div>
+    <div class="jade-slot-grid" id="cdJadeSummary"></div>
     <div class="section-divider">《論語》招式（點擊圖示檢視詳解）</div>
     <div class="ink-icon-grid cols-4" id="cdSkillsList"></div>
   </div>
@@ -2904,6 +3027,7 @@
         • <strong>調息回氣</strong>：移動後未出招可「待機調息 (+20氣)」，未移動直接「原地調息」加倍為 <strong>+40 浩然氣</strong>；直接按<strong>【結束回合】</strong>時，尚未出招的我方武將也會自動調息。<br>
         • 普攻 (+25氣) 與受擊 (+15氣) 皆可累積浩然氣，用於施放【絕招】與 100 氣【大絕】。<br>
         • <strong>雙重強制勝利條件</strong>：列國 15 關皆設有「第一條件（如登堂入室、全師而返、兵貴神速、擒賊擒王、順天應人、克己復禮等）＋ 敵軍全滅」雙條件，缺一不可！點擊戰場上方條件條可隨時查看詳情。<br>
+        • <strong>八卦玉簡星盤</strong>：攻克列國城池與天道塔 5F 會掉落 16 枚【論語玉簡】，可於營地鑲嵌於三才卦槽（Lv.1/6/12 開槽）。配戴符合武將<strong>本命卦</strong>的玉簡將解鎖強力覺醒；戰場<strong>天時同卦</strong>更享全傷+15%/耗氣-15%。悟道點用於卦槽開光（Lv.4+ 無上限化境）！<br>
         • <strong>列國收徒與共修</strong>：首通各城池將收服新名將入隊；未上場的板凳弟子也會同步獲得 50% 經驗值，隨時可輪換陣容。
       </div>
     </div>
@@ -2940,11 +3064,11 @@
       <div class="guide-block">
         <div class="g-head">硬核戰棋・敵軍兵種與威脅</div>
         敵軍隨關卡進度大幅成長，且享有<strong>暴擊、集火殘血與專屬戰技</strong>，切忌無腦衝陣：<br>
-        • <strong>【兵】近戰盾兵（ZOC 阻滯）</strong>：高防禦，且周圍 1 格帶有<strong>【阻】控制區</strong>，我軍踏入即強制停步無法繞過切後排（控場或擊退可解除）。<br>
-        • <strong>【弓】遠程弓手（張弓警戒）</strong>：拉開 2～3 格風箏；若本回合未攻擊會進入<strong>【戒】張弓警戒</strong>，我軍在其射程內移動將遭攔截射擊並破防！<br>
-        • <strong>【策】敵軍策士</strong>：會幫殘血敵軍<strong>回血＋加攻</strong>，或對我方施放<strong>破防</strong>，建議優先點殺！<br>
-        • <strong>【騎】敵軍輕騎</strong>：高達 5 格機動力，專切後排軟甲單位，需用前排或石碑卡住路線。<br>
-        • <strong>【將】敵方校尉 / 【魔】首領</strong>：每 2 回合施放強效戰技；同回合承受第 1 次大絕／合體技後會進入<strong>【絕學警覺】</strong>（本回合後續大絕／合體技減傷 50% 且免暈）。<br>
+        • <strong>【兵】近戰盾兵（ZOC 阻滯＋鐵壁援護）</strong>：周圍 1 格帶有<strong>【阻】控制區</strong>，並自動替相鄰友軍<strong>分攤 35% 傷害</strong>（控場或擊退拆陣可解除）。<br>
+        • <strong>【弓】遠程弓手（張弓警戒＋毒矢阻療）</strong>：命中附加 2 回合<strong>【重傷】（受治療 -50%）</strong>；未攻擊時進入<strong>【戒】張弓警戒</strong>攔截移動我軍！<br>
+        • <strong>【策】敵軍策士（軍醫＋奪氣驅散）</strong>：除治癒友軍外，見我方高氣（≥80）或厚盾會施放<strong>【奪氣驅散】</strong>（抽 35 氣＋消增益）！<br>
+        • <strong>【騎】敵軍輕騎（破盾突襲）</strong>：移動 ≥3 格攻擊時<strong>傷害 +30% 且對護盾造成 2 倍破盾傷</strong>。<br>
+        • <strong>【將】敵方校尉 / 【魔】首領</strong>：第 4 關與天道之塔起附帶隨機<strong>【敵將特質】</strong>（金蟬護體／以逸待勞／同仇敵愾）；首領會發動<strong>【逆天改命】搶卦</strong>與<strong>【赤紅死域】蓄力紅區</strong>（下回合引爆，可撤離或用沉默／暈眩打斷），天道塔 15F+ 首領二階段更擁有<strong>雙重行動</strong>！<br>
         • <strong>首領半血反撲與多波奇襲伏兵</strong>：首領首次跌至 50% 血會強制鎖血並震退 3 格內我軍＋清除增益；主線中後期與天道之塔設有<strong>1～3 波伏兵增援</strong>，伏兵進場自帶<strong>最大生命 25%～30% 護盾</strong>，若於我方回合現身更附帶<strong>【奇襲減傷 50%】</strong>，若於敵軍回合開頭現身則<strong>當回合立即行動</strong>；高層伏兵弓手進場即刻張弓警戒，切忌開局梭哈所有大絕！
       </div>
       <div class="guide-block">
@@ -3364,11 +3488,132 @@ const TALENTS_INNER = [
   { id: 'shu', name: '書・固守', maxLv: 3, desc: '防禦 +3/級' },
   { id: 'num', name: '數・神算', maxLv: 2, desc: '暴擊 +8%/級' }
 ];
-const TALENTS_OUTER = [
-  { id: 'taiji_amp', name: '太極歸元', maxLv: 2, desc: '太極合擊 +20傷/級' },
-  { id: 'hex_adapt', name: '順天應人', maxLv: 2, desc: '天時攻擊 +10%/級' },
-  { id: 'qi_flow',   name: '浩氣長存', maxLv: 2, desc: '普攻受擊 +8氣/級' }
-];
+const JADE_SLOT_UNLOCK_LVS = [1, 6, 12];
+const TRIGRAM_LABELS = { qian: '乾', kun: '坤', kan: '坎', li: '離', zhen: '震', xun: '巽', gen: '艮', dui: '兌' };
+const DATA_JADE_SLIPS = {
+  // ---- 乾卦（本命：孔子） ----
+  jade_jianyi: {
+    id: 'jade_jianyi', name: '見義勇為', trigram: 'qian', stageId: 'lu_kuang', sourceLabel: '首通【魯・匡城】掉落',
+    shortBase: '滿血敵必暴穿30%',
+    baseDesc: '對滿血敵軍（HP ≥ 95%）必定暴擊且無視 30% 防禦。',
+    awakenDesc: '【本命乾覺醒】擊殺敵軍時額外回復 +25 浩然氣。'
+  },
+  jade_buqi: {
+    id: 'jade_buqi', name: '君子不器', trigram: 'qian', stageId: 'taishan_huolin', sourceLabel: '首通【泰山・獲麟】掉落',
+    shortBase: '負面增傷/普攻破防',
+    baseDesc: '攻擊帶負面狀態敵軍傷害 +25%；若目標無負面則命中附加 2 回合【破防】。',
+    awakenDesc: '【本命乾覺醒】附加【破防】時同步施加 2 回合【易傷 +35%】。'
+  },
+  // ---- 坤卦（本命：子貢、顏徵在） ----
+  jade_houde: {
+    id: 'jade_houde', name: '厚德載物', trigram: 'kun', stageId: 'lu_sandu', sourceLabel: '首通【魯・墮三都】掉落',
+    shortBase: '每回合+15%血護盾',
+    baseDesc: '每回合開始自動獲得 15% 最大生命護盾。',
+    awakenDesc: '【本命坤覺醒】護盾存在期間免疫破防、擊退與控制狀態。'
+  },
+  jade_fuqiu: {
+    id: 'jade_fuqiu', name: '富而可求', trigram: 'kun', stageId: 'wei_nanzi', sourceLabel: '首通【衛・帝丘】掉落',
+    shortBase: '防+15% 擊殺+100兩',
+    baseDesc: '防禦 +15%，且擊殺或觸發太極合擊時額外獲得 +100 兩軍資金。',
+    awakenDesc: '【本命坤覺醒】我方回合結束時為周圍 2 格友軍賦予 25 點護盾。'
+  },
+  // ---- 坎卦（本命：顏回、冉伯牛、泰山婦人） ----
+  jade_shizhe: {
+    id: 'jade_shizhe', name: '逝者如斯', trigram: 'kan', stageId: 'ex_agu', sourceLabel: '首通【魯南・阿谷】掉落',
+    shortBase: '20%吸血・無視積水',
+    baseDesc: '造成傷害的 20% 轉為自身生命，且無視坎卦積水減速。',
+    awakenDesc: '【本命坎覺醒】溢出的吸血量轉化為護盾（上限 35% 最大生命）。'
+  },
+  jade_keji: {
+    id: 'jade_keji', name: '克己復禮', trigram: 'kan', stageId: 'chencai', sourceLabel: '首通【陳蔡荒野】掉落',
+    shortBase: '回合自淨+回血8%',
+    baseDesc: '每回合開始自動淨化自身 1 個負面狀態並回復 8% 最大生命。',
+    awakenDesc: '【本命坎覺醒】淨化成功時額外 +20 氣，並令周圍 2 格敵軍【內傷】。'
+  },
+  // ---- 離卦（本命：子路、子夏） ----
+  jade_wengu: {
+    id: 'jade_wengu', name: '溫故知新', trigram: 'li', stageId: 'chu_boss', sourceLabel: '首通【楚・葉邑】掉落',
+    shortBase: '大絕/合體返還30氣',
+    baseDesc: '施放大絕或合體奧義後，立即返還 30 點浩然氣。',
+    awakenDesc: '【本命離覺醒】普攻與絕招附 2 回合【灼燒】，對灼燒敵軍增傷 20%。'
+  },
+  jade_shashen: {
+    id: 'jade_shashen', name: '殺身成仁', trigram: 'li', stageId: 'qi_jiagu', sourceLabel: '首通【齊魯・夾谷】掉落',
+    shortBase: '殘血加攻最高+54%',
+    baseDesc: '每損失 10% 生命，攻擊力提升 6%（最高 +54%）。',
+    awakenDesc: '【本命離覺醒】血量低於 40% 時，所有攻擊無視目標 35% 防禦。'
+  },
+  // ---- 震卦（本命：冉有） ----
+  jade_leili: {
+    id: 'jade_leili', name: '雷厲風行', trigram: 'zhen', stageId: 'song_huan', sourceLabel: '首通【宋・商丘】掉落',
+    shortBase: '擊殺獲打帶跑撤退',
+    baseDesc: '擊殺敵軍後立即獲得 1 次「打帶跑」撤退位移。',
+    awakenDesc: '【本命震覺醒】撤退位移後本回合閃避 +35% 並回復 +15 氣。'
+  },
+  jade_xiannan: {
+    id: 'jade_xiannan', name: '先難後獲', trigram: 'zhen', stageId: 'ex_feiyi', sourceLabel: '首通【魯・費邑】掉落',
+    shortBase: '每移1格增傷+8%',
+    baseDesc: '本回合每移動 1 格，下次攻擊傷害 +8%（最高 +40%）。',
+    awakenDesc: '【本命震覺醒】移動 ≥ 3 格後出招，該次攻擊直接無視護盾扣血。'
+  },
+  // ---- 巽卦（本命：宰我、阿谷處女） ----
+  jade_minxing: {
+    id: 'jade_minxing', name: '敏於行', trigram: 'xun', stageId: 'wei_xihe', sourceLabel: '首通【衛西・西河】掉落',
+    shortBase: '無視阻滯與警戒',
+    baseDesc: '無視敵方盾兵【ZOC 阻滯】與弓手【張弓警戒】攔截。',
+    awakenDesc: '【本命巽覺醒】移動力永久 +1，且普攻射程 +1。'
+  },
+  jade_wushi: {
+    id: 'jade_wushi', name: '無適無莫', trigram: 'xun', stageId: 'ex_taishan', sourceLabel: '首通【泰山之側】掉落',
+    shortBase: '傷殘/負面敵暴傷1.8×',
+    baseDesc: '攻擊未滿血或帶負面狀態敵軍時，暴擊 +25%、暴擊傷害升至 1.8×。',
+    awakenDesc: '【本命巽覺醒】暴擊命中時奪取目標 20% 當前護盾轉為自身護盾。'
+  },
+  // ---- 艮卦（本命：閔子騫、仲弓） ----
+  jade_budong: {
+    id: 'jade_budong', name: '不動如山', trigram: 'gen', stageId: 'ex_xingtan', sourceLabel: '首通【曲阜・杏壇】掉落',
+    shortBase: '反擊+40%傷＋防姿',
+    baseDesc: '反擊傷害 +40%，且反擊後立即進入【防禦姿態】。',
+    awakenDesc: '【本命艮覺醒】所有主動選擇或被動觸發的反擊必定暴擊。'
+  },
+  jade_zhishan: {
+    id: 'jade_zhishan', name: '止於至善', trigram: 'gen', towerFloor: 5, sourceLabel: '首通【天道之塔・5F】獲得',
+    shortBase: '未移減傷20%/增傷25%',
+    baseDesc: '本回合未移動時，承受傷害 -20%、攻擊傷害 +25%。',
+    awakenDesc: '【本命艮覺醒】敵方伏兵現身時，自身立即獲得 +30 氣與 40 護盾。'
+  },
+  // ---- 兌卦（本命：子游、南子） ----
+  jade_heer: {
+    id: 'jade_heer', name: '和而不同', trigram: 'dui', stageId: 'lu_wucheng', sourceLabel: '首通【魯・武城】掉落',
+    shortBase: '太極合擊周圍1格濺射',
+    baseDesc: '觸發【太極合擊】時，真實傷害擴散至目標周圍 1 格敵軍。',
+    awakenDesc: '【本命兌覺醒】觸發太極合擊時，我方全軍額外回復 +12 浩然氣。'
+  },
+  jade_qiaoyan: {
+    id: 'jade_qiaoyan', name: '巧言令色', trigram: 'dui', stageId: 'ex_weimu', sourceLabel: '首通【衛宮・帷幕】掉落',
+    shortBase: '技50%易傷/補附30盾',
+    baseDesc: '施放絕招／大絕命中敵軍 50% 附加【易傷】；補血／增益技附 +30 護盾。',
+    awakenDesc: '【本命兌覺醒】易傷機率升至 100%，且補血／增益護盾提升至 +55。'
+  }
+};
+const TALENTS_OUTER = [];
+const DATA_ENEMY_TRAITS = {
+  cicada:         { id: 'cicada',         badge: '蟬', name: '金蟬護體', desc: '每回合免疫首次單體傷害（強制降至1點）' },
+  counter_master: { id: 'counter_master', badge: '反', name: '以逸待勞', desc: '反擊傷害+45%且反擊附帶2回合破防' },
+  vengeful:       { id: 'vengeful',       badge: '仇', name: '同仇敵愾', desc: '2格內友軍陣亡時攻+15%並得20%護盾' }
+};
+let bossTelegraphs = []; // [{ bossId, tiles: [{r, c}] }]
+
+function hasEnemyTrait(u, tid) {
+  return Boolean(u && u.team === 'enemy' && Array.isArray(u.enemyTraits) && u.enemyTraits.includes(tid));
+}
+function applyHealAmount(u, rawAmt) {
+  if (!u || u.hp <= 0 || rawAmt <= 0) return 0;
+  const eff = (u.grievousTurns > 0) ? Math.max(1, Math.round(rawAmt * 0.5)) : rawAmt;
+  const real = Math.min(u.maxHp - u.hp, eff);
+  if (real > 0) u.hp += real;
+  return real;
+}
 
 // 全部 7 組跨角色羈絆合體奧義
 const BOND_PAIRS = [
@@ -3862,7 +4107,8 @@ function makeRosterEntry(lv = 1) {
     lv, exp: 0, liuyiPts: Math.max(2, lv + 1), wudaoPts: Math.max(1, lv),
     equip: { weapon: 'none', ritual: 'none', book: 'none' },
     inner: { li: 0, yue: 0, she: 0, yu: 0, shu: 0, num: 0 },
-    outer: { taiji_amp: 0, hex_adapt: 0, qi_flow: 0 }
+    jadeSlots: ['none', 'none', 'none'],
+    jadeSlotLvs: [0, 0, 0]
   };
 }
 
@@ -3893,6 +4139,7 @@ function createDefaultSave() {
     gold: 1000,
     items: { yarrow: 3, potion: 3, bento: 2, suxiu: 2 },
     equipInventory: Object.fromEntries(Object.keys(DATA_EQUIPS).map(k => [k, 0])),
+    jadeSlips: {},
     materials: {},
     tower: { maxCleared: 0, claimedMilestones: [], titleUnlocked: false },
     clearedStages: [],
@@ -3934,6 +4181,21 @@ function loadSaveData() {
         if (p.tower.maxCleared >= 20 && (p.equipInventory.tai_chu_sword || 0) <= 0) p.equipInventory.tai_chu_sword = 1;
         if (!Array.isArray(p.tower.claimedMilestones)) p.tower.claimedMilestones = [];
         BOND_PAIRS.forEach(b => { if (!p.bonds[b.id]) p.bonds[b.id] = 1; });
+        // v1.27 八卦玉簡星盤無痛遷移：退還舊外圈悟道點、初始化三才卦槽、依已通關進度自動補發玉簡
+        if (!p.jadeSlips) p.jadeSlips = {};
+        Object.values(p.roster).forEach(r => {
+          if (!Array.isArray(r.jadeSlots)) r.jadeSlots = ['none', 'none', 'none'];
+          if (!Array.isArray(r.jadeSlotLvs)) r.jadeSlotLvs = [0, 0, 0];
+          if (r.outer) {
+            const refund = (r.outer.taiji_amp || 0) + (r.outer.hex_adapt || 0) + (r.outer.qi_flow || 0);
+            if (refund > 0) r.wudaoPts = (r.wudaoPts || 0) + refund;
+            delete r.outer;
+          }
+        });
+        Object.values(DATA_JADE_SLIPS).forEach(js => {
+          if (js.stageId && (p.clearedStages || []).includes(js.stageId)) p.jadeSlips[js.id] = 1;
+          if (js.towerFloor && (p.tower?.maxCleared || 0) >= js.towerFloor) p.jadeSlips[js.id] = 1;
+        });
         return p;
       }
     }
@@ -3953,6 +4215,42 @@ function getEquipWearers(eqId) {
     if (eq.weapon === eqId || eq.ritual === eqId || eq.book === eqId) wearers.push(uid);
   });
   return wearers;
+}
+function getJadeWearer(jadeId) {
+  for (const uid of Object.keys(saveData.roster)) {
+    const sl = saveData.roster[uid].jadeSlots || [];
+    if (sl.includes(jadeId)) return uid;
+  }
+  return null;
+}
+function getUnitJadeSlotBonuses(progOrUnit) {
+  const lvs = (progOrUnit && progOrUnit.jadeSlotLvs) ? progOrUnit.jadeSlotLvs : [0, 0, 0];
+  let statPct = 0, dmgPct = 0, hpBonus = 0;
+  for (let i = 0; i < 3; i++) {
+    const lv = lvs[i] || 0;
+    const baseLv = Math.min(3, lv);
+    const transcendLv = Math.max(0, lv - 3);
+    statPct += baseLv * 0.03;
+    dmgPct += transcendLv * 0.04;
+    hpBonus += transcendLv * 15;
+  }
+  return { statPct, dmgPct, hpBonus };
+}
+function hasJade(u, jadeId) {
+  return Boolean(u && u.team === 'player' && Array.isArray(u.jadeSlips) && u.jadeSlips.includes(jadeId));
+}
+function isJadeAwakened(u, jadeId) {
+  if (!hasJade(u, jadeId)) return false;
+  const js = DATA_JADE_SLIPS[jadeId];
+  return Boolean(js && js.trigram === u.trigram);
+}
+function hasHexResonance(u) {
+  if (!u || u.team !== 'player' || !Array.isArray(u.jadeSlips) || !u.jadeSlips.length) return false;
+  const curHexId = getHex().id;
+  return u.jadeSlips.some(jid => DATA_JADE_SLIPS[jid] && DATA_JADE_SLIPS[jid].trigram === curHexId);
+}
+function getJadeForStage(stageId) {
+  return Object.values(DATA_JADE_SLIPS).find(j => j.stageId === stageId) || null;
 }
 
 const AudioManager = {
@@ -4315,6 +4613,11 @@ function populateStageBriefing(stageId) {
     const crafted = exEq && (saveData.equipInventory[exEq.id] || 0) > 0;
     dropLine += `<br><span style="color:#b5ded8;">🔨 通關素材：<strong>${mat.name}</strong>（合成${exEq ? `【${exEq.name}】` : '專武'}｜${crafted ? '已鍛造' : `持有:${matCnt}`}）</span>`;
   }
+  const stJade = getJadeForStage(sel.id);
+  if (stJade) {
+    const hasJ = Boolean(saveData.jadeSlips && saveData.jadeSlips[stJade.id]);
+    dropLine += `<br><span style="color:#dfc7ed;">☯ 首通掉落玉簡：<strong>【${TRIGRAM_LABELS[stJade.trigram]}・${stJade.name}】</strong>（${stJade.shortBase}）${hasJ ? '【已收藏】' : '【未取得】'}</span>`;
+  }
   const startHexObj = DATA_HEXAGRAMS.find(h => h.id === (sel.modifiers.lockHexagram || sel.startHex || 'qian')) || DATA_HEXAGRAMS[0];
   const scalePct = Math.round((sel.enemyScale || 1) * 100);
   const goalSummaryHtml = sel.primaryGoal
@@ -4523,7 +4826,8 @@ function buildCompactStatsHtml(tpl, prog) {
   const lvB = prog.lv - 1;
   const inner = prog.inner || {};
   const eqB = getEquipStatBonus(prog.equip);
-  const hpBonus = lvB * 10 + (inner.li || 0) * 18;
+  const jb = getUnitJadeSlotBonuses(prog);
+  const hpBonus = lvB * 10 + (inner.li || 0) * 18 + jb.hpBonus;
   const atkBonus = lvB * 3 + (inner.she || 0) * 5 + eqB.atk;
   const defBonus = lvB * 2 + (inner.shu || 0) * 3;
   const moveBonus = (inner.yu || 0);
@@ -4896,6 +5200,8 @@ function openCharDetail(uid) {
 
   document.getElementById('cdStatsGrid').innerHTML = buildCompactStatsHtml(tpl, prog);
   document.getElementById('cdEquipSummary').innerHTML = buildEquipSlotsGridHtml(uid, false);
+  const cdJadeEl = document.getElementById('cdJadeSummary');
+  if (cdJadeEl) cdJadeEl.innerHTML = buildJadeSlotsHtml(uid, false);
   document.getElementById('cdSkillsList').innerHTML = buildSkillIconGridHtml(uid);
   document.getElementById('charDetailModal').classList.add('show');
   refreshAllSpriteCanvases();
@@ -5126,13 +5432,17 @@ function renderCampScene() {
       div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#6ea8a1;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cfc7b8;">${t.desc}</div><button class="btn sm primary" ${prog.liuyiPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('inner','${t.id}')">點亮</button>`;
       inG.appendChild(div);
     });
-    const outG = document.getElementById('outerTalentGrid'); outG.innerHTML = '';
-    TALENTS_OUTER.forEach(t => {
-      const lv = prog.outer[t.id] || 0;
-      const div = document.createElement('div'); div.className = 'mobile-card';
-      div.innerHTML = `<div class="row-between"><strong>${t.name}</strong><span style="font-size:0.74rem; color:#d4af6a;">${lv}/${t.maxLv}</span></div><div style="font-size:0.72rem; color:#cfc7b8;">${t.desc}</div><button class="btn sm gold" ${prog.wudaoPts<=0||lv>=t.maxLv?'disabled':''} onclick="upgradeTalent('outer','${t.id}')">悟道</button>`;
-      outG.appendChild(div);
-    });
+    const outG = document.getElementById('outerTalentGrid');
+    outG.innerHTML = buildJadeSlotsHtml(uid, true);
+    const jbTot = getUnitJadeSlotBonuses(prog);
+    const hintEl = document.getElementById('jadeResonanceHint');
+    if (hintEl) {
+      const parts = [];
+      if (jbTot.statPct > 0) parts.push(`攻防+${Math.round(jbTot.statPct * 100)}%`);
+      if (jbTot.dmgPct > 0) parts.push(`全傷+${Math.round(jbTot.dmgPct * 100)}%`);
+      if (jbTot.hpBonus > 0) parts.push(`血+${jbTot.hpBonus}`);
+      hintEl.textContent = parts.length ? `開光：${parts.join(' ')}` : `本命卦：${trigramName}`;
+    }
   }
 
 
@@ -5389,10 +5699,192 @@ function buyShopItem(key, price) {
   AudioManager.play('guqin'); persistSave();
   if (currentScene === 'shop') renderShopScene(); else renderCampScene();
 }
+function buildJadeSlotsHtml(uid, interactive = true) {
+  const tpl = DATA_UNITS[uid], prog = saveData.roster[uid];
+  if (!tpl || !prog) return '';
+  const slots = prog.jadeSlots || ['none', 'none', 'none'];
+  const lvs = prog.jadeSlotLvs || [0, 0, 0];
+  const slotNames = ['天槽', '地槽', '人槽'];
+  return [0, 1, 2].map(i => {
+    const reqLv = JADE_SLOT_UNLOCK_LVS[i];
+    const unlocked = prog.lv >= reqLv;
+    const jid = slots[i] || 'none';
+    const js = (jid !== 'none') ? DATA_JADE_SLIPS[jid] : null;
+    const slv = lvs[i] || 0;
+    const awakened = Boolean(js && js.trigram === tpl.trigram);
+    const cardCls = `jade-slot-card${!unlocked ? ' locked' : ''}${awakened ? ' awakened' : (slv > 0 ? ' glow-lv' : '')}`;
+    const orbTxt = !unlocked ? '🔒' : (js ? TRIGRAM_LABELS[js.trigram] : '＋');
+    const titleTxt = !unlocked ? `Lv.${reqLv}開槽` : (js ? js.name : '空玉簡槽');
+    const subTxt = !unlocked ? slotNames[i] : (js ? (awakened ? '★本命覺醒' : js.shortBase) : `${slotNames[i]}・點擊鑲嵌`);
+    const clickAttr = !unlocked ? 'disabled' : (interactive ? `onclick="openJadeDrawer('${uid}',${i})"` : (js ? `onclick="showJadeReadonlyDialog('${uid}','${js.id}')"` : 'disabled'));
+    const lvBadge = unlocked && slv > 0 ? `<span class="tile-badge-tr ${slv >= 4 ? 'red' : 'cyan'}">Lv.${slv}</span>` : `<span class="tile-badge-tl">${slotNames[i]}</span>`;
+    const upBtn = (interactive && unlocked)
+      ? `<button class="jade-slot-upbtn" ${prog.wudaoPts <= 0 ? 'disabled' : ''} onclick="upgradeJadeSlot('${uid}',${i})">${slv >= 3 ? `化境Lv.${slv+1}` : `開光Lv.${slv+1}`}</button>`
+      : '';
+    return `
+      <div class="${cardCls}">
+        ${lvBadge}
+        <button class="jade-slot-tap" ${clickAttr}>
+          <span class="jade-trigram-orb">${orbTxt}</span>
+          <span class="jade-slot-name">${titleTxt}</span>
+          <span class="jade-slot-sub">${subTxt}</span>
+        </button>
+        ${upBtn}
+      </div>`;
+  }).join('');
+}
+
+function showJadeReadonlyDialog(uid, jadeId) {
+  const js = DATA_JADE_SLIPS[jadeId], tpl = DATA_UNITS[uid];
+  if (!js || !tpl) return;
+  const awakened = (js.trigram === tpl.trigram);
+  showInkDialog({
+    seal: TRIGRAM_LABELS[js.trigram],
+    sealTone: awakened ? 'warn' : 'info',
+    title: `【${TRIGRAM_LABELS[js.trigram]}卦玉簡】${js.name}`,
+    bodyHtml: `
+      <div style="margin-bottom:6px;"><strong>基礎效果：</strong>${js.baseDesc}</div>
+      <div style="padding:7px 9px; border-radius:5px; background:${awakened ? '#2b1e10' : '#121314'}; border:1px solid ${awakened ? '#d4af6a' : '#3a352c'}; color:${awakened ? '#ffe7b3' : '#9a9284'};">
+        ${js.awakenDesc}${awakened ? ' <strong style="color:#79c997;">（已生效！）</strong>' : `（需本命【${TRIGRAM_LABELS[js.trigram]}卦】武將裝備）`}
+      </div>
+      <div style="margin-top:6px; font-size:0.72rem; color:#8ec9c2;">天時共鳴：場上為【${TRIGRAM_LABELS[js.trigram]}卦】時，全傷害 +15%、技能耗氣 -15%</div>`,
+    actions: [{ label: '關閉', cls: 'primary' }]
+  });
+}
+
+function openJadeDrawer(uid, slotIdx) {
+  const tpl = DATA_UNITS[uid], prog = saveData.roster[uid];
+  if (!tpl || !prog) return;
+  const curJadeId = (prog.jadeSlots && prog.jadeSlots[slotIdx]) || 'none';
+  document.getElementById('eqDrawerTitle').textContent = `[${tpl.char}] ${tpl.name} — 八卦玉簡寶庫（本命：${TRIGRAM_LABELS[tpl.trigram]}卦）`;
+  document.getElementById('eqDrawerSub').textContent = '點擊玉簡檢視詳解、鑲嵌或一鍵轉移；符合本命卦將觸發★覺醒！';
+
+  const unWrap = document.getElementById('eqDrawerUnequipWrap');
+  if (unWrap) {
+    unWrap.innerHTML = '';
+    if (curJadeId && curJadeId !== 'none' && DATA_JADE_SLIPS[curJadeId]) {
+      const unBtn = document.createElement('button');
+      unBtn.className = 'btn danger sm';
+      unBtn.style.width = '100%';
+      unBtn.textContent = `卸下目前玉簡（${DATA_JADE_SLIPS[curJadeId].name}）`;
+      unBtn.onclick = () => { prog.jadeSlots[slotIdx] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); };
+      unWrap.appendChild(unBtn);
+    }
+  }
+
+  const list = document.getElementById('eqDrawerList');
+  list.innerHTML = '';
+  const allSlips = Object.values(DATA_JADE_SLIPS).sort((a, b) => {
+    const score = j => {
+      const owned = Boolean(saveData.jadeSlips && saveData.jadeSlips[j.id]);
+      const match = j.trigram === tpl.trigram;
+      if (curJadeId === j.id) return 0;
+      if (owned && match) return 1;
+      if (owned) return 2;
+      if (match) return 3;
+      return 4;
+    };
+    return score(a) - score(b);
+  });
+
+  allSlips.forEach(js => {
+    const owned = Boolean(saveData.jadeSlips && saveData.jadeSlips[js.id]);
+    const wearerId = getJadeWearer(js.id);
+    const isWearingHere = (curJadeId === js.id);
+    const isWearingOtherSlot = (wearerId === uid && !isWearingHere);
+    const matchNatal = (js.trigram === tpl.trigram);
+    const tone = matchNatal ? '#ecd29b' : '#8ec9c2';
+
+    let badgeTr = '';
+    let subTxt = '';
+    if (isWearingHere) { badgeTr = '<span class="tile-badge-tr">鑲嵌中</span>'; subTxt = matchNatal ? '★本命覺醒' : '已裝備'; }
+    else if (isWearingOtherSlot) { badgeTr = '<span class="tile-badge-tr cyan">已裝他槽</span>'; subTxt = '點擊檢視'; }
+    else if (owned && wearerId) { badgeTr = '<span class="tile-badge-tr cyan">可轉移</span>'; subTxt = `${DATA_UNITS[wearerId].name}用`; }
+    else if (owned) { badgeTr = matchNatal ? '<span class="tile-badge-tr">★本命</span>' : '<span class="tile-badge-tr green">已持有</span>'; subTxt = js.shortBase; }
+    else { badgeTr = '<span class="tile-badge-tr red">未得</span>'; subTxt = js.sourceLabel.replace('首通', '').replace('掉落', '').replace('獲得', ''); }
+
+    const btn = document.createElement('button');
+    btn.className = `ink-tile ${matchNatal ? 'tier-exclusive' : 'tier-base'}${isWearingHere ? ' tile-equipped' : (!owned ? ' tile-locked' : '')}`;
+    btn.onclick = () => showJadeVaultDetailDialog(uid, slotIdx, js.id);
+    btn.innerHTML = `
+      <span class="tile-badge-tl">${TRIGRAM_LABELS[js.trigram]}卦</span>
+      ${badgeTr}
+      <div class="ink-tile-svg">${getInkSvgIcon('slip', tone)}</div>
+      <div class="ink-tile-name">${js.name}</div>
+      <div class="ink-tile-sub">${subTxt}</div>`;
+    list.appendChild(btn);
+  });
+
+  document.getElementById('equipDrawerModal').classList.add('show');
+}
+
+function showJadeVaultDetailDialog(uid, slotIdx, jadeId) {
+  const js = DATA_JADE_SLIPS[jadeId], tpl = DATA_UNITS[uid], prog = saveData.roster[uid];
+  if (!js || !tpl || !prog) return;
+  const owned = Boolean(saveData.jadeSlips && saveData.jadeSlips[jadeId]);
+  const wearerId = getJadeWearer(jadeId);
+  const curJadeId = (prog.jadeSlots && prog.jadeSlots[slotIdx]) || 'none';
+  const isWearingHere = (curJadeId === jadeId);
+  const matchNatal = (js.trigram === tpl.trigram);
+
+  const actions = [{ label: '返回', cls: '' }];
+  if (isWearingHere) {
+    actions.push({ label: '卸下玉簡', cls: 'danger', onClick: () => { prog.jadeSlots[slotIdx] = 'none'; persistSave(); closeModal('equipDrawerModal'); renderCampScene(); } });
+  } else if (owned && wearerId === uid) {
+    actions.push({ label: '移至此槽位', cls: 'primary', onClick: () => equipJadeTo(uid, slotIdx, jadeId, uid) });
+  } else if (owned && wearerId) {
+    actions.push({ label: `從【${DATA_UNITS[wearerId].name}】轉移`, cls: 'gold', onClick: () => equipJadeTo(uid, slotIdx, jadeId, wearerId) });
+  } else if (owned) {
+    actions.push({ label: '鑲嵌此玉簡', cls: 'primary', onClick: () => equipJadeTo(uid, slotIdx, jadeId, null) });
+  }
+
+  showInkDialog({
+    seal: TRIGRAM_LABELS[js.trigram],
+    sealTone: matchNatal ? 'warn' : 'info',
+    title: `【${TRIGRAM_LABELS[js.trigram]}卦玉簡】${js.name}`,
+    bodyHtml: `
+      <div class="detail-hero-row">
+        <div class="detail-hero-icon" style="border-color:${matchNatal ? '#ecd29b' : '#6ea8a1'};">${getInkSvgIcon('slip', matchNatal ? '#ecd29b' : '#8ec9c2')}</div>
+        <div>
+          <div style="font-weight:900; color:#ecd29b;">${TRIGRAM_LABELS[js.trigram]}卦玉簡${matchNatal ? '・★本命契合' : ''}</div>
+          <div style="font-size:0.72rem; color:#8ec9a4; margin-top:2px;">${owned ? (wearerId ? `目前配戴者：${DATA_UNITS[wearerId].name}` : '倉庫閒置中') : `尚未取得（${js.sourceLabel}）`}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:6px;"><strong>基礎詞條：</strong>${js.baseDesc}</div>
+      <div style="padding:7px 9px; border-radius:5px; background:${matchNatal ? '#2b1e10' : '#121314'}; border:1px solid ${matchNatal ? '#d4af6a' : '#3a352c'}; color:${matchNatal ? '#ffe7b3' : '#9a9284'};">
+        ${js.awakenDesc}
+      </div>
+      <div style="margin-top:6px; font-size:0.72rem; color:#8ec9c2;">天時共鳴：場上天時為【${TRIGRAM_LABELS[js.trigram]}卦】時，全傷害 +15%、技能耗氣 -15%。</div>`,
+    actions
+  });
+}
+
+function equipJadeTo(uid, slotIdx, jadeId, fromUid) {
+  if (fromUid && saveData.roster[fromUid] && Array.isArray(saveData.roster[fromUid].jadeSlots)) {
+    saveData.roster[fromUid].jadeSlots = saveData.roster[fromUid].jadeSlots.map(id => id === jadeId ? 'none' : id);
+  }
+  if (!Array.isArray(saveData.roster[uid].jadeSlots)) saveData.roster[uid].jadeSlots = ['none', 'none', 'none'];
+  saveData.roster[uid].jadeSlots[slotIdx] = jadeId;
+  AudioManager.play('guqin');
+  persistSave();
+  closeModal('equipDrawerModal');
+  renderCampScene();
+}
+
+function upgradeJadeSlot(uid, slotIdx) {
+  const p = saveData.roster[uid];
+  if (!p || (p.wudaoPts || 0) <= 0) return;
+  if (!Array.isArray(p.jadeSlotLvs)) p.jadeSlotLvs = [0, 0, 0];
+  p.wudaoPts--;
+  p.jadeSlotLvs[slotIdx] = (p.jadeSlotLvs[slotIdx] || 0) + 1;
+  AudioManager.play('taiji');
+  persistSave();
+  renderCampScene();
+}
+
 function upgradeTalent(ring, tid) {
   const p = saveData.roster[campTalentCharId];
   if (ring === 'inner' && p.liuyiPts > 0) { p.liuyiPts--; p.inner[tid] = (p.inner[tid]||0) + 1; }
-  if (ring === 'outer' && p.wudaoPts > 0) { p.wudaoPts--; p.outer[tid] = (p.outer[tid]||0) + 1; }
   AudioManager.play('guqin'); persistSave(); renderCampScene();
 }
 function giftSuxiu(bid) { if (saveData.items.suxiu <= 0) return; saveData.items.suxiu--; saveData.bonds[bid] = (saveData.bonds[bid]||1) + 1; AudioManager.play('guqin'); persistSave(); renderCampScene(); }
@@ -6763,7 +7255,7 @@ function launchStage(stageObj) {
   document.getElementById('endOverlay').classList.remove('show');
   switchScene('battle');
   turnNumber = 1; hexFlipRemaining = (saveData.roster.p_kong?.equip?.weapon === 'ex_kong') ? 3 : 2; hexFlipUsedThisTurn = false; forecastVisible = false; xinzhaiDomainTurns = 0;
-  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false; activeUltOrCombo = false; ultAlertPendingIds.clear(); reinforcementWaveIdx = 0;
+  selectedUnitId = null; actionMode = 'move'; activeComboDef = null; pendingMove = null; activeSkillPen40 = false; activeUltOrCombo = false; ultAlertPendingIds.clear(); reinforcementWaveIdx = 0; bossTelegraphs = [];
   reachableTiles.clear(); targetableTiles.clear(); lastPlayerAction = null;
 
   if (activeStage.modifiers && activeStage.modifiers.lockHexagram) {
@@ -6783,7 +7275,9 @@ function launchStage(stageObj) {
   units = []; fallenAllies = [];
   saveData.deployedIds.forEach((id, idx) => {
     const slot = activeStage.playerSlots[idx] || [4, 4];
-    units.push(instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]));
+    const pu = instantiateUnit(DATA_UNITS[id], slot[0], slot[1], id, saveData.roster[id]);
+    if (hasJade(pu, 'jade_houde')) pu.shield = (pu.shield || 0) + Math.round(pu.maxHp * 0.15);
+    units.push(pu);
   });
   const stageScale = activeStage.enemyScale || 1.0;
   activeStage.enemySpawns.forEach((sp, idx) => {
@@ -6822,16 +7316,50 @@ function launchStage(stageObj) {
 
 function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill = null, mirrorTplKey = null) {
   const inner = prog ? prog.inner : { li:0, yue:0, she:0, yu:0, shu:0, num:0 };
-  const outer = prog ? prog.outer : { taiji_amp:0, hex_adapt:0, qi_flow:0 };
   const lvB = prog ? (prog.lv - 1) : 0;
   const isEnemy = tpl.team === 'enemy';
-  const sc = isEnemy ? enemyScale : 1.0;
+  let sc = isEnemy ? enemyScale : 1.0;
+  let lateHpBoost = 1.0, lateDefBoost = 1.0;
+  if (isEnemy && activeStage) {
+    if (activeStage.isTowerFloor) {
+      if (activeStage.floor >= 15) sc = Number((sc * 1.35).toFixed(2));
+      else if (activeStage.floor >= 6) sc = Number((sc * 1.25).toFixed(2));
+    } else if (sc >= 1.48) {
+      // 主線第 4～10 關與隱藏支線敵軍血防補強（保留 1～3 關新手開局平滑度）
+      lateHpBoost = 1.22;
+      lateDefBoost = 1.10;
+    }
+  }
+  // 分配敵將反制特質（主線第 4 關起與天道之塔全層）
+  const enemyTraits = [];
+  if (isEnemy && activeStage && (tpl.enemyType === 'elite' || tpl.enemyType === 'boss')) {
+    const qualify = Boolean(activeStage.isTowerFloor || (activeStage.enemyScale || 1) >= 1.48);
+    if (qualify) {
+      const traitPool = Object.keys(DATA_ENEMY_TRAITS);
+      const idStr = `${activeStage.id}_${customId || tpl.name}`;
+      let h = 0;
+      for (let i = 0; i < idStr.length; i++) h = (h * 31 + idStr.charCodeAt(i)) >>> 0;
+      const cnt = (tpl.enemyType === 'boss' || (activeStage.isTowerFloor && activeStage.floor >= 15)) ? 2 : 1;
+      for (let k = 0; k < cnt; k++) {
+        const pick = traitPool[(h + k) % traitPool.length];
+        if (!enemyTraits.includes(pick)) enemyTraits.push(pick);
+      }
+    }
+  }
   const isDutyBlessed = !isEnemy && Boolean(activeStage && activeStage.dutyUnits && activeStage.dutyUnits.includes(customId || tpl.id));
   const dutyMult = isDutyBlessed ? 1.25 : 1.0;
   const eqB = (!isEnemy && prog) ? getEquipStatBonus(prog.equip) : { atk: 0, crit: 0, qi: 0 };
-  const maxHp = isEnemy ? Math.round(tpl.maxHp * sc) : Math.round((tpl.maxHp + lvB * 10 + (inner.li || 0) * 18) * dutyMult);
+  const activeJades = [];
+  if (!isEnemy && prog && Array.isArray(prog.jadeSlots)) {
+    prog.jadeSlots.forEach((jid, idx) => {
+      if (prog.lv >= JADE_SLOT_UNLOCK_LVS[idx] && jid && jid !== 'none' && DATA_JADE_SLIPS[jid]) activeJades.push(jid);
+    });
+  }
+  const jadeSlotLvs = (!isEnemy && prog && Array.isArray(prog.jadeSlotLvs)) ? [...prog.jadeSlotLvs] : [0, 0, 0];
+  const jb = getUnitJadeSlotBonuses({ jadeSlotLvs });
+  const maxHp = isEnemy ? Math.round(tpl.maxHp * sc * lateHpBoost) : Math.round((tpl.maxHp + lvB * 10 + (inner.li || 0) * 18 + jb.hpBonus) * dutyMult);
   const scaledAtk = isEnemy ? Math.round(tpl.baseAtk * (1 + (sc - 1) * 0.72)) : Math.round((tpl.baseAtk + lvB * 3 + (inner.she || 0) * 5 + eqB.atk) * dutyMult);
-  const scaledDef = isEnemy ? Math.round(tpl.baseDef * (1 + (sc - 1) * 0.58)) : Math.round((tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3) * dutyMult);
+  const scaledDef = isEnemy ? Math.round(tpl.baseDef * (1 + (sc - 1) * 0.58) * lateDefBoost) : Math.round((tpl.baseDef + lvB * 2 + (inner.shu || 0) * 3) * dutyMult);
   const initQi = tpl.team === 'player' ? (isDutyBlessed ? 100 : Math.min(100, 50 + (inner.yue || 0) * 15 + eqB.qi)) : 0;
   const mirrorTpl = mirrorTplKey ? DATA_UNITS[mirrorTplKey] : null;
   return {
@@ -6844,14 +7372,15 @@ function instantiateUnit(tpl, r, c, customId, prog, enemyScale = 1.0, eliteSkill
     baseAtk: scaledAtk,
     baseDef: scaledDef,
     baseMove: tpl.baseMove + (inner.yu || 0),
-    bonusCrit: (inner.num || 0) * 0.08 + eqB.crit, outerTalents: { ...outer },
+    bonusCrit: (inner.num || 0) * 0.08 + eqB.crit, jadeSlips: activeJades, jadeSlotLvs,
     range: tpl.range || (tpl.basicId ? DATA_SKILLS[tpl.basicId].range : 1),
     basicId: tpl.basicId || null, skillId: tpl.skillId || null, ultId: tpl.ultId || null,
     ap: tpl.isTower ? 0 : 1, maxAp: tpl.isTower ? 0 : 1, moved: false, acted: Boolean(tpl.isTower), hasActedThisTurn: false, chunqiuPendingExtra: false, postMoveOnly: false, overwatch: false,
     isTower: Boolean(tpl.isTower),
     stunned: false, sleepTurns: 0, defBreakTurns: 0, burnTurns: 0,
     internalBleedTurns: 0, vulnerableTurns: 0, confusedTurns: 0, frozenTurns: 0,
-    silenceTurns: 0, harshTaxTurns: 0, shakenTurns: 0, doubtTurns: 0,
+    silenceTurns: 0, harshTaxTurns: 0, shakenTurns: 0, doubtTurns: 0, grievousTurns: 0,
+    enemyTraits, cicadaReady: enemyTraits.includes('cicada'), vengefulStacks: 0,
     buffTurns: 0, hasteBuffTurns: 0, yaAtkBonus: 0,
     defStanceTurns: 0, fortressTurns: 0, armorBrokenTurns: 0,
     tauntTurns: 0, dodgeTurns: 0, dodgeCounterTurns: 0, stealthTurns: 0,
@@ -6888,6 +7417,7 @@ function hasZhouJadeBonus(u) {
 function getSkillQiCost(u, baseCost) {
   let c = (getActiveSynergies().waterFire && (u.id === 'p_lu' || u.id === 'p_hui')) ? Math.floor(baseCost * 0.5) : baseCost;
   if (c > 0 && hasActiveAffix('harmony_diff')) c = Math.min(100, Math.round(c * 1.2));
+  if (c > 0 && hasHexResonance(u)) c = Math.max(1, Math.round(c * 0.85));
   return c;
 }
 function getEffectiveStats(u) {
@@ -6910,15 +7440,20 @@ function getEffectiveStats(u) {
   const vigorMoveB = hasActiveAffix('blood_vigor') ? 2 : 0;
   const hastePenM = (u.team === 'player' && hasActiveAffix('no_haste') && (u.moveDistThisTurn || 0) > 2) ? 0.85 : 1;
 
-  const hexT = 1 + ((u.outerTalents && u.outerTalents.hex_adapt) ? u.outerTalents.hex_adapt * 0.1 : 0);
+  const jb = getUnitJadeSlotBonuses(u);
+  const slotStatM = 1 + jb.statPct;
+  const fuqiuDefM = hasJade(u, 'jade_fuqiu') ? 1.15 : 1.0;
+  const shashenAtkM = hasJade(u, 'jade_shashen') ? (1 + Math.min(9, Math.floor(((u.maxHp - u.hp) / Math.max(1, u.maxHp)) * 10)) * 0.06) : 1.0;
+  const minxingBonus = isJadeAwakened(u, 'jade_minxing') ? 1 : 0;
   let mMod = hex.moveMod; if (mMod < 0 && u.equip && u.equip.book === 'qian_zaodu') mMod = 0;
 
-  const atk = Math.round(u.baseAtk * hex.atkMult * hexT * buffM * jadeM * bossM * lockM * yaM * frozenAtkM * doubtM * vigorAtkM * hastePenM);
-  const def = Math.round(u.baseDef * hex.defMult * buffM * jadeM * defB * shakenM * fortM * armorZeroM * doubtM * vigorDefM);
-  let move = Math.max(1, u.baseMove + mMod + vigorMoveB + (u.buffTurns > 0 ? 1 : 0) + (u.hasteBuffTurns > 0 ? 2 : 0));
+  const vengefulM = 1 + ((u.vengefulStacks || 0) * 0.15);
+  const atk = Math.round(u.baseAtk * hex.atkMult * slotStatM * shashenAtkM * vengefulM * buffM * jadeM * bossM * lockM * yaM * frozenAtkM * doubtM * vigorAtkM * hastePenM);
+  const def = Math.round(u.baseDef * hex.defMult * slotStatM * fuqiuDefM * buffM * jadeM * defB * shakenM * fortM * armorZeroM * doubtM * vigorDefM);
+  let move = Math.max(1, u.baseMove + mMod + vigorMoveB + minxingBonus + (u.buffTurns > 0 ? 1 : 0) + (u.hasteBuffTurns > 0 ? 2 : 0));
   if (u.isTower || u.frozenTurns > 0 || u.fortressTurns > 0) move = 0;
   return {
-    atk, def, move, range: u.range + hex.rangeMod + (u.equip && u.equip.weapon === 'ex_zixia' ? 1 : 0),
+    atk, def, move, range: u.range + hex.rangeMod + (u.equip && u.equip.weapon === 'ex_zixia' ? 1 : 0) + minxingBonus,
     atkBuffed: atk > u.baseAtk, defBuffed: def > u.baseDef, defDebuffed: def < u.baseDef,
     moveBuffed: move > u.baseMove, moveDebuffed: move < u.baseMove
   };
@@ -7025,6 +7560,7 @@ function getLockedComboHints(u, readyComboId = null) {
 
 function isEnemyShieldZocTile(r, c, movingUnit) {
   if (!movingUnit || movingUnit.team !== 'player') return false;
+  if (hasJade(movingUnit, 'jade_minxing')) return false;
   return units.some(e =>
     e.team === 'enemy' && e.hp > 0 && e.enemyType === 'soldier' &&
     !e.stunned && e.sleepTurns <= 0 && e.frozenTurns <= 0 &&
@@ -7042,7 +7578,7 @@ function getActiveOverwatchArchers() {
 function computeReachable(unit) {
   const maxMove = getEffectiveStats(unit).move, dist = new Map(), parent = new Map(), pq = [{ r: unit.r, c: unit.c, cost: 0 }];
   dist.set(keyOf(unit.r, unit.c), 0);
-  const ignoreWater = unit.equip && unit.equip.book === 'qian_zaodu';
+  const ignoreWater = (unit.equip && unit.equip.book === 'qian_zaodu') || hasJade(unit, 'jade_shizhe');
   while (pq.length) {
     pq.sort((a, b) => a.cost - b.cost); const cur = pq.shift();
     if (cur.cost > dist.get(keyOf(cur.r, cur.c))) continue;
@@ -7331,7 +7867,7 @@ async function moveUnitSmooth(unit, path, isPlayer) {
     await sleep(145);
 
     // v1.22 敵軍弓手【張弓警戒】攔截射擊
-    if (isPlayer && !unit.isTower && unit.stealthTurns <= 0 && unit.hp > 0) {
+    if (isPlayer && !unit.isTower && unit.stealthTurns <= 0 && unit.hp > 0 && !hasJade(unit, 'jade_minxing')) {
       const owArchers = getActiveOverwatchArchers().filter(a => manhattan(a.r, a.c, unit.r, unit.c) <= getEffectiveStats(a).range);
       for (const archer of owArchers) {
         if (unit.hp <= 0) break;
@@ -7344,8 +7880,12 @@ async function moveUnitSmooth(unit, path, isPlayer) {
           const owDmg = calcDamage(getEffectiveStats(archer).atk * 0.85, getEffectiveStats(unit).def, false, unit);
           await applyDamage(unit, owDmg, false, false, archer);
           if (unit.hp > 0) {
-            unit.defBreakTurns = Math.max(unit.defBreakTurns, 2);
-            spawnFloatText(unit.r, unit.c, '警戒破防！', 'info');
+            if (unit.shield > 0 && isJadeAwakened(unit, 'jade_houde')) {
+              spawnFloatText(unit.r, unit.c, '厚德免破防！', 'taiji');
+            } else {
+              unit.defBreakTurns = Math.max(unit.defBreakTurns, 2);
+              spawnFloatText(unit.r, unit.c, '警戒破防！', 'info');
+            }
           }
           addLog(`⚠ ${archer.name} 觸發【張弓警戒】攔截移動中的 ${unit.name}，造成 ${owDmg} 傷並附加破防！`, 'enemy');
         });
@@ -7376,10 +7916,16 @@ async function moveUnitSmooth(unit, path, isPlayer) {
       return;
     }
     if (unit.postMoveOnly) {
-      // 冉有【策馬奔襲】打帶跑純撤退位移完成
+      // 打帶跑純撤退位移完成（含《雷厲風行》本命震覺醒）
       unit.postMoveOnly = false;
       pendingMove = null;
       showCmdPopover = false;
+      if (isJadeAwakened(unit, 'jade_leili')) {
+        unit.dodgeTurns = Math.max(unit.dodgeTurns, 1);
+        unit.leiliDodgeBoost = true;
+        unit.qi = Math.min(100, unit.qi + 15);
+        spawnFloatText(unit.r, unit.c, '雷厲閃避+35%/+15氣', 'taiji');
+      }
     } else {
       // v1.22 1 AP ＝ 1 次移動 ＋ 1 次行動：移動不消耗 AP，走完直接彈出指令窗
       showCmdPopover = true;
@@ -7403,12 +7949,13 @@ function countUnitDebuffs(u) {
   if (u.silenceTurns > 0) n++;
   if (u.shakenTurns > 0) n++;
   if (u.doubtTurns > 0) n++;
+  if (u.grievousTurns > 0) n++;
   return n;
 }
 function clearUnitDebuffs(u) {
   u.stunned = false; u.sleepTurns = 0; u.defBreakTurns = 0; u.burnTurns = 0;
   u.internalBleedTurns = 0; u.vulnerableTurns = 0; u.confusedTurns = 0; u.frozenTurns = 0;
-  u.silenceTurns = 0; u.shakenTurns = 0; u.doubtTurns = 0;
+  u.silenceTurns = 0; u.shakenTurns = 0; u.doubtTurns = 0; u.grievousTurns = 0;
 }
 
 
@@ -7561,7 +8108,7 @@ async function executePlayerCounter(defender, attacker, choice) {
 
   if (choice === 'basic') {
     const sk = DATA_SKILLS[defender.basicId]; if (!sk) return;
-    defender.qi = Math.min(100, defender.qi + 25 + (hex.bonusQi || 0) + ((defender.outerTalents.qi_flow || 0) * 8));
+    defender.qi = Math.min(100, defender.qi + 25 + (hex.bonusQi || 0));
     spawnFloatText(defender.r, defender.c, '⚔ 迎擊反打！', 'taiji');
     await playAnimWithHitSync(defender, 'attack', async () => {
       await playLunge(defender, attacker.r, attacker.c);
@@ -7569,18 +8116,24 @@ async function executePlayerCounter(defender, attacker, choice) {
       const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
       let pen = (syn.earthSky && defender.id === 'p_kong') ? 0.30 : 0;
       if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.45);
+      if (hasJade(defender, 'jade_jianyi') && attacker.hp >= attacker.maxHp * 0.95) pen = Math.max(pen, 0.30);
+      if (isJadeAwakened(defender, 'jade_shashen') && defender.hp < defender.maxHp * 0.40) pen = Math.max(pen, 0.35);
       let mult = sk.mult || 1.0;
+      if (hasJade(defender, 'jade_budong')) mult *= 1.40;
       if (sk.type === 'yan_purify' && attacker.enemyType === 'boss') mult *= 2.0;
       if (sk.type === 'taishan_wail') {
         const stacks = (attacker.buffTurns > 0 ? 1 : 0) + (attacker.shield > 0 ? 1 : 0) + countUnitDebuffs(attacker);
         mult *= (1 + stacks * 0.25);
       }
-      const critChance = hex.critRate + (defender.bonusCrit || 0) + (sk.extraCrit || 0) + (defender.hasteBuffTurns > 0 ? 0.2 : 0);
-      const isCrit = Math.random() < critChance;
+      const wushiBonus = (hasJade(defender, 'jade_wushi') && (attacker.hp < attacker.maxHp || countUnitDebuffs(attacker) > 0)) ? 0.25 : 0;
+      const critChance = hex.critRate + (defender.bonusCrit || 0) + (sk.extraCrit || 0) + (defender.hasteBuffTurns > 0 ? 0.2 : 0) + wushiBonus;
+      const forceCrit = Boolean(isJadeAwakened(defender, 'jade_budong') || (hasJade(defender, 'jade_jianyi') && attacker.hp >= attacker.maxHp * 0.95));
+      const isCrit = forceCrit || (Math.random() < critChance);
       let dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(attacker).def * (1 - pen), isCrit, attacker);
       if (hasActiveAffix('no_impose')) dmg = Math.round(dmg * 1.3);
       await playAttackVfx(defender, attacker); if (isCrit) triggerHitstop(60);
-      await applyDamage(attacker, dmg, isCrit, false, null);
+      await applyDamage(attacker, dmg, isCrit, false, defender);
+      if (hasJade(defender, 'jade_budong')) defender.defStanceTurns = Math.max(defender.defStanceTurns, 1);
       if (hex.burnOnHit && attacker.hp > 0) attacker.burnTurns = 2;
 
       if (sk.type === 'kong_adaptive' && attacker.hp > 0) {
@@ -7663,12 +8216,20 @@ async function executeEnemyCounter(enemy, playerUnit) {
   await playAnimWithHitSync(enemy, 'attack', async () => {
     await playLunge(enemy, playerUnit.r, playerUnit.c);
     await playAttackVfx(enemy, playerUnit);
-    let dmg = calcDamage(eStats.atk, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
+    const cmMult = hasEnemyTrait(enemy, 'counter_master') ? 1.45 : 1.0;
+    let dmg = calcDamage(eStats.atk * cmMult, getEffectiveStats(playerUnit).def, isCrit, playerUnit);
     if (hasActiveAffix('no_impose')) dmg = Math.round(dmg * 1.3);
-    await applyDamage(playerUnit, dmg, isCrit, false, null);
-    if (playerUnit.hp > 0 && enemy.enemyType === 'strategist') {
-      playerUnit.defBreakTurns = Math.max(playerUnit.defBreakTurns, 2);
-      spawnFloatText(playerUnit.r, playerUnit.c, '破防！', 'info');
+    if (cmMult > 1) spawnFloatText(enemy.r, enemy.c, '以逸待勞！', 'dmg');
+    await applyDamage(playerUnit, dmg, isCrit, false, enemy);
+    if (playerUnit.hp > 0 && (enemy.enemyType === 'strategist' || hasEnemyTrait(enemy, 'counter_master'))) {
+      if (!(playerUnit.shield > 0 && isJadeAwakened(playerUnit, 'jade_houde'))) {
+        playerUnit.defBreakTurns = Math.max(playerUnit.defBreakTurns, 2);
+        spawnFloatText(playerUnit.r, playerUnit.c, '破防！', 'info');
+      }
+    }
+    if (playerUnit.hp > 0 && enemy.enemyType === 'archer') {
+      playerUnit.grievousTurns = Math.max(playerUnit.grievousTurns, 2);
+      spawnFloatText(playerUnit.r, playerUnit.c, '毒矢重傷！', 'info');
     }
     if (playerUnit.hp > 0 && hasActiveAffix('inner_trouble') && Math.random() < 0.5) {
       if (Math.random() < 0.5) { playerUnit.internalBleedTurns = Math.max(playerUnit.internalBleedTurns, 2); spawnFloatText(playerUnit.r, playerUnit.c, '蕭牆・內傷', 'info'); }
@@ -7696,6 +8257,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
   let grantPostMove = false;
 
   try {
+  activeActionMode = mode;
+  unit._leiliKillTrigger = false;
   activeSkillPen40 = Boolean((mode === 'skill' || mode === 'ult') && unit.equip && unit.equip.weapon === 'chunqiu_pen');
   activeUltOrCombo = (mode === 'ult' || mode === 'combo');
   ultAlertPendingIds.clear();
@@ -7708,13 +8271,15 @@ async function executePlayerAction(unit, mode, tr, tc) {
     if (!enemy) return;
     primaryEnemy = enemy;
     const sk = DATA_SKILLS[unit.basicId];
-    unit.qi = Math.min(100, unit.qi + 25 + (hex.bonusQi || 0) + ((unit.outerTalents.qi_flow || 0) * 8));
+    unit.qi = Math.min(100, unit.qi + 25 + (hex.bonusQi || 0));
     await playAnimWithHitSync(unit, 'attack', async () => {
       await playLunge(unit, enemy.r, enemy.c);
       const effYY = getEffectiveYinYang(unit);
       const elemM = Math.max(effYY.includes('陰') ? hex.yinBoost : 1, effYY.includes('陽') ? hex.yangBoost : 1);
       let pen = (syn.earthSky && unit.id === 'p_kong') ? 0.30 : 0;
       if (sk.type === 'armor_pierce') pen = Math.max(pen, 0.45);
+      if (hasJade(unit, 'jade_jianyi') && enemy.hp >= enemy.maxHp * 0.95) pen = Math.max(pen, 0.30);
+      if (isJadeAwakened(unit, 'jade_shashen') && unit.hp < unit.maxHp * 0.40) pen = Math.max(pen, 0.35);
       let mult = sk.mult || 1.0;
       if (sk.type === 'zhong_still' && !unit.moved) mult *= (unit.equip && unit.equip.weapon === 'ex_zhonggong' ? 1.75 : 1.5);
       if (unit.stealthTurns > 0 && unit.equip && unit.equip.weapon === 'ex_nanzi') mult *= 1.4;
@@ -7723,13 +8288,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const stacks = (enemy.buffTurns > 0 ? 1 : 0) + (enemy.shield > 0 ? 1 : 0) + countUnitDebuffs(enemy);
         mult *= (1 + stacks * 0.25);
       }
-      const critChance = hex.critRate + (unit.bonusCrit || 0) + (sk.extraCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0);
-      const forceCrit = Boolean((unit.equip && unit.equip.weapon === 'ex_lu' && sk.type === 'pierce') || (unit.equip && unit.equip.weapon === 'ex_zixia' && enemy.vulnerableTurns > 0));
+      const wushiBonus = (hasJade(unit, 'jade_wushi') && (enemy.hp < enemy.maxHp || countUnitDebuffs(enemy) > 0)) ? 0.25 : 0;
+      const critChance = hex.critRate + (unit.bonusCrit || 0) + (sk.extraCrit || 0) + (unit.hasteBuffTurns > 0 ? 0.2 : 0) + wushiBonus;
+      const forceCrit = Boolean((unit.equip && unit.equip.weapon === 'ex_lu' && sk.type === 'pierce') || (unit.equip && unit.equip.weapon === 'ex_zixia' && enemy.vulnerableTurns > 0) || (hasJade(unit, 'jade_jianyi') && enemy.hp >= enemy.maxHp * 0.95));
       const isCrit = forceCrit || (Math.random() < critChance);
       const dmg = calcDamage(stats.atk * mult * elemM, getEffectiveStats(enemy).def * (1 - pen), isCrit, enemy);
       await playAttackVfx(unit, enemy); if (isCrit) triggerHitstop(60);
       await applyDamage(enemy, dmg, isCrit, false, unit);
-      if (hex.burnOnHit && enemy.hp > 0) enemy.burnTurns = 2;
+      if ((hex.burnOnHit || isJadeAwakened(unit, 'jade_wengu')) && enemy.hp > 0) enemy.burnTurns = Math.max(enemy.burnTurns, 2);
 
       // 各武將普攻專屬效果
       if (sk.type === 'kong_adaptive' && enemy.hp > 0) {
@@ -7763,7 +8329,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
       if (sk.type === 'ziyou_song') {
         const nearAllies = units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(a.r, a.c, enemy.r, enemy.c) <= 2).sort((a, b) => (a.hp / a.maxHp) - (b.hp / b.maxHp));
         const targetsToHeal = (unit.equip && unit.equip.weapon === 'ex_ziyou') ? nearAllies : nearAllies.slice(0, 1);
-        targetsToHeal.forEach(a => { const h = Math.min(a.maxHp - a.hp, Math.round(18 * hex.healMult)); a.hp += h; spawnFloatText(a.r, a.c, `弦歌+${h}`, 'heal'); });
+        targetsToHeal.forEach(a => { const h = applyHealAmount(a, Math.round(18 * hex.healMult)); spawnFloatText(a.r, a.c, `弦歌+${h}`, 'heal'); });
       }
       if (sk.type === 'nanzi_chime' && enemy.hp > 0) { enemy.defBreakTurns = 2; spawnFloatText(enemy.r, enemy.c, '心神失守', 'info'); }
       if (sk.type === 'agu_dodge') { unit.dodgeTurns = 1; spawnFloatText(unit.r, unit.c, '閃避+30%', 'info'); }
@@ -7794,12 +8360,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
       const skVfxCol = ['aoe_buff','heal_ap_aoe','wucheng_buff','mother_shield'].includes(sk.type) ? '#79c997'
         : (sk.type === 'stealth_charm' ? '#e0827c' : (sk.type === 'harsh_tax_curse' ? '#c83e37' : '#ecd29b'));
       spawnVfx(tr, tc, false, sk.name + '！', skVfxHint, skVfxCol);
+      const qiaoSh = hasJade(unit, 'jade_qiaoyan') ? (isJadeAwakened(unit, 'jade_qiaoyan') ? 55 : 30) : 0;
       if (sk.type === 'aoe_buff') {
         AudioManager.play('guqin');
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= sk.range).forEach(a => {
           clearUnitDebuffs(a); a.buffTurns = 2;
-          const h = Math.min(a.maxHp - a.hp, Math.round(20 * hex.healMult)); a.hp += h;
-          spawnFloatText(a.r, a.c, `受教+${h}`, 'heal');
+          if (qiaoSh > 0) a.shield = (a.shield || 0) + qiaoSh;
+          const h = applyHealAmount(a, Math.round(20 * hex.healMult));
+          spawnFloatText(a.r, a.c, `受教+${h}${qiaoSh ? `/盾+${qiaoSh}` : ''}`, 'heal');
         });
       } else if (sk.type === 'heal_ap_aoe') {
         AudioManager.play('guqin');
@@ -7807,8 +8375,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
         const huiEx = Boolean(unit.equip && unit.equip.weapon === 'ex_hui');
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(tr, tc, a.r, a.c) <= 1).forEach(a => {
           if (huiEx) clearUnitDebuffs(a);
-          const h = Math.min(a.maxHp - a.hp, Math.round(45 * (huiEx ? 1.35 : 1) * multStarve * hex.yinBoost * hex.healMult));
-          a.hp += h; a.ap = Math.min(2, a.ap + 1); a.acted = false; a.moved = false; a.postMoveOnly = false;
+          if (qiaoSh > 0) a.shield = (a.shield || 0) + qiaoSh;
+          const h = applyHealAmount(a, Math.round(45 * (huiEx ? 1.35 : 1) * multStarve * hex.yinBoost * hex.healMult)); a.ap = Math.min(2, a.ap + 1); a.acted = false; a.moved = false; a.postMoveOnly = false;
           spawnFloatText(a.r, a.c, `${huiEx ? '淨化' : ''}+${h}HP/+1AP(共${a.ap})`, 'heal');
         });
       } else if (sk.type === 'charge_stun') {
@@ -7886,7 +8454,8 @@ async function executePlayerAction(unit, mode, tr, tc) {
         units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(unit.r, unit.c, a.r, a.c) <= 3).forEach(a => {
           a.hasteBuffTurns = 2; a.confusedTurns = 0; a.stunned = false;
           if (ziyouEx) a.qi = Math.min(100, a.qi + 15);
-          spawnFloatText(a.r, a.c, ziyouEx ? '移+2 暴+20% +15氣' : '移+2 暴+20%', 'heal');
+          if (qiaoSh > 0) a.shield = (a.shield || 0) + qiaoSh;
+          spawnFloatText(a.r, a.c, `${ziyouEx ? '移+2 暴+20% +15氣' : '移+2 暴+20%'}${qiaoSh ? ` 盾+${qiaoSh}` : ''}`, 'heal');
         });
       } else if (sk.type === 'mark_vuln') {
         const e = getUnitAt(tr, tc); if (!e) return; primaryEnemy = e; AudioManager.play('bell');
@@ -7923,7 +8492,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
         spawnFloatText(unit.r, unit.c, '80%閃避反擊！', 'taiji');
       } else if (sk.type === 'mother_shield') {
         const a = getUnitAt(tr, tc); if (!a) return; AudioManager.play('guqin');
-        const shAmt = (unit.equip && unit.equip.weapon === 'ex_yanzhengzai') ? 95 : 65;
+        const shAmt = ((unit.equip && unit.equip.weapon === 'ex_yanzhengzai') ? 95 : 65) + qiaoSh;
         clearUnitDebuffs(a); a.shield = (a.shield || 0) + shAmt;
         spawnFloatText(a.r, a.c, `禮容護盾+${shAmt}`, 'heal');
       }
@@ -8380,6 +8949,14 @@ async function executePlayerAction(unit, mode, tr, tc) {
   if ((mode === 'basic' || mode === 'skill') && primaryEnemy && primaryEnemy.hp > 0 && primaryEnemy.team === 'enemy' && unit.hp > 0) {
     await executeEnemyCounter(primaryEnemy, unit);
   }
+  if ((mode === 'ult' || mode === 'combo') && unit.hp > 0 && hasJade(unit, 'jade_wengu')) {
+    unit.qi = Math.min(100, unit.qi + 30);
+    spawnFloatText(unit.r, unit.c, '溫故知新+30氣', 'taiji');
+  }
+  if (unit._leiliKillTrigger) {
+    grantPostMove = true;
+    unit._leiliKillTrigger = false;
+  }
   unit.hasActedThisTurn = true;
   unit.ap = Math.max(0, unit.ap - 1);
   if (unit.chunqiuPendingExtra && unit.hp > 0) {
@@ -8415,6 +8992,7 @@ async function executePlayerAction(unit, mode, tr, tc) {
     addLog(`⚠ 行動執行異常已自動恢復：${err?.message || err}`, 'enemy');
   } finally {
     actionLockBusy = false;
+    activeActionMode = 'basic';
     activeSkillPen40 = false;
     activeUltOrCombo = false;
     ultAlertPendingIds.clear();
@@ -8446,14 +9024,37 @@ async function checkTaijiCombo(currUnit, targetEnemy) {
     battleGoalState.taijiCount++;
     AudioManager.play('taiji'); triggerHitstop(60);
     const curAtk = getEffectiveStats(currUnit).atk;
-    const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + (hasActiveAffix('harmony_diff') ? 45 : 0) + ((prev.outerTalents.taiji_amp || 0) + (currUnit.outerTalents.taiji_amp || 0)) * 18;
+    const dmg = Math.round(22 + curAtk * 0.45) + (getHex().taijiBonus || 0) + (hasActiveAffix('harmony_diff') ? 45 : 0);
     const victim = (targetEnemy && targetEnemy.hp > 0) ? targetEnemy : units.filter(e => e.team === 'enemy' && e.hp > 0)[0];
-    if (victim) { spawnVfx(victim.r, victim.c, true, '太極合擊！', 'taiji', '#ecd29b'); triggerCameraShake(4, 180); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji'); await applyDamage(victim, dmg, false, true, null); }
+    const hasHeer = hasJade(prev, 'jade_heer') || hasJade(currUnit, 'jade_heer');
+    const awakHeer = isJadeAwakened(prev, 'jade_heer') || isJadeAwakened(currUnit, 'jade_heer');
+    if (victim) {
+      spawnVfx(victim.r, victim.c, true, '太極合擊！', 'taiji', '#ecd29b'); triggerCameraShake(4, 180); spawnFloatText(victim.r, victim.c, `太極 +${dmg}`, 'taiji');
+      await applyDamage(victim, dmg, false, true, currUnit);
+      if (hasHeer) {
+        const splashTargets = units.filter(e => e.team === 'enemy' && e.hp > 0 && e.id !== victim.id && manhattan(victim.r, victim.c, e.r, e.c) <= 1);
+        for (const se of splashTargets) {
+          spawnFloatText(se.r, se.c, `和而不同-${dmg}`, 'taiji');
+          await applyDamage(se, dmg, false, true, currUnit);
+        }
+      }
+    }
     [prev, currUnit].forEach(u => { u.hp = Math.min(u.maxHp, u.hp + 12); u.qi = Math.min(100, u.qi + 15); });
+    if (awakHeer) {
+      units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower).forEach(a => {
+        a.qi = Math.min(100, a.qi + 12);
+        spawnFloatText(a.r, a.c, '和而不同+12氣', 'info');
+      });
+    }
+    if (hasJade(prev, 'jade_fuqiu') || hasJade(currUnit, 'jade_fuqiu')) {
+      saveData.gold += 100; persistSave();
+      spawnFloatText(currUnit.r, currUnit.c, '富而可求+100兩', 'taiji');
+    }
     addLog(`★ 【太極合擊】追加 ${dmg} 真傷並回血+12、回氣+15！`, 'taiji');
   }
 }
 
+let activeActionMode = 'basic';
 let activeSkillPen40 = false;
 let activeUltOrCombo = false;
 let ultAlertPendingIds = new Set();
@@ -8570,6 +9171,12 @@ async function checkAndSpawnReinforcements(forceTrigger = false, fromEnemyTurn =
     renderUnits();
     await sleep(145);
   }
+  // 《止於至善》本命艮覺醒：敵方伏兵現身時立即 +30 氣與 40 護盾
+  units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower && isJadeAwakened(p, 'jade_zhishan')).forEach(p => {
+    p.qi = Math.min(100, p.qi + 30);
+    p.shield = (p.shield || 0) + 40;
+    spawnFloatText(p.r, p.c, '止於至善+30氣/40盾', 'taiji');
+  });
   renderGrid();
   renderBattleTop();
   addLog(`⚠ 【第 ${waveNum}/${totalWaves} 波伏兵增援】${spawned.map(u => u.name).join('、')} 殺出（${fromEnemyTurn ? '敵回合奇襲立即行動' : '附百分比護盾＋首回合奇襲減傷50%'}）！`, 'enemy');
@@ -8612,18 +9219,21 @@ async function playLunge(attacker, tr, tc) {
 async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null) {
   if (target.invincibleTurns > 0) { spawnFloatText(target.r, target.c, '無敵！', 'taiji'); return; }
 
-  // 阿谷處女閃避與機鋒反擊判定（易傷狀態下無法閃避）
+  // 阿谷處女／《雷厲風行》閃避與機鋒反擊判定（易傷狀態下無法閃避）
   if (!isTrue && attacker && target.vulnerableTurns <= 0) {
     const aguPassive = (target.equip && target.equip.weapon === 'ex_agu') ? 0.20 : 0;
-    const dodgeChance = Math.min(0.95, (target.dodgeCounterTurns > 0 ? 0.80 : (target.dodgeTurns > 0 ? 0.30 : 0)) + aguPassive);
+    const leiliDodge = (target.dodgeTurns > 0 && target.leiliDodgeBoost) ? 0.35 : 0;
+    const dodgeChance = Math.min(0.95, (target.dodgeCounterTurns > 0 ? 0.80 : (target.dodgeTurns > 0 ? Math.max(0.30, leiliDodge) : 0)) + aguPassive);
     if (dodgeChance > 0 && Math.random() < dodgeChance) {
       spawnFloatText(target.r, target.c, '閃避！', 'taiji');
       if (target.dodgeCounterTurns > 0 && attacker.hp > 0 && attacker.team !== target.team) {
-        const aguMult = (target.equip && target.equip.weapon === 'ex_agu') ? 1.6 : 1.2;
-        const cd = calcDamage(getEffectiveStats(target).atk * aguMult, getEffectiveStats(attacker).def, false, attacker);
+        const aguMult = ((target.equip && target.equip.weapon === 'ex_agu') ? 1.6 : 1.2) * (hasJade(target, 'jade_budong') ? 1.4 : 1.0);
+        const bdCrit = isJadeAwakened(target, 'jade_budong');
+        const cd = calcDamage(getEffectiveStats(target).atk * aguMult, getEffectiveStats(attacker).def, bdCrit, attacker);
         spawnFloatText(target.r, target.c, '機鋒反擊！', 'taiji');
         await playLunge(target, attacker.r, attacker.c);
-        await applyDamage(attacker, cd, false, false, null);
+        await applyDamage(attacker, cd, bdCrit, false, target);
+        if (hasJade(target, 'jade_budong')) target.defStanceTurns = Math.max(target.defStanceTurns, 1);
       }
       return;
     }
@@ -8631,14 +9241,58 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
 
   let finalDmg = dmg, woke = false;
   if (target.sleepTurns > 0) { target.sleepTurns = 0; finalDmg = Math.round(dmg * 1.5); woke = true; }
+  const targetHadDebuffs = countUnitDebuffs(target) > 0;
+  // v1.27 八卦玉簡星盤：攻防倍率與天時共鳴
+  if (attacker && attacker.team === 'player') {
+    let jadeDmgMult = 1.0;
+    const ajb = getUnitJadeSlotBonuses(attacker);
+    if (ajb.dmgPct > 0) jadeDmgMult += ajb.dmgPct;
+    if (hasHexResonance(attacker)) jadeDmgMult += 0.15;
+    if (hasJade(attacker, 'jade_buqi') && targetHadDebuffs) jadeDmgMult += 0.25;
+    if (isJadeAwakened(attacker, 'jade_wengu') && target.burnTurns > 0) jadeDmgMult += 0.20;
+    if (hasJade(attacker, 'jade_xiannan') && (attacker.moveDistThisTurn || 0) > 0) {
+      jadeDmgMult += Math.min(0.40, (attacker.moveDistThisTurn || 0) * 0.08);
+    }
+    if (hasJade(attacker, 'jade_zhishan') && !attacker.moved) jadeDmgMult += 0.25;
+    if (jadeDmgMult !== 1.0) finalDmg = Math.round(finalDmg * jadeDmgMult);
+    if (isCrit && hasJade(attacker, 'jade_wushi') && (target.hp < target.maxHp || targetHadDebuffs)) {
+      finalDmg = Math.round(finalDmg * 1.2); // 1.5x -> 1.8x 暴傷
+    }
+  }
+  if (target.team === 'player' && hasJade(target, 'jade_zhishan') && !target.moved) {
+    finalDmg = Math.max(1, Math.round(finalDmg * 0.8));
+  }
   // 【太初・獲麟神劍】所有攻擊額外追加 35% 無視防禦真實傷害
   if (!isTrue && attacker && attacker.equip && attacker.equip.weapon === 'tai_chu_sword') {
     finalDmg += Math.max(12, Math.round(finalDmg * 0.35));
+  }
+  // v1.28 敵將特質【金蟬護體】：每回合免疫首次承受的單體傷害（強制降至 1 點）
+  if (target.team === 'enemy' && target.cicadaReady && !isTrue && attacker && attacker.team === 'player' && !activeUltOrCombo) {
+    target.cicadaReady = false;
+    finalDmg = 1;
+    spawnFloatText(target.r, target.c, '金蟬護體！', 'taiji');
+    addLog(`⚠ ${target.name} 觸發【金蟬護體】，首次單體傷害降至 1 點！`, 'enemy');
   }
   // v1.26 伏兵【奇襲減傷】：進場當回合尚未行動前承受所有傷害減免 50%
   if (target.team === 'enemy' && target.ambushGuard) {
     finalDmg = Math.max(1, Math.round(finalDmg * 0.5));
     spawnFloatText(target.r, target.c, '奇襲減傷50%', 'info');
+  }
+  // v1.28 敵軍盾兵【鐵壁援護】：相鄰存活未受控盾兵自動替友軍分攤 35% 傷害
+  if (target.team === 'enemy' && target.enemyType !== 'soldier' && !isTrue && !target._shieldShared && finalDmg > 5) {
+    const guardSoldier = units.find(s =>
+      s.team === 'enemy' && s.hp > 0 && s.enemyType === 'soldier' && s.id !== target.id &&
+      !s.stunned && s.sleepTurns <= 0 && s.frozenTurns <= 0 &&
+      manhattan(s.r, s.c, target.r, target.c) === 1
+    );
+    if (guardSoldier) {
+      const share = Math.round(finalDmg * 0.35);
+      finalDmg -= share;
+      guardSoldier._shieldShared = true;
+      spawnFloatText(guardSoldier.r, guardSoldier.c, `鐵壁分傷-${share}`, 'info');
+      await applyDamage(guardSoldier, share, false, true, null);
+      guardSoldier._shieldShared = false;
+    }
   }
   // v1.19 菁英／首領【絕學警覺】：同回合後續大絕／合體技傷害減免 50%
   if (activeUltOrCombo && target.team === 'enemy' && (target.enemyType === 'elite' || target.enemyType === 'boss')) {
@@ -8663,13 +9317,34 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     }
   }
 
-  // 護盾吸收（仲弓反傷盾／顏徵在護盾／子貢護盾）
-  if (target.shield > 0 && finalDmg > 0) {
-    const absorb = Math.min(target.shield, finalDmg);
-    target.shield -= absorb; finalDmg -= absorb;
-    spawnFloatText(target.r, target.c, `盾抵${absorb}`, 'info');
+  // 《無適無莫》本命巽覺醒：暴擊奪取目標 20% 當前護盾
+  if (isCrit && attacker && attacker.team === 'player' && isJadeAwakened(attacker, 'jade_wushi') && target.shield > 0) {
+    const steal = Math.max(8, Math.round(target.shield * 0.2));
+    target.shield = Math.max(0, target.shield - steal);
+    attacker.shield = (attacker.shield || 0) + steal;
+    spawnFloatText(attacker.r, attacker.c, `奪盾+${steal}`, 'taiji');
+  }
+  // 《先難後獲》本命震覺醒：移動 ≥ 3 格後出招直接無視護盾
+  const bypassShield = Boolean(attacker && attacker.team === 'player' && isJadeAwakened(attacker, 'jade_xiannan') && (attacker.moveDistThisTurn || 0) >= 3);
+  if (bypassShield && target.shield > 0) spawnFloatText(target.r, target.c, '先難破盾！', 'taiji');
+  // 護盾吸收（仲弓反傷盾／顏徵在護盾／子貢護盾；輕騎破盾突襲對盾 2 倍傷害）
+  if (!bypassShield && target.shield > 0 && finalDmg > 0) {
+    const shBreak2x = Boolean(attacker && attacker.team === 'enemy' && attacker._shieldBreak2x);
+    let absorbedForThorns = 0;
+    if (shBreak2x) {
+      const shLost = Math.min(target.shield, finalDmg * 2);
+      target.shield -= shLost;
+      absorbedForThorns = Math.ceil(shLost / 2);
+      finalDmg = Math.max(0, finalDmg - absorbedForThorns);
+      spawnFloatText(target.r, target.c, `破盾-${shLost}！`, 'dmg');
+    } else {
+      const absorb = Math.min(target.shield, finalDmg);
+      target.shield -= absorb; finalDmg -= absorb;
+      absorbedForThorns = absorb;
+      spawnFloatText(target.r, target.c, `盾抵${absorb}`, 'info');
+    }
     if (target.thornsShield > 0 && attacker && attacker.hp > 0 && attacker.team !== target.team) {
-      const refDmg = Math.max(10, Math.round(absorb * 0.7));
+      const refDmg = Math.max(10, Math.round(absorbedForThorns * 0.7));
       spawnFloatText(attacker.r, attacker.c, `反傷-${refDmg}`, 'dmg');
       attacker.hp = Math.max(0, attacker.hp - refDmg);
       if (attacker.hp <= 0) { attacker.animState = 'die'; attacker.animFrame = 0; attacker.animTimer = 0; spawnFloatText(attacker.r, attacker.c, '反傷擊破！', 'info'); onUnitKilledForGoals(attacker); }
@@ -8678,7 +9353,20 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
   }
 
   AudioManager.play('slash'); target.animState = 'hurt'; target.animFrame = 0;
-  if (target.team === 'player') target.qi = Math.min(100, target.qi + 15 + ((target.outerTalents.qi_flow || 0) * 8));
+  if (target.team === 'player') target.qi = Math.min(100, target.qi + 15);
+  // 《逝者如斯》20% 吸血（本命坎覺醒：溢出轉護盾上限 35% HP）
+  if (attacker && attacker.team === 'player' && attacker.hp > 0 && finalDmg > 0 && hasJade(attacker, 'jade_shizhe')) {
+    const drain = Math.max(4, Math.round(finalDmg * 0.20 * (attacker.grievousTurns > 0 ? 0.5 : 1)));
+    const missing = attacker.maxHp - attacker.hp;
+    const realHeal = Math.min(missing, drain);
+    attacker.hp += realHeal;
+    const overflow = drain - realHeal;
+    if (overflow > 0 && isJadeAwakened(attacker, 'jade_shizhe')) {
+      const cap = Math.round(attacker.maxHp * 0.35);
+      attacker.shield = Math.min(cap, (attacker.shield || 0) + overflow);
+    }
+    if (realHeal > 0) spawnFloatText(attacker.r, attacker.c, `吸血+${realHeal}`, 'heal');
+  }
 
   const nextHp = target.hp - finalDmg;
   const bossHalfCap = (target.enemyType === 'boss' && target.phase === 1) ? Math.ceil(target.maxHp * 0.5) : null;
@@ -8713,13 +9401,15 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     nearPlayers.forEach(p => {
       p.buffTurns = 0; p.hasteBuffTurns = 0; p.yaAtkBonus = 0;
       p.defStanceTurns = 0; p.dodgeTurns = 0; p.dodgeCounterTurns = 0; p.invincibleTurns = 0;
-      const dr = Math.sign(p.r - target.r), dc = Math.sign(p.c - target.c);
-      const tryMoves = [];
-      if (dr !== 0 || dc !== 0) tryMoves.push([p.r + dr, p.c + dc]);
-      if (dr !== 0 && dc !== 0) { tryMoves.push([p.r + dr, p.c], [p.r, p.c + dc]); }
-      for (const [nr, nc] of tryMoves) {
-        if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1 && grid[nr][nc] !== 3 && !getUnitAt(nr, nc)) {
-          p.r = nr; p.c = nc; break;
+      if (!(p.shield > 0 && isJadeAwakened(p, 'jade_houde'))) {
+        const dr = Math.sign(p.r - target.r), dc = Math.sign(p.c - target.c);
+        const tryMoves = [];
+        if (dr !== 0 || dc !== 0) tryMoves.push([p.r + dr, p.c + dc]);
+        if (dr !== 0 && dc !== 0) { tryMoves.push([p.r + dr, p.c], [p.r, p.c + dc]); }
+        for (const [nr, nc] of tryMoves) {
+          if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1 && grid[nr][nc] !== 3 && !getUnitAt(nr, nc)) {
+            p.r = nr; p.c = nc; break;
+          }
         }
       }
       spawnFloatText(p.r, p.c, '震退＋消益！', 'dmg');
@@ -8729,7 +9419,32 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     await sleep(240);
     const stMid = DATA_STORIES[activeStage?.id]?.midBattle?.bossPhase2;
     if (stMid) await StoryEngine.play(stMid, `${activeStage.id}_bossP2`, false);
+    if (shouldBossHexSteal()) {
+      await bossFlipHexagram(target);
+    }
     await checkAndSpawnReinforcements(true);
+  }
+  // v1.27 玉簡命中附加狀態（《君子不器》《溫故知新》覺醒《巧言令色》）
+  if (target.hp > 0 && target.team === 'enemy' && attacker && attacker.team === 'player') {
+    if (hasJade(attacker, 'jade_buqi') && !targetHadDebuffs) {
+      target.defBreakTurns = Math.max(target.defBreakTurns, 2);
+      if (isJadeAwakened(attacker, 'jade_buqi')) {
+        target.vulnerableTurns = Math.max(target.vulnerableTurns, 2);
+        spawnFloatText(target.r, target.c, '不器・破防+易傷', 'taiji');
+      } else {
+        spawnFloatText(target.r, target.c, '不器・破防', 'info');
+      }
+    }
+    if ((activeActionMode === 'basic' || activeActionMode === 'skill') && isJadeAwakened(attacker, 'jade_wengu')) {
+      target.burnTurns = Math.max(target.burnTurns, 2);
+    }
+    if ((activeActionMode === 'skill' || activeActionMode === 'ult') && hasJade(attacker, 'jade_qiaoyan')) {
+      const qChance = isJadeAwakened(attacker, 'jade_qiaoyan') ? 1.0 : 0.5;
+      if (Math.random() < qChance) {
+        target.vulnerableTurns = Math.max(target.vulnerableTurns, 2);
+        spawnFloatText(target.r, target.c, '巧言・易傷！', 'info');
+      }
+    }
   }
   // 【春秋筆】絕招／大絕命中存活敵軍時追加 1 種隨機負面狀態
   if (target.hp > 0 && target.team === 'enemy' && activeSkillPen40 && attacker && attacker.equip && attacker.equip.weapon === 'chunqiu_pen') {
@@ -8751,12 +9466,41 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
       fallenAllies.push(target);
     }
     spawnFloatText(target.r, target.c, '擊破！', 'info');
+    // v1.27 玉簡擊殺觸發（《見義勇為》覺醒《富而可求》《雷厲風行》）
+    if (target.team === 'enemy' && attacker && attacker.team === 'player' && attacker.hp > 0) {
+      if (isJadeAwakened(attacker, 'jade_jianyi')) {
+        attacker.qi = Math.min(100, attacker.qi + 25);
+        spawnFloatText(attacker.r, attacker.c, '見義+25氣', 'taiji');
+      }
+      if (hasJade(attacker, 'jade_fuqiu')) {
+        saveData.gold += 100; persistSave();
+        spawnFloatText(attacker.r, attacker.c, '富而可求+100兩', 'taiji');
+      }
+      if (hasJade(attacker, 'jade_leili')) {
+        attacker._leiliKillTrigger = true;
+      }
+    }
     // 【春秋筆・真】每回合首次擊殺敵軍立刻 +35 氣並獲得 1 次再動
     if (target.team === 'enemy' && attacker && attacker.team === 'player' && attacker.hp > 0 && attacker.equip && attacker.equip.weapon === 'chunqiu_pen' && !attacker.chunqiuExtraUsed) {
       attacker.chunqiuExtraUsed = true;
       attacker.chunqiuPendingExtra = true;
       attacker.qi = Math.min(100, attacker.qi + 35);
       spawnFloatText(attacker.r, attacker.c, '春秋筆+35氣/再動！', 'taiji');
+    }
+    // 清理已陣亡首領的蓄力死域
+    if (target.team === 'enemy' && bossTelegraphs.some(bt => bt.bossId === target.id)) {
+      bossTelegraphs = bossTelegraphs.filter(bt => bt.bossId !== target.id);
+      renderGrid();
+    }
+    // v1.28 敵將特質【同仇敵愾】：周圍 2 格敵軍陣亡時，攻擊永久 +15% 並獲 20% 護盾
+    if (target.team === 'enemy') {
+      units.filter(e => e.team === 'enemy' && e.hp > 0 && e.id !== target.id && hasEnemyTrait(e, 'vengeful') && manhattan(e.r, e.c, target.r, target.c) <= 2).forEach(ve => {
+        ve.vengefulStacks = Math.min(5, (ve.vengefulStacks || 0) + 1);
+        const vSh = Math.round(ve.maxHp * 0.20);
+        ve.shield = (ve.shield || 0) + vSh;
+        spawnFloatText(ve.r, ve.c, `同仇！攻+15%/+${vSh}盾`, 'dmg');
+        addLog(`⚠ ${ve.name} 觸發【同仇敵愾】！攻擊疊加至 +${ve.vengefulStacks * 15}% 並獲得 ${vSh} 護盾！`, 'enemy');
+      });
     }
     // 【德不孤，必有鄰】敵軍陣亡時，周圍 2 格存活敵軍回血 20% 並攻防 +20%(1回合)
     if (target.team === 'enemy' && hasActiveAffix('not_alone')) {
@@ -8775,6 +9519,54 @@ async function applyDamage(target, dmg, isCrit, isTrue = false, attacker = null)
     const cd = calcDamage(getEffectiveStats(target).atk * 1.5, getEffectiveStats(attacker).def, false, attacker);
     spawnFloatText(target.r, target.c, '150%反擊！', 'taiji'); await playLunge(target, attacker.r, attacker.c); await applyDamage(attacker, cd, false, false, null);
   }
+}
+
+function shouldBossHexSteal() {
+  if (!activeStage) return false;
+  if (activeStage.isTowerFloor) return activeStage.floor >= 11;
+  return (activeStage.enemyScale || 1) >= 2.0;
+}
+
+async function bossFlipHexagram(boss) {
+  const playerJadeTrigrams = new Set();
+  units.filter(p => p.team === 'player' && p.hp > 0 && Array.isArray(p.jadeSlips)).forEach(p => {
+    p.jadeSlips.forEach(jid => { if (DATA_JADE_SLIPS[jid]) playerJadeTrigrams.add(DATA_JADE_SLIPS[jid].trigram); });
+  });
+  const preferred = ['li', 'qian', 'kun', 'kan', 'zhen', 'gen', 'dui', 'xun'];
+  const curId = getHex().id;
+  let pickId = preferred.find(id => id !== curId && !playerJadeTrigrams.has(id))
+    || preferred.find(id => id !== curId)
+    || 'li';
+  const idx = DATA_HEXAGRAMS.findIndex(h => h.id === pickId);
+  if (idx < 0) return;
+  hexIndex = idx;
+  hexCountdown = hasActiveAffix('time_flows') ? 1 : 2;
+  applyHexagramTerrain();
+  AudioManager.play('ult');
+  triggerCameraShake(7, 240);
+  spawnVfx(boss.r, boss.c, true, `逆天改命・${getHex().name}！`, 'domain', '#c83e37');
+  addLog(`⚠ ${boss.name} 發動【逆天改命】，強行將天時改寫為【${getHex().name}】！`, 'hex');
+  renderBattleTop();
+  renderGrid();
+  await sleep(360);
+}
+
+function buildBossTelegraphTiles(players) {
+  let bestCenter = players[0], bestHits = -1;
+  for (const p of players) {
+    const cnt = players.filter(o => Math.abs(o.r - p.r) <= 1 && Math.abs(o.c - p.c) <= 1).length;
+    if (cnt > bestHits) { bestHits = cnt; bestCenter = p; }
+  }
+  const tiles = [];
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      const nr = bestCenter.r + dr, nc = bestCenter.c + dc;
+      if (nr >= 0 && nr < GRID_SIZE && nc >= 0 && nc < GRID_SIZE && grid[nr][nc] !== 1) {
+        tiles.push({ r: nr, c: nc });
+      }
+    }
+  }
+  return tiles;
 }
 
 async function endPlayerTurn() {
@@ -8809,6 +9601,13 @@ async function endPlayerTurn() {
     await sleep(320);
   }
 
+  // 《富而可求》本命坤覺醒：我方回合結束時為周圍 2 格友軍賦予 25 點護盾
+  units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower && isJadeAwakened(p, 'jade_fuqiu')).forEach(holder => {
+    units.filter(a => a.team === 'player' && a.hp > 0 && !a.isTower && manhattan(holder.r, holder.c, a.r, a.c) <= 2).forEach(a => {
+      a.shield = (a.shield || 0) + 25;
+      spawnFloatText(a.r, a.c, '富而+25盾', 'heal');
+    });
+  });
   // 冉有【瞭望箭塔】於玩家回合結束自動射擊 3 格內敵軍
   for (const tower of units.filter(u => u.team === 'player' && u.isTower && u.hp > 0)) {
     const twRange = tower.range || 3;
@@ -8845,12 +9644,24 @@ async function endPlayerTurn() {
     if (checkVictoryOrDefeat() || enemy.hp <= 0) return;
     enemy.overwatch = false;
     enemy.ambushGuard = false;
-    let enemyAttackedThisTurn = false;
-    focusCameraOn(enemy.r, enemy.c);
-    await sleep(220);
+    const isPhase2DoubleBoss = Boolean(enemy.enemyType === 'boss' && enemy.phase === 2 && activeStage && activeStage.isTowerFloor && activeStage.floor >= 15);
+    const maxEnemyActs = isPhase2DoubleBoss ? 2 : 1;
 
-    // 泰山婦人【苛政猛於虎】敵軍行動時觸發猛虎撕咬
-    if (enemy.harshTaxTurns > 0) {
+    for (let actIdx = 0; actIdx < maxEnemyActs; actIdx++) {
+    if (checkVictoryOrDefeat() || enemy.hp <= 0) break;
+    if (actIdx === 1) {
+      spawnFloatText(enemy.r, enemy.c, '⚡ 首領二動！', 'dmg');
+      addLog(`⚠ ${enemy.name} 觸發二階段【雙重行動】！`, 'enemy');
+      await sleep(200);
+    }
+    let enemyAttackedThisTurn = false;
+    enemy._movedStepsThisTurn = 0;
+    enemy._shieldBreak2x = false;
+    focusCameraOn(enemy.r, enemy.c);
+    await sleep(190);
+
+    // 泰山婦人【苛政猛於虎】敵軍行動時觸發猛虎撕咬（每回合首動觸發）
+    if (actIdx === 0 && enemy.harshTaxTurns > 0) {
       const tsUnit = getUnitById('p_taishan');
       const tsEx = Boolean(tsUnit && tsUnit.equip && tsUnit.equip.weapon === 'ex_taishan');
       spawnFloatText(enemy.r, enemy.c, '猛虎撕咬！', 'dmg');
@@ -8859,11 +9670,58 @@ async function endPlayerTurn() {
         tsUnit.qi = Math.min(100, tsUnit.qi + 25);
         spawnFloatText(tsUnit.r, tsUnit.c, '泣血+25氣', 'taiji');
       }
-      if (checkVictoryOrDefeat() || enemy.hp <= 0) continue;
+      if (checkVictoryOrDefeat() || enemy.hp <= 0) break;
     }
 
-    if (enemy.stunned) { enemy.stunned = false; spawnFloatText(enemy.r, enemy.c, '暈眩', 'info'); continue; }
-    if (enemy.sleepTurns > 0) { enemy.sleepTurns--; spawnFloatText(enemy.r, enemy.c, 'Zzz', 'info'); continue; }
+    // 檢查首領是否有待引爆的【赤紅死域】
+    const pendTeleIdx = bossTelegraphs.findIndex(bt => bt.bossId === enemy.id);
+    if (enemy.stunned || enemy.sleepTurns > 0) {
+      if (pendTeleIdx >= 0) {
+        bossTelegraphs.splice(pendTeleIdx, 1);
+        renderGrid();
+        spawnFloatText(enemy.r, enemy.c, '死域蓄力中斷！', 'taiji');
+        addLog(`✓ ${enemy.name} 因受控，【赤紅死域】蓄力被打斷！`, 'player');
+      }
+      if (enemy.stunned) { enemy.stunned = false; spawnFloatText(enemy.r, enemy.c, '暈眩', 'info'); }
+      else { enemy.sleepTurns--; spawnFloatText(enemy.r, enemy.c, 'Zzz', 'info'); }
+      break;
+    }
+    if (pendTeleIdx >= 0) {
+      const tele = bossTelegraphs.splice(pendTeleIdx, 1)[0];
+      renderGrid();
+      if (enemy.silenceTurns > 0 || enemy.doubtTurns > 0) {
+        spawnFloatText(enemy.r, enemy.c, '沉默打斷死域！', 'taiji');
+        addLog(`✓ ${enemy.name} 處於沉默／懷疑狀態，【赤紅死域】蓄力中斷！`, 'player');
+      } else {
+        await playAnimWithHitSync(enemy, 'cast', async () => {
+          AudioManager.play('thunder'); triggerImpactFrame(); triggerCameraShake(9, 280);
+          spawnVfx(enemy.r, enemy.c, true, '赤紅死域・引爆！', 'domain', '#c83e37');
+          const tMult = enemy.phase === 2 ? 1.65 : 1.40;
+          for (const cell of tele.tiles) {
+            VfxEngine.spawnSkyPillar(cell.r, cell.c, '#c83e37', true);
+            VfxEngine.spawnGroundScar(cell.r, cell.c, 'crack', '#c83e37', 1.3);
+            const occ = getUnitAt(cell.r, cell.c);
+            if (occ && occ.team === 'player' && occ.hp > 0) {
+              const dmg = calcDamage(getEffectiveStats(enemy).atk * tMult, getEffectiveStats(occ).def * 0.6, false, occ);
+              await applyDamage(occ, dmg, false, false, enemy);
+              if (occ.hp > 0 && !(occ.shield > 0 && isJadeAwakened(occ, 'jade_houde'))) {
+                occ.stunned = true;
+                spawnFloatText(occ.r, occ.c, '死域暈眩！', 'dmg');
+              }
+            }
+          }
+          addLog(`🔥 ${enemy.name} 引爆【赤紅死域】！未撤離的紅區我軍遭受毀滅打擊並暈眩！`, 'enemy');
+        });
+        if (checkVictoryOrDefeat()) return;
+        await sleep(160);
+        continue;
+      }
+    }
+
+    // 首領每 3 回合自動發動【逆天改命】搶卦
+    if (actIdx === 0 && enemy.enemyType === 'boss' && turnNumber % 3 === 0 && enemy.silenceTurns <= 0 && enemy.doubtTurns <= 0 && shouldBossHexSteal()) {
+      await bossFlipHexagram(enemy);
+    }
 
     // 混亂狀態（宰我／南子）：隨機攻擊最近的單位（含敵友）
     if (enemy.confusedTurns > 0) {
@@ -8919,6 +9777,40 @@ async function endPlayerTurn() {
           continue;
         }
       }
+      // 策士【奪氣驅散】：若我方有高氣(≥80)或厚盾(≥35)單位，優先抽氣並驅散 1 個增益
+      const drainCand = players.filter(p => !p.isTower && (p.qi >= 80 || p.shield >= 35))
+        .sort((a, b) => (b.qi + b.shield) - (a.qi + a.shield))[0];
+      if (drainCand && enemy.silenceTurns <= 0 && enemy.doubtTurns <= 0) {
+        if (manhattan(enemy.r, enemy.c, drainCand.r, drainCand.c) > eRange && eStats.move > 0) {
+          const reach = computeReachable(enemy); let bestMove = null, bestSc = 999;
+          for (const [k, info] of reach.entries()) {
+            const [rr, cc] = k.split(',').map(Number);
+            const dT = manhattan(rr, cc, drainCand.r, drainCand.c);
+            const sc = dT <= eRange ? -10 : dT * 2;
+            if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
+          }
+          if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
+        }
+        if (manhattan(enemy.r, enemy.c, drainCand.r, drainCand.c) <= eRange) {
+          await playAnimWithHitSync(enemy, 'cast', async () => {
+            AudioManager.play('bell');
+            await VfxEngine.fireProjectile(enemy.r, enemy.c, drainCand.r, drainCand.c, 'orb', '#9370a8');
+            const drained = Math.min(drainCand.qi, 35);
+            drainCand.qi = Math.max(0, drainCand.qi - 35);
+            let dispelled = '';
+            if (drainCand.buffTurns > 0) { drainCand.buffTurns = 0; dispelled = '・消受教'; }
+            else if (drainCand.hasteBuffTurns > 0) { drainCand.hasteBuffTurns = 0; dispelled = '・消弦歌'; }
+            else if (drainCand.defStanceTurns > 0) { drainCand.defStanceTurns = 0; dispelled = '・消防姿'; }
+            else if (drainCand.dodgeTurns > 0) { drainCand.dodgeTurns = 0; dispelled = '・消閃避'; }
+            const dDmg = calcDamage(eStats.atk * 0.75, getEffectiveStats(drainCand).def, false, drainCand);
+            await applyDamage(drainCand, dDmg, false, false, enemy);
+            if (drainCand.hp > 0) spawnFloatText(drainCand.r, drainCand.c, `奪氣-${drained}${dispelled}`, 'dmg');
+            addLog(`⚠ ${enemy.name} 對 ${drainCand.name} 施展【奪氣驅散】，抽走 ${drained} 氣${dispelled}並造成 ${dDmg} 傷！`, 'enemy');
+          });
+          await sleep(130);
+          continue;
+        }
+      }
     }
 
     // B. 目標鎖定策略：輕騎專切後排軟甲、弓手狙擊顏回/低防、其餘兼顧距離與殘血集火
@@ -8950,7 +9842,7 @@ async function endPlayerTurn() {
         }
         if (sc < bestSc) { bestSc = sc; bestMove = info.path; }
       }
-      if (bestMove && bestMove.length) { await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
+      if (bestMove && bestMove.length) { enemy._movedStepsThisTurn = bestMove.length; await moveUnitSmooth(enemy, bestMove, false); setState(STATE.ENEMY_TURN); }
     }
 
     // D. 菁英將領與首領專屬冷卻戰技（每 2 回合發動，被沉默/懷疑人生時無法施放）
@@ -8968,19 +9860,15 @@ async function endPlayerTurn() {
             });
           }
         } else if (enemy.enemyType === 'boss') {
-          const aoeTargets = players.filter(p => manhattan(enemy.r, enemy.c, p.r, p.c) <= 2);
-          if (aoeTargets.length > 0) {
+          const teleTiles = buildBossTelegraphTiles(players);
+          if (teleTiles.length > 0) {
             usedSpecialSkill = true; enemy.skillCd = 2;
+            bossTelegraphs.push({ bossId: enemy.id, tiles: teleTiles });
             await playAnimWithHitSync(enemy, 'cast', async () => {
-              AudioManager.play('ult'); triggerCameraShake(5, 200);
-              spawnVfx(enemy.r, enemy.c, true, enemy.phase === 2 ? '心魔噬魂・極' : '心魔噬魂！', 'domain', '#9370a8'); VfxEngine.spawnClaw(enemy.r, enemy.c, '#9370a8');
-              const mult = enemy.phase === 2 ? 1.35 : 1.15;
-              for (const vt of aoeTargets) {
-                const dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(vt).def, false, vt);
-                await applyDamage(vt, dmg, false, false, enemy);
-                if (vt.hp > 0) { vt.vulnerableTurns = Math.max(vt.vulnerableTurns, 1); spawnFloatText(vt.r, vt.c, '易傷！', 'info'); }
-              }
-              addLog(`⚠ ${enemy.name} 施展【心魔噬魂】震懾周圍 2 格我軍並附加易傷！`, 'enemy');
+              AudioManager.play('bell'); triggerCameraShake(4, 160);
+              spawnVfx(enemy.r, enemy.c, true, '蓄力・赤紅死域！', 'domain', '#c83e37');
+              renderGrid();
+              addLog(`⚠ ${enemy.name} 標記【赤紅死域】蓄力中！下回合將引爆紅區（可撤離或用沉默／暈眩打斷）！`, 'enemy');
             });
           }
         }
@@ -9024,15 +9912,27 @@ async function endPlayerTurn() {
       const isCrit = Math.random() < enemyCritChance;
       await playAnimWithHitSync(enemy, isCrush ? 'cast' : 'attack', async () => {
         await playLunge(enemy, atkT.r, atkT.c);
-        const mult = isCrush ? 1.35 : 1.0;
+        const isCavBreak = Boolean(enemy.enemyType === 'cavalry' && (enemy._movedStepsThisTurn || 0) >= 3);
+        enemy._shieldBreak2x = isCavBreak;
+        const mult = (isCrush ? 1.35 : 1.0) * (isCavBreak ? 1.30 : 1.0);
         let dmg = calcDamage(getEffectiveStats(enemy).atk * mult, getEffectiveStats(atkT).def, isCrit, atkT);
         if (counterChoice === 'defend') dmg = Math.max(1, Math.round(dmg * 0.7));
         if (isCrush) { triggerCameraShake(5, 180); spawnVfx(atkT.r, atkT.c, true, '破陣重擊！', 'slash', '#c83e37'); }
-        else { await playAttackVfx(enemy, atkT); }
+        else {
+          if (isCavBreak) spawnFloatText(enemy.r, enemy.c, '破盾突襲！', 'dmg');
+          await playAttackVfx(enemy, atkT);
+        }
         await applyDamage(atkT, dmg, isCrit, false, enemy);
+        enemy._shieldBreak2x = false;
         if (atkT.hp > 0 && (isCrush || enemy.enemyType === 'strategist')) {
-          atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
-          spawnFloatText(atkT.r, atkT.c, '破防！', 'info');
+          if (!(atkT.shield > 0 && isJadeAwakened(atkT, 'jade_houde'))) {
+            atkT.defBreakTurns = Math.max(atkT.defBreakTurns, 2);
+            spawnFloatText(atkT.r, atkT.c, '破防！', 'info');
+          }
+        }
+        if (atkT.hp > 0 && enemy.enemyType === 'archer') {
+          atkT.grievousTurns = Math.max(atkT.grievousTurns, 2);
+          spawnFloatText(atkT.r, atkT.c, '毒矢重傷！', 'info');
         }
         if (atkT.hp > 0 && hasActiveAffix('inner_trouble') && Math.random() < 0.5) {
           if (Math.random() < 0.5) { atkT.internalBleedTurns = Math.max(atkT.internalBleedTurns, 2); spawnFloatText(atkT.r, atkT.c, '蕭牆・內傷', 'info'); }
@@ -9056,6 +9956,7 @@ async function endPlayerTurn() {
       renderGrid(); renderUnits();
     }
     await sleep(130);
+    } // end actIdx (Boss Phase 2 double action)
   }
 
   setState(STATE.TURN_END_CHECK);
@@ -9087,7 +9988,8 @@ async function endPlayerTurn() {
   units.forEach(u => {
     if (u.hp <= 0) return;
     u.ap = u.isTower ? 0 : u.maxAp; u.moved = false; u.acted = false; u.hasActedThisTurn = false; u.chunqiuPendingExtra = false; u.postMoveOnly = false; u.moveDistThisTurn = 0; u.chunqiuExtraUsed = false; u.ultAlert = false;
-    ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
+    if (u.team === 'enemy' && hasEnemyTrait(u, 'cicada')) u.cicadaReady = true;
+    ['buffTurns','hasteBuffTurns','defBreakTurns','invincibleTurns','lockHpTurns','vulnerableTurns','frozenTurns','silenceTurns','harshTaxTurns','shakenTurns','doubtTurns','grievousTurns','defStanceTurns','fortressTurns','armorBrokenTurns','tauntTurns','dodgeTurns','dodgeCounterTurns','stealthTurns','linkTurns'].forEach(k => {
       if (u[k] > 0) u[k]--;
     });
     if (u.linkTurns <= 0) u.linkGuardianId = null;
@@ -9129,6 +10031,34 @@ async function endPlayerTurn() {
   units.filter(p => p.team === 'player' && p.hp > 0 && p.fortressTurns > 0 && p.equip && p.equip.weapon === 'ex_zhonggong').forEach(zg => {
     const hh = Math.min(zg.maxHp - zg.hp, Math.round(zg.maxHp * 0.15));
     if (hh > 0) { zg.hp += hh; spawnFloatText(zg.r, zg.c, `重劍回血+${hh}`, 'heal'); }
+  });
+  // v1.27 玉簡每回合開始觸發（《厚德載物》《克己復禮》）
+  units.filter(p => p.team === 'player' && p.hp > 0 && !p.isTower).forEach(p => {
+    p.leiliDodgeBoost = false;
+    if (hasJade(p, 'jade_houde')) {
+      const sh = Math.round(p.maxHp * 0.15);
+      p.shield = (p.shield || 0) + sh;
+      spawnFloatText(p.r, p.c, `厚德+${sh}盾`, 'heal');
+    }
+    if (hasJade(p, 'jade_keji')) {
+      const hh = Math.min(p.maxHp - p.hp, Math.round(p.maxHp * 0.08));
+      if (hh > 0) p.hp += hh;
+      let cleansed = false;
+      const debuffKeys = ['stunned','sleepTurns','defBreakTurns','burnTurns','internalBleedTurns','vulnerableTurns','confusedTurns','frozenTurns','silenceTurns','shakenTurns','doubtTurns'];
+      for (const dk of debuffKeys) {
+        if (dk === 'stunned' && p.stunned) { p.stunned = false; cleansed = true; break; }
+        if (dk !== 'stunned' && p[dk] > 0) { p[dk] = 0; cleansed = true; break; }
+      }
+      if (cleansed && isJadeAwakened(p, 'jade_keji')) {
+        p.qi = Math.min(100, p.qi + 20);
+        units.filter(e => e.team === 'enemy' && e.hp > 0 && manhattan(p.r, p.c, e.r, e.c) <= 2).forEach(e => {
+          e.internalBleedTurns = Math.max(e.internalBleedTurns, 2);
+        });
+        spawnFloatText(p.r, p.c, `克己淨化+20氣`, 'taiji');
+      } else if (cleansed || hh > 0) {
+        spawnFloatText(p.r, p.c, `克己${cleansed ? '淨化' : ''}${hh > 0 ? `+${hh}HP` : ''}`, 'heal');
+      }
+    }
   });
   const firstP = units.find(u => u.team === 'player' && u.hp > 0 && !u.isTower);
   if (firstP) focusCameraOn(firstP.r, firstP.c);
@@ -9268,6 +10198,16 @@ async function triggerBattleVictory() {
       dropMsg += ` 🔨 獲得鍛造素材【${DATA_MATERIALS[mid].name}】！`;
     }
   }
+  if (!isTower) {
+    const stageJade = getJadeForStage(activeStage.id);
+    if (stageJade) {
+      if (!saveData.jadeSlips) saveData.jadeSlips = {};
+      if (!saveData.jadeSlips[stageJade.id]) {
+        saveData.jadeSlips[stageJade.id] = 1;
+        dropMsg += ` ☯ 獲得【${TRIGRAM_LABELS[stageJade.trigram]}卦玉簡・${stageJade.name}】！`;
+      }
+    }
+  }
   if (isFirstClear && activeStage.firstClearBonusItems) {
     const bNames = { suxiu: '束脩', bento: '簞食瓢飲', yarrow: '蓍草', potion: '一般傷藥' };
     const parts = [];
@@ -9284,7 +10224,9 @@ async function triggerBattleVictory() {
     if (activeStage.floor === 5) {
       Object.values(saveData.roster).forEach(r => { r.liuyiPts = (r.liuyiPts || 0) + 2; });
       saveData.items.suxiu = (saveData.items.suxiu || 0) + 3;
-      recruitBanner = `<div class="recruit-callout">🏆 【而立境突破】全軍永久 +2 點六藝天賦點 ＋ 束脩 ×3！</div>`;
+      if (!saveData.jadeSlips) saveData.jadeSlips = {};
+      saveData.jadeSlips.jade_zhishan = 1;
+      recruitBanner = `<div class="recruit-callout">🏆 【而立境突破】全軍永久 +2 六藝點 ＋ 束脩 ×3 ＋ ☯ 獲得【艮卦玉簡・止於至善】！</div>`;
     } else if (activeStage.floor === 10) {
       saveData.equipInventory.chunqiu_pen = (saveData.equipInventory.chunqiu_pen || 0) + 1;
       recruitBanner = `<div class="recruit-callout">🏆 【不惑境突破】獲得超越神兵【春秋筆・真】（攻+24、穿防50%、擊殺+35氣並再動）！</div>`;
@@ -9618,6 +10560,8 @@ function renderGrid() {
   const sel = getUnitById(selectedUnitId);
   const activeShields = units.filter(e => e.team === 'enemy' && e.hp > 0 && e.enemyType === 'soldier' && !e.stunned && e.sleepTurns <= 0 && e.frozenTurns <= 0);
   const owArchers = getActiveOverwatchArchers().map(a => ({ r: a.r, c: a.c, rng: getEffectiveStats(a).range }));
+  const dangerSet = new Set();
+  bossTelegraphs.forEach(bt => bt.tiles.forEach(pt => dangerSet.add(keyOf(pt.r, pt.c))));
   for (let r = 0; r < GRID_SIZE; r++) {
     for (let c = 0; c < GRID_SIZE; c++) {
       const t = tileDomPool[r][c], k = keyOf(r, c);
@@ -9625,6 +10569,7 @@ function renderGrid() {
       if (grid[r][c] !== 1 && grid[r][c] !== 3) {
         if (activeShields.some(s => manhattan(r, c, s.r, s.c) === 1)) cls += ' zoc-tile';
         if (owArchers.some(a => manhattan(r, c, a.r, a.c) <= a.rng && !(a.r === r && a.c === c))) cls += ' overwatch-zone';
+        if (dangerSet.has(k)) cls += ' boss-danger-zone';
       }
       if (sel && sel.r === r && sel.c === c) cls += ' selected-tile';
       if (actionMode === 'move' && reachableTiles.has(k)) cls += ' move-range';
@@ -9793,9 +10738,14 @@ function renderUnits() {
     const hpPct = Math.max(0, Math.round((u.hp / u.maxHp) * 100));
     const qiPct = Math.max(0, Math.round((u.qi / u.maxQi) * 100));
     const flags = [];
+    if (u.team === 'enemy' && bossTelegraphs.some(bt => bt.bossId === u.id)) flags.push('蓄');
+    if (u.cicadaReady) flags.push('蟬');
+    if (hasEnemyTrait(u, 'counter_master')) flags.push('反');
+    if (hasEnemyTrait(u, 'vengeful')) flags.push('仇');
     if (u.overwatch && !u.stunned && u.sleepTurns <= 0 && u.frozenTurns <= 0) flags.push('戒');
     if (u.ambushGuard) flags.push('襲');
     if (u.ultAlert) flags.push('警');
+    if (u.grievousTurns > 0) flags.push('傷');
     if (u.invincibleTurns > 0) flags.push('無敵');
     if (u.lockHpTurns > 0) flags.push('鎖血');
     if (u.fatalShield) flags.push('齋');
@@ -9896,6 +10846,9 @@ function renderBottomCapsule() {
   const detailBtn = saveData.roster[u.id]
     ? `<button class="btn sm" style="min-height:26px; padding:2px 7px; font-size:0.68rem;" onclick="openCharDetail('${u.id}')">詳情</button>`
     : '';
+  const traitTagHtml = (u.team === 'enemy' && Array.isArray(u.enemyTraits) && u.enemyTraits.length)
+    ? `<span style="font-size:0.65rem; color:#f0a45d; font-weight:800;">${u.enemyTraits.map(tid => `【${DATA_ENEMY_TRAITS[tid]?.name || tid}】`).join('')}</span>`
+    : '';
   infoEl.innerHTML = `
     ${buildAvatarHtml(u.tplKey || u.id, 'sm', false)}
     <div class="capsule-bars">
@@ -9908,6 +10861,7 @@ function renderBottomCapsule() {
         <span style="color:#79c997; font-weight:800;">HP ${u.hp}/${u.maxHp}</span>
         ${u.team === 'player' ? `<span style="color:#ecd29b; font-weight:800;">氣 ${u.qi}</span>` : ''}
         <span>攻${s.atk} 防${s.def}</span>
+        ${traitTagHtml}
       </div>
     </div>`;
   refreshAllSpriteCanvases();
@@ -11060,7 +12014,7 @@ function renderTowerScene() {
     }).join('');
 
     let msNote = '';
-    if (fl.floor === 5)  msNote = '🎁 首通突破：全軍永久 +2 六藝點 ＋ 束脩×3';
+    if (fl.floor === 5)  msNote = '🎁 首通突破：全軍 +2 六藝點 ＋ 束脩×3 ＋ ☯ 玉簡【止於至善】';
     if (fl.floor === 10) msNote = '🎁 首通突破：超越兵器【春秋筆・真】（攻+24・擊殺再動）';
     if (fl.floor === 15) msNote = '🎁 首通突破：超越禮器【杏壇古琴・真】（2格回氣回血）';
     if (fl.floor === 20) msNote = '👑 首通登頂：終極神兵【太初・獲麟神劍】＋【萬世師表】＋ 解鎖無盡 21F+';
